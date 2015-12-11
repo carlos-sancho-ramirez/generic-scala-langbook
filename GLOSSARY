@@ -1,0 +1,40 @@
+Glossary of terms found within the project
+==========================================
+
+Alphabet
+Set of symbols used in a language.
+
+Array
+A sorted collection of elements of the same kind with a given finite number of
+elements on it.
+
+Concept
+Abstract idea or thought, independent of any language or alphabet.
+
+Field
+An atomic piece of data that can be read from or stored.
+There are lot of different kinds of fields but all or them are in reality
+integers. However any kind is defined to give a meaning to that number, some
+examples of kinds are: indeces, foreign keys...
+
+Index
+A numeric value, that can be 0 or any positive number, used to point to a single
+element within a sorted collection, such as an array.
+
+Language
+Set of words, linked to concepts, that human beings use to communicate
+information among them.
+
+Register
+A defined set of fields.
+
+Set
+An unsorted collection of elements of the same kind with a given finite number
+of elements on it.
+
+Symbol
+A predefined set of points and lines that are drawn always in the same relative
+position. Symbols are considered to be the atomic part of words.
+
+Word
+Representation of a concept in a given language.

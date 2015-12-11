@@ -23,6 +23,8 @@ trait ForeignKeyFieldDefinition extends FieldDefinition {
   def target :RegisterDefinition
 }
 
+object UnicodeFieldDefinition extends FieldDefinition
+
 trait Field {
   def definition :FieldDefinition
   def toString :String
@@ -31,6 +33,11 @@ trait Field {
 case class CharSequenceField(value :String) extends Field {
   override val definition = CharSequenceFieldDefinition
   override val toString = value
+}
+
+case class UnicodeField(value :Register.UnicodeType) extends Field {
+  override val definition = UnicodeFieldDefinition
+  override val toString = value.toChar.toString
 }
 
 /**
@@ -44,6 +51,7 @@ trait RegisterDefinition {
 
 object Register {
   type Key = Long
+  type UnicodeType = Int
 }
 
 trait Register {

@@ -1,8 +1,5 @@
 package sword.langbook.db
 
-/**
- * Definition for fields containing a general-purpose char sequence (string).
- */
 object ConceptReferenceFieldDefinition extends ForeignKeyFieldDefinition {
   def target = Concept
 }

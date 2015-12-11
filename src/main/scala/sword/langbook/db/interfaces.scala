@@ -25,6 +25,14 @@ trait ForeignKeyFieldDefinition extends FieldDefinition {
 
 object UnicodeFieldDefinition extends FieldDefinition
 
+/**
+ * Field that contains 0 or a natural number. Never will be null.
+ *
+ * The value contained in this field is used as an index for a list or array,
+ * understanding the 0 as the first position, 1 for the second and so on.
+ */
+object ArrayIndexFieldDefinition extends FieldDefinition
+
 trait Field {
   def definition :FieldDefinition
   def toString :String
@@ -40,6 +48,11 @@ case class UnicodeField(value :Register.UnicodeType) extends Field {
   override val toString = value.toChar.toString
 }
 
+case class ArrayIndexField(index :Register.Index) extends Field {
+  override val definition = ArrayIndexFieldDefinition
+  override val toString = index.toString
+}
+
 /**
  * Sequence of fields composing a set of data.
  * In SQL terms, this is equivalent to a table row definition excluding the
@@ -50,7 +63,9 @@ trait RegisterDefinition {
 }
 
 object Register {
+  type Index = Int
   type Key = Long
+  type Position = Int
   type UnicodeType = Int
 }
 

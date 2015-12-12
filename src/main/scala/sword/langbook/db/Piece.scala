@@ -1,5 +1,14 @@
 package sword.langbook.db
 
+object PieceReferenceFieldDefinition extends SetReferenceFieldDefinition {
+  def target = Piece
+}
+
+case class PieceReferenceField(piece :Register.Key) extends Field {
+  override val definition = PieceReferenceFieldDefinition
+  override def toString = piece.toString
+}
+
 object Piece extends RegisterDefinition {
   override def fields = Vector(SetIdentifierFieldDefinition, AlphabetReferenceFieldDefinition,
     SymbolArrayReferenceFieldDefinition)

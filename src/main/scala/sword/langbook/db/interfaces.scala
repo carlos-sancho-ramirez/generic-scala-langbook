@@ -12,12 +12,21 @@ package sword.langbook.db
 trait FieldDefinition
 
 /**
- * Definition for fields containing a general-purpose char sequence (string).
+ * When sets are defined within table, following a relational database structure, this identifier
+ * is group diferent registers in a same set. All registers with the same set identifier are
+ * understood to be part of the same set.
  */
-object CharSequenceFieldDefinition extends FieldDefinition
+object SetIdentifierFieldDefinition extends FieldDefinition
 
 /**
- * Definition for fields containing a foreign key to register
+ * Definition for fields containing a value that must match a set identifier value within a register.
+ */
+trait SetReferenceFieldDefinition extends FieldDefinition {
+  def target :RegisterDefinition
+}
+
+/**
+ * Definition for fields containing a foreign key to a register
  */
 trait ForeignKeyFieldDefinition extends FieldDefinition {
   def target :RegisterDefinition
@@ -33,14 +42,19 @@ object UnicodeFieldDefinition extends FieldDefinition
  */
 object ArrayIndexFieldDefinition extends FieldDefinition
 
+/**
+ * Definition for fields containing a general-purpose char sequence (string).
+ */
+object CharSequenceFieldDefinition extends FieldDefinition
+
 trait Field {
   def definition :FieldDefinition
   def toString :String
 }
 
-case class CharSequenceField(value :String) extends Field {
-  override val definition = CharSequenceFieldDefinition
-  override val toString = value
+case class SetIdentifierField(value :Register.SetId) extends Field {
+  override val definition = SetIdentifierFieldDefinition
+  override val toString = value.toString
 }
 
 case class UnicodeField(value :Register.UnicodeType) extends Field {
@@ -51,6 +65,11 @@ case class UnicodeField(value :Register.UnicodeType) extends Field {
 case class ArrayIndexField(index :Register.Index) extends Field {
   override val definition = ArrayIndexFieldDefinition
   override val toString = index.toString
+}
+
+case class CharSequenceField(value :String) extends Field {
+  override val definition = CharSequenceFieldDefinition
+  override val toString = value
 }
 
 /**
@@ -66,6 +85,7 @@ object Register {
   type Index = Int
   type Key = Long
   type Position = Int
+  type SetId = Long
   type UnicodeType = Int
 }
 

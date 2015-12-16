@@ -9,7 +9,7 @@ object Main {
     val manager = new db.MemoryStorageManager(definitions)
 
     val conceptOpt = manager.insert(Concept("English"))
-    conceptOpt.flatMap(concept => manager.get(concept, Concept)) match {
+    conceptOpt.flatMap(concept => manager.get(Concept, concept)) match {
       case Some(Concept(hint)) => println(s"Concept hint is $hint")
       case _ => println("Something went wrong...")
     }

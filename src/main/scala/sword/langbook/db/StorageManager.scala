@@ -16,9 +16,9 @@ abstract class StorageManager(val registerDefinitions :Seq[RegisterDefinition]) 
    * Removes the register with the given key and definition if it exists and it's possible.
    * @param registerDefinition Definition for the register to be removed.
    * @param key Primary key for the register to remove, the one returned by insert method when added.
-   * @return Some instance containing the removed register data, or None if not removed.
+   * @return Whether it has been removed.
    */
-  def delete(registerDefinition: RegisterDefinition, key :Register.Key) :Option[Register]
+  def delete(registerDefinition: RegisterDefinition, key :Register.Key) :Boolean
 
   /**
    * Retrieves the register that matches the given key and definition.

@@ -18,5 +18,7 @@ class MemoryStorageManager(registerDefinitions :Seq[RegisterDefinition]) extends
     tables.get(registerDefinition).flatMap(_.get(key))
   }
 
-  override def delete(registerDefinition: RegisterDefinition, key: Register.Key): Option[Register] = ???
+  override def delete(registerDefinition: RegisterDefinition, key: Register.Key): Boolean = {
+    tables.get(registerDefinition).flatMap(_.remove(key)).isDefined
+  }
 }

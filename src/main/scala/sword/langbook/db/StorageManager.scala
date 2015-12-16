@@ -2,6 +2,10 @@ package sword.langbook.db
 
 abstract class StorageManager(val registerDefinitions :Seq[RegisterDefinition]) {
 
+  if (registerDefinitions.toSet.size < registerDefinitions.size) {
+    throw new IllegalArgumentException("Duplicated register definitions are not allowed")
+  }
+
   /**
    * Add a new register.
    * @return A Some instance with the assigned primary key inside or None in case of error

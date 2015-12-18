@@ -7,12 +7,12 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
   def newStorageManager(registerDefinitions: Seq[RegisterDefinition]): StorageManager
 
   val regDefinition = new RegisterDefinition {
-    override def fields: Seq[FieldDefinition] = List(ArrayIndexFieldDefinition)
+    override val fields = List(ArrayIndexFieldDefinition)
   }
 
   val reg = new Register {
-    override def fields: Seq[Field] = List(ArrayIndexField(5))
-    override def definition: RegisterDefinition = regDefinition
+    override val fields = List(ArrayIndexField(5))
+    override val definition = regDefinition
   }
 
 
@@ -63,5 +63,34 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
 
     storageManager.delete(regDefinition, keyOption.get) shouldBe true
     storageManager.delete(regDefinition, keyOption.get) shouldBe false
+  }
+
+  it can "not delete a register pointed by another one" in {
+    val reg1ForeignKey = new ForeignKeyFieldDefinition {
+      override val target = regDefinition
+    }
+
+    val regDefinition2 = new RegisterDefinition {
+      override val fields = List(reg1ForeignKey)
+    }
+
+    val storageManager = newStorageManager(List(regDefinition, regDefinition2))
+    val keyOption = storageManager.insert(reg)
+    keyOption shouldBe defined
+
+    val reg2 = new Register {
+      override val fields = List(new ForeignKeyField {
+        override val key = keyOption.get
+        override val definition = reg1ForeignKey
+      })
+      override val definition = regDefinition2
+    }
+
+    val keyOption2 = storageManager.insert(reg2)
+    keyOption2 shouldBe defined
+
+    storageManager.delete(regDefinition, keyOption.get) shouldBe false
+    storageManager.delete(regDefinition2, keyOption2.get) shouldBe true
+    storageManager.delete(regDefinition, keyOption.get) shouldBe true
   }
 }

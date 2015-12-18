@@ -4,9 +4,9 @@ object AlphabetReferenceFieldDefinition extends ForeignKeyFieldDefinition {
   def target = Alphabet
 }
 
-case class AlphabetReferenceField(alphabet :Register.Key) extends Field {
+case class AlphabetReferenceField(override val key :Register.Key) extends ForeignKeyField {
   override val definition = AlphabetReferenceFieldDefinition
-  override def toString = alphabet.toString
+  override def toString = key.toString
 }
 
 object Alphabet extends RegisterDefinition {

@@ -7,6 +7,21 @@ abstract class StorageManager(val registerDefinitions :Seq[RegisterDefinition]) 
   }
 
   /**
+   * List all connections between register definitions, being the first the source and the second
+   * the target definition.
+   */
+  val references :Seq[(RegisterDefinition, RegisterDefinition)] = for {
+    regDef <- registerDefinitions
+    fieldDef <- regDef.fields if fieldDef.isInstanceOf[ForeignKeyFieldDefinition]
+  } yield {
+    // TODO: Check that target is included in registerDefinitions
+    (regDef, fieldDef.asInstanceOf[ForeignKeyFieldDefinition].target)
+  }
+
+  val reverseReferences :Map[RegisterDefinition,Seq[RegisterDefinition]] =
+      references.groupBy{ case (s,t) => t}.map { case (t, seq) => (t, seq.map(_._1))}
+
+  /**
    * Add a new register.
    * @return A Some instance with the assigned primary key inside or None in case of error
    */

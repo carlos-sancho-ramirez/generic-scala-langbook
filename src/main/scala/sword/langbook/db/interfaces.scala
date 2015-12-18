@@ -57,6 +57,11 @@ case class SetIdentifierField(value :Register.SetId) extends Field {
   override val toString = value.toString
 }
 
+trait ForeignKeyField extends Field {
+  override def definition :ForeignKeyFieldDefinition
+  def key :Register.Key
+}
+
 case class UnicodeField(value :Register.UnicodeType) extends Field {
   override val definition = UnicodeFieldDefinition
   override val toString = value.toChar.toString

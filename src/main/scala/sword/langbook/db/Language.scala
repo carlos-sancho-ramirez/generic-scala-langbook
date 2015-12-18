@@ -4,9 +4,9 @@ object LanguageReferenceFieldDefinition extends ForeignKeyFieldDefinition {
   def target = Language
 }
 
-case class LanguageReferenceField(language :Register.Key) extends Field {
+case class LanguageReferenceField(override val key :Register.Key) extends ForeignKeyField {
   override val definition = LanguageReferenceFieldDefinition
-  override def toString = language.toString
+  override def toString = key.toString
 }
 
 object Language extends RegisterDefinition {

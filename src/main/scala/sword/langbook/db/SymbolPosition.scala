@@ -12,9 +12,9 @@ object SymbolArrayReferenceFieldDefinition extends ForeignKeyFieldDefinition {
   val target = SymbolPosition
 }
 
-case class SymbolArrayReferenceField(symbolPosition :Register.Key) extends Field {
+case class SymbolArrayReferenceField(override val key :Register.Key) extends ForeignKeyField {
   override val definition = SymbolArrayReferenceFieldDefinition
-  override def toString = symbolPosition.toString
+  override def toString = key.toString
 }
 
 object SymbolPosition extends RegisterDefinition { 

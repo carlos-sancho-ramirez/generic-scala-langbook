@@ -4,9 +4,9 @@ object PieceArrayReferenceFieldDefinition extends ForeignKeyFieldDefinition {
   val target = PiecePosition
 }
 
-case class PieceArrayReferenceField(piecePosition :Register.Key) extends Field {
+case class PieceArrayReferenceField(override val key :Register.Key) extends ForeignKeyField {
   override val definition = PieceArrayReferenceFieldDefinition
-  override def toString = piecePosition.toString
+  override def toString = key.toString
 }
 
 object PiecePosition extends RegisterDefinition {

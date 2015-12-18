@@ -18,7 +18,28 @@ class MemoryStorageManager(registerDefinitions :Seq[RegisterDefinition]) extends
     tables.get(registerDefinition).flatMap(_.get(key))
   }
 
+  private def isReferenced(registerDefinition: RegisterDefinition, key: Register.Key): Boolean = {
+    val referencers = reverseReferences.getOrElse(registerDefinition, Nil)
+    if (referencers.nonEmpty) {
+      val references = for {
+        sourceRegDef <- referencers
+        table <- tables.get(sourceRegDef)
+      } yield {
+        table.exists { case (_,r) =>
+          r.fields.collect { case field :ForeignKeyField => field }
+            .exists(field => field.definition.target == registerDefinition && field.key == key)
+        }
+      }
+
+      references.exists(x => x)
+    }
+    else false
+  }
+
   override def delete(registerDefinition: RegisterDefinition, key: Register.Key): Boolean = {
-    tables.get(registerDefinition).flatMap(_.remove(key)).isDefined
+    println(s"Called delete: isReferenced returned ${isReferenced(registerDefinition, key)}")
+
+    !isReferenced(registerDefinition, key) &&
+      tables.get(registerDefinition).flatMap(_.remove(key)).isDefined
   }
 }

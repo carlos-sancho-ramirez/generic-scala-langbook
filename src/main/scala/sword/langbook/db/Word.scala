@@ -4,9 +4,9 @@ object WordReferenceFieldDefinition extends ForeignKeyFieldDefinition {
   def target = Word
 }
 
-case class WordReferenceField(word :Register.Key) extends Field {
+case class WordReferenceField(override val key :Register.Key) extends ForeignKeyField {
   override val definition = WordReferenceFieldDefinition
-  override def toString = word.toString
+  override def toString = key.toString
 }
 
 object Word extends RegisterDefinition {

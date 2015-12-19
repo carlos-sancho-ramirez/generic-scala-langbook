@@ -1,41 +1,18 @@
 package sword.langbook.db
 
-abstract class StorageManager(val registerDefinitions :Seq[RegisterDefinition]) {
-
-  if (registerDefinitions.toSet.size < registerDefinitions.size) {
-    throw new IllegalArgumentException("Duplicated register definitions are not allowed")
-  }
-
-  val setDefinitions = registerDefinitions.flatMap(_.fields).collect { case x:SetIdentifierFieldDefinition => x }
-
-  if (setDefinitions.toSet.size < setDefinitions.size) {
-    throw new IllegalArgumentException("Duplicated set definitions are not allowed")
-  }
-
-  if (!registerDefinitions.flatMap(_.fields).collect { case x:SetReferenceFieldDefinition => x }
-      .forall(x => setDefinitions.contains(x.target))) {
-    throw new IllegalArgumentException("Found an outer set reference")
-  }
+/**
+ * Trait for basic relational storage.
+ */
+trait StorageManager {
 
   /**
-   * List all connections between register definitions, being the first the source and the second
-   * the target definition.
+   * Sequence for all registerDefinitions that this store manager understand.
+   *
+   * It is expected not to have duplicated register definition within the sequence and being self-contained.
+   * By self-contained it is understood to have all foreign keys and set reference pointing to
+   * register definitions and fields included in this sequence.
    */
-  val references :Seq[(RegisterDefinition, RegisterDefinition)] = for {
-    regDef <- registerDefinitions
-    fieldDef <- regDef.fields if fieldDef.isInstanceOf[ForeignKeyFieldDefinition]
-  } yield {
-    // TODO: Check that target is included in registerDefinitions
-    (regDef, fieldDef.asInstanceOf[ForeignKeyFieldDefinition].target)
-  }
-
-  if (references.exists { case (_,target) => !registerDefinitions.contains(target) }) {
-    throw new IllegalArgumentException("All given register definitions that include a foreign key" +
-        " field must have as target one of the definitions given")
-  }
-
-  val reverseReferences :Map[RegisterDefinition,Seq[RegisterDefinition]] =
-      references.groupBy{ case (s,t) => t}.map { case (t, seq) => (t, seq.map(_._1))}
+  def registerDefinitions :Seq[RegisterDefinition]
 
   /**
    * Add a new register.

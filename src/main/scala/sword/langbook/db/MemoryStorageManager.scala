@@ -1,6 +1,11 @@
 package sword.langbook.db
 
-class MemoryStorageManager(registerDefinitions :Seq[RegisterDefinition]) extends StorageManager(registerDefinitions) {
+/**
+ * Implementation for StorageManager that saves all its data in memory.
+ * This is expected to be faster than other implementations but all data will be lost whenever this
+ * class is garbage collected.
+ */
+class MemoryStorageManager(registerDefinitions :Seq[RegisterDefinition]) extends AbstractStorageManager(registerDefinitions) {
 
   private val tables :Map[RegisterDefinition, scala.collection.mutable.Map[Register.Key, Register]] =
       registerDefinitions.map(d => (d,scala.collection.mutable.Map[Register.Key, Register]())).toMap

@@ -13,16 +13,20 @@ trait FieldDefinition
 
 /**
  * When sets are defined within table, following a relational database structure, this identifier
- * is group diferent registers in a same set. All registers with the same set identifier are
- * understood to be part of the same set.
+ * is here to group different registers in a same set. All registers with the same set identifier
+ * are understood to be part of the same set.
+ *
+ * A register may have more than one set identifier field in case register may be grouped in
+ * different forms. It is important then that every set identifier field definition has its own
+ * instance in order to distinguish them. That's why this is a trait and not an object.
  */
-object SetIdentifierFieldDefinition extends FieldDefinition
+trait SetIdentifierFieldDefinition extends FieldDefinition
 
 /**
  * Definition for fields containing a value that must match a set identifier value within a register.
  */
 trait SetReferenceFieldDefinition extends FieldDefinition {
-  def target :RegisterDefinition
+  def target :SetIdentifierFieldDefinition
 }
 
 /**
@@ -52,8 +56,7 @@ trait Field {
   def toString :String
 }
 
-case class SetIdentifierField(value :Register.SetId) extends Field {
-  override val definition = SetIdentifierFieldDefinition
+case class SetIdentifierField(override val definition :SetIdentifierFieldDefinition, value :Register.SetId) extends Field {
   override val toString = value.toString
 }
 

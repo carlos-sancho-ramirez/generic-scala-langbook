@@ -6,6 +6,17 @@ abstract class StorageManager(val registerDefinitions :Seq[RegisterDefinition]) 
     throw new IllegalArgumentException("Duplicated register definitions are not allowed")
   }
 
+  val setDefinitions = registerDefinitions.flatMap(_.fields).collect { case x:SetIdentifierFieldDefinition => x }
+
+  if (setDefinitions.toSet.size < setDefinitions.size) {
+    throw new IllegalArgumentException("Duplicated set definitions are not allowed")
+  }
+
+  if (!registerDefinitions.flatMap(_.fields).collect { case x:SetReferenceFieldDefinition => x }
+      .forall(x => setDefinitions.contains(x.target))) {
+    throw new IllegalArgumentException("Found an outer set reference")
+  }
+
   /**
    * List all connections between register definitions, being the first the source and the second
    * the target definition.

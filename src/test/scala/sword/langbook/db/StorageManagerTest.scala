@@ -6,12 +6,14 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
 
   def newStorageManager(registerDefinitions: Seq[RegisterDefinition]): StorageManager
 
+  object Reg1SetIdentifierFieldDefinition extends SetIdentifierFieldDefinition
+
   val regDefinition = new RegisterDefinition {
-    override val fields = List(ArrayIndexFieldDefinition)
+    override val fields = List(Reg1SetIdentifierFieldDefinition)
   }
 
   val reg = new Register {
-    override val fields = List(ArrayIndexField(5))
+    override val fields = List(SetIdentifierField(Reg1SetIdentifierFieldDefinition, 23))
     override val definition = regDefinition
   }
 
@@ -23,6 +25,12 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     override val fields = List(reg1ForeignKey)
   }
 
+  val regDefinition3 = new RegisterDefinition {
+    override val fields = List(new SetReferenceFieldDefinition {
+      override val target = Reg1SetIdentifierFieldDefinition
+    })
+  }
+
   behavior of "A storage Manager"
 
   it should "throw an IllegalArgumentException if a duplicated register definition is entered" in {
@@ -31,9 +39,25 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     }
   }
 
+  it should "throw an IllegalArgumentException if a duplicated set definition is entered" in {
+    an [IllegalArgumentException] should be thrownBy {
+      val regDef = new RegisterDefinition {
+        override val fields = Vector(Reg1SetIdentifierFieldDefinition, ArrayIndexFieldDefinition)
+      }
+
+      newStorageManager(List(regDefinition, regDef))
+    }
+  }
+
   it should "throw an IllegalArgumentException if at least one of the given register definitions has a foreign key for a register that is not included in the list" in {
     an [IllegalArgumentException] should be thrownBy {
       newStorageManager(List(regDefinition2))
+    }
+  }
+
+  it should "throw an IllegalArgumentException if at least one of the given register definitions has a set reference that is not included in the list" in {
+    an [IllegalArgumentException] should be thrownBy {
+      newStorageManager(List(regDefinition3))
     }
   }
 

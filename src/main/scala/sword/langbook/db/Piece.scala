@@ -1,12 +1,14 @@
 package sword.langbook.db
 
+import sword.langbook.db.Register.SetId
+
 object PieceReferenceFieldDefinition extends SetReferenceFieldDefinition {
   def target = PieceSetIdentifierFieldDefinition
 }
 
-case class PieceReferenceField(piece :Register.Key) extends Field {
+case class PieceReferenceField(override val setId :Register.SetId) extends SetReferenceField {
   override val definition = PieceReferenceFieldDefinition
-  override def toString = piece.toString
+  override def toString = setId.toString
 }
 
 object PieceSetIdentifierFieldDefinition extends SetIdentifierFieldDefinition

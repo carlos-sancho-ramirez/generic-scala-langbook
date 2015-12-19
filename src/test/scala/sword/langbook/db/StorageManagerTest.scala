@@ -1,6 +1,7 @@
 package sword.langbook.db
 
 import org.scalatest.{Matchers, FlatSpec}
+import sword.langbook.db.Register.SetId
 
 abstract class StorageManagerTest extends FlatSpec with Matchers {
 
@@ -12,8 +13,10 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     override val fields = List(Reg1SetIdentifierFieldDefinition)
   }
 
+  val regSetId :Register.SetId = 23
+
   val reg = new Register {
-    override val fields = List(SetIdentifierField(Reg1SetIdentifierFieldDefinition, 23))
+    override val fields = List(SetIdentifierField(Reg1SetIdentifierFieldDefinition, regSetId))
     override val definition = regDefinition
   }
 
@@ -25,10 +28,12 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     override val fields = List(reg1ForeignKey)
   }
 
+  val reg3SetRefFieldDef = new SetReferenceFieldDefinition {
+    override val target = Reg1SetIdentifierFieldDefinition
+  }
+
   val regDefinition3 = new RegisterDefinition {
-    override val fields = List(new SetReferenceFieldDefinition {
-      override val target = Reg1SetIdentifierFieldDefinition
-    })
+    override val fields = List(reg3SetRefFieldDef)
   }
 
   behavior of "A storage Manager"

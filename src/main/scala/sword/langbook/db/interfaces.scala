@@ -60,6 +60,11 @@ case class SetIdentifierField(override val definition :SetIdentifierFieldDefinit
   override val toString = value.toString
 }
 
+trait SetReferenceField extends Field {
+  override def definition :SetReferenceFieldDefinition
+  def setId :Register.SetId
+}
+
 trait ForeignKeyField extends Field {
   override def definition :ForeignKeyFieldDefinition
   def key :Register.Key

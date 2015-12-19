@@ -28,7 +28,6 @@ abstract class AbstractStorageManager(override val registerDefinitions :Seq[Regi
     regDef <- registerDefinitions
     fieldDef <- regDef.fields if fieldDef.isInstanceOf[ForeignKeyFieldDefinition]
   } yield {
-    // TODO: Check that target is included in registerDefinitions
     (regDef, fieldDef.asInstanceOf[ForeignKeyFieldDefinition].target)
   }
 

@@ -15,12 +15,25 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     override val definition = regDefinition
   }
 
+  val reg1ForeignKey = new ForeignKeyFieldDefinition {
+    override val target = regDefinition
+  }
+
+  val regDefinition2 = new RegisterDefinition {
+    override val fields = List(reg1ForeignKey)
+  }
 
   behavior of "A storage Manager"
 
   it should "throw an IllegalArgumentException if a duplicated register definition is entered" in {
     an [IllegalArgumentException] should be thrownBy {
       newStorageManager(List(regDefinition, regDefinition))
+    }
+  }
+
+  it should "throw an IllegalArgumentException if at least one of the given register definitions has a foreign key for a register that is not included in the list" in {
+    an [IllegalArgumentException] should be thrownBy {
+      newStorageManager(List(regDefinition2))
     }
   }
 
@@ -66,14 +79,6 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
   }
 
   it can "not delete a register pointed by another one" in {
-    val reg1ForeignKey = new ForeignKeyFieldDefinition {
-      override val target = regDefinition
-    }
-
-    val regDefinition2 = new RegisterDefinition {
-      override val fields = List(reg1ForeignKey)
-    }
-
     val storageManager = newStorageManager(List(regDefinition, regDefinition2))
     val keyOption = storageManager.insert(reg)
     keyOption shouldBe defined

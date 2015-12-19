@@ -18,6 +18,11 @@ abstract class StorageManager(val registerDefinitions :Seq[RegisterDefinition]) 
     (regDef, fieldDef.asInstanceOf[ForeignKeyFieldDefinition].target)
   }
 
+  if (references.exists { case (_,target) => !registerDefinitions.contains(target) }) {
+    throw new IllegalArgumentException("All given register definitions that include a foreign key" +
+        " field must have as target one of the definitions given")
+  }
+
   val reverseReferences :Map[RegisterDefinition,Seq[RegisterDefinition]] =
       references.groupBy{ case (s,t) => t}.map { case (t, seq) => (t, seq.map(_._1))}
 

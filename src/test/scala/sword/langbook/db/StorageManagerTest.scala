@@ -78,6 +78,19 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     storageManager.delete(regDefinition, keyOption.get) shouldBe false
   }
 
+  it can "not insert a register pointing to nothing" in {
+    val storageManager = newStorageManager(List(regDefinition, regDefinition2))
+    val reg2 = new Register {
+      override val fields = List(new ForeignKeyField {
+        override val key = 276L
+        override val definition = reg1ForeignKey
+      })
+      override val definition = regDefinition2
+    }
+
+    storageManager.insert(reg2) shouldBe None
+  }
+
   it can "not delete a register pointed by another one" in {
     val storageManager = newStorageManager(List(regDefinition, regDefinition2))
     val keyOption = storageManager.insert(reg)

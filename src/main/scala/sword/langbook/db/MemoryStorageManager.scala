@@ -6,11 +6,23 @@ class MemoryStorageManager(registerDefinitions :Seq[RegisterDefinition]) extends
       registerDefinitions.map(d => (d,scala.collection.mutable.Map[Register.Key, Register]())).toMap
   private var lastKey :Register.Key = 0
 
+  private def hasValidReference(register :Register) :Boolean = {
+    val fields = register.fields.collect { case field :ForeignKeyField => field }
+    fields.isEmpty || fields.forall { field =>
+      tables.getOrElse(field.definition.target, Map[Register.Key, Register]()).contains(field.key)
+    }
+  }
+
   override def insert(register: Register): Option[Register.Key] = {
-    tables.get(register.definition).map { map =>
-      lastKey += 1
-      map.put(lastKey, register)
-      lastKey
+    if (hasValidReference(register)) {
+      tables.get(register.definition).map { map =>
+        lastKey += 1
+        map.put(lastKey, register)
+        lastKey
+      }
+    }
+    else {
+      None
     }
   }
 
@@ -37,8 +49,6 @@ class MemoryStorageManager(registerDefinitions :Seq[RegisterDefinition]) extends
   }
 
   override def delete(registerDefinition: RegisterDefinition, key: Register.Key): Boolean = {
-    println(s"Called delete: isReferenced returned ${isReferenced(registerDefinition, key)}")
-
     !isReferenced(registerDefinition, key) &&
       tables.get(registerDefinition).flatMap(_.remove(key)).isDefined
   }

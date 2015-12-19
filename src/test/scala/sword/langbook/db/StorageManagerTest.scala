@@ -140,4 +140,31 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     storageManager.delete(regDefinition2, keyOption2.get) shouldBe true
     storageManager.delete(regDefinition, keyOption.get) shouldBe true
   }
+
+  it should "return a null set before inserting anything" in {
+    val manager = newStorageManager(List(regDefinition))
+    manager.getKeysFor(regDefinition).isEmpty shouldBe true
+  }
+
+  it should "return only the key for the register inserted" in {
+    val manager = newStorageManager(List(regDefinition))
+    val keyOption = manager.insert(reg)
+    keyOption shouldBe defined
+
+    manager.getKeysFor(regDefinition).size shouldBe 1
+    manager.getKeysFor(regDefinition) should contain (keyOption.get)
+  }
+
+  it should "return only the keys for registers inserted (more than one)" in {
+    val manager = newStorageManager(List(regDefinition))
+    val keyOption1 = manager.insert(reg)
+    keyOption1 shouldBe defined
+
+    val keyOption2 = manager.insert(reg)
+    keyOption2 shouldBe defined
+
+    manager.getKeysFor(regDefinition).size shouldBe 2
+    manager.getKeysFor(regDefinition) should contain (keyOption1.get)
+    manager.getKeysFor(regDefinition) should contain (keyOption2.get)
+  }
 }

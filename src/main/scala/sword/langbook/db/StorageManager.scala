@@ -33,4 +33,9 @@ trait StorageManager {
    * @return A Some instance with the register instance inside of None if not found.
    */
   def get(registerDefinition :RegisterDefinition, key :Register.Key) :Option[Register]
+
+  /**
+   * Get all keys currently included in the given register definition.
+   */
+  def getKeysFor(registerDefinition :RegisterDefinition) :Set[Register.Key]
 }

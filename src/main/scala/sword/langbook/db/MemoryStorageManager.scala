@@ -1,5 +1,7 @@
 package sword.langbook.db
 
+import sword.langbook.db.Register.Key
+
 /**
  * Implementation for StorageManager that saves all its data in memory.
  * This is expected to be faster than other implementations but all data will be lost whenever this
@@ -56,5 +58,9 @@ class MemoryStorageManager(registerDefinitions :Seq[RegisterDefinition]) extends
   override def delete(registerDefinition: RegisterDefinition, key: Register.Key): Boolean = {
     !isReferenced(registerDefinition, key) &&
       tables.get(registerDefinition).flatMap(_.remove(key)).isDefined
+  }
+
+  override def getKeysFor(registerDefinition: RegisterDefinition) = {
+    tables(registerDefinition).keySet.toSet
   }
 }

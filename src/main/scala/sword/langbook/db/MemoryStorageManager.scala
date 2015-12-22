@@ -63,4 +63,9 @@ class MemoryStorageManager(registerDefinitions :Seq[RegisterDefinition]) extends
   override def getKeysFor(registerDefinition: RegisterDefinition) = {
     tables(registerDefinition).keySet.toSet
   }
+
+  override def replace(register: Register, key: Key): Boolean = {
+    tables.get(register.definition).flatMap(_.put(key, register))
+    true
+  }
 }

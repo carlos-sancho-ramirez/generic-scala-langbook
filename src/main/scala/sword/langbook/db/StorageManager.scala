@@ -38,4 +38,12 @@ trait StorageManager {
    * Get all keys currently included in the given register definition.
    */
   def getKeysFor(registerDefinition :RegisterDefinition) :Set[Register.Key]
+
+  /**
+   * Replace an already registered register content, mapped to the given key, with the new given values.
+   * @param register New values for the register
+   * @param key A valid key for the register to replace.
+   * @return true if all was fine, or false in case of any problem.
+   */
+  def replace(register :Register, key :Register.Key) :Boolean
 }

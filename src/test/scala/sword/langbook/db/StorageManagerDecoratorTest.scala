@@ -5,7 +5,7 @@ import org.scalatest.{Matchers, FlatSpec}
 class StorageManagerDecoratorTest extends FlatSpec with Matchers {
 
   def newStorageManagerDecorator(definitions :Seq[RegisterDefinition]) =
-      new StorageManageDecorator(new MemoryStorageManager(definitions))
+      new StorageManagerDecorator(new MemoryStorageManager(definitions))
 
   object setFieldDef extends SetIdentifierFieldDefinition
 

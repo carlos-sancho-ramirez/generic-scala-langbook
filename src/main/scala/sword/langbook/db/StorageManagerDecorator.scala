@@ -1,6 +1,6 @@
 package sword.langbook.db
 
-class StorageManageDecorator(override val wrapped :StorageManager) extends StorageManagerWrapper {
+class StorageManagerDecorator(override val wrapped :StorageManager) extends StorageManagerWrapper {
 
   def getKeysForSet(set: SetIdentifierFieldDefinition, id :Register.SetId) :Set[Register.Key] = {
     val regDef = registerDefinitions.find(_.fields.contains(set)).get

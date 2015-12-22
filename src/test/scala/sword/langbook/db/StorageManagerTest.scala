@@ -185,4 +185,25 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     regOption shouldBe defined
     regOption.get shouldEqual regB
   }
+
+  it can "not replace one register by another if the key is not defined previously" in {
+    val storageManager = newStorageManager(List(regDefinition))
+    val keyOption = storageManager.insert(reg)
+    keyOption shouldBe defined
+
+    val regB = new Register {
+      override val fields = List(SetIdentifierField(Reg1SetIdentifierFieldDefinition, regSetId + 1))
+      override val definition = regDefinition
+    }
+    regB should not equal reg
+
+    val newKey = keyOption.get + 100
+    storageManager.replace(regB, newKey) shouldBe false
+
+    val regOption = storageManager.get(regDefinition, keyOption.get)
+    regOption shouldBe defined
+    regOption.get shouldEqual reg
+
+    storageManager.get(regDefinition, newKey) shouldBe None
+  }
 }

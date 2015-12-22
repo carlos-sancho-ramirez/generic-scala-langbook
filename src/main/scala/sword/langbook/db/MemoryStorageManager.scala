@@ -65,7 +65,6 @@ class MemoryStorageManager(registerDefinitions :Seq[RegisterDefinition]) extends
   }
 
   override def replace(register: Register, key: Key): Boolean = {
-    tables.get(register.definition).flatMap(_.put(key, register))
-    true
+    tables.get(register.definition).filter(_.contains(key)).flatMap(_.put(key, register)).isDefined
   }
 }

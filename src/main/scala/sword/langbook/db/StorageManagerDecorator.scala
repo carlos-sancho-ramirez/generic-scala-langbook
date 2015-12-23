@@ -12,4 +12,10 @@ class StorageManagerDecorator(override val wrapped :StorageManager) extends Stor
       }.map(_ => key)
     }
   }
+
+  def getMapFor(registerDefinition :RegisterDefinition) :scala.collection.Map[Register.Key, Register] = {
+    getKeysFor(registerDefinition).groupBy(x => x).map { case (key, _) =>
+      (key, get(registerDefinition, key).get)
+    }
+  }
 }

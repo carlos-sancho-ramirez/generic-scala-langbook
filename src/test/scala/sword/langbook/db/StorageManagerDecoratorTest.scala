@@ -30,4 +30,25 @@ class StorageManagerDecoratorTest extends FlatSpec with Matchers {
       manager.getKeysForSet(setFieldDef, id) shouldBe expected.toSet
     }
   }
+
+  it should "return a map containing all inserted registers and grouped by their keys" in {
+    val manager = newStorageManagerDecorator(List(regDefWithSet))
+    val inserted = for (i <- 0 until 10) yield {
+      val reg = new Register {
+        override val fields = List(SetIdentifierField(setFieldDef, i))
+        override val definition: RegisterDefinition = regDefWithSet
+      }
+      val result = manager.insert(reg).map(key => (key, reg))
+      result shouldBe defined
+      result.get
+    }
+
+    val map = manager.getMapFor(regDefWithSet)
+    map.size shouldBe inserted.size
+    for (insertion <- inserted) {
+      val opt = map.get(insertion._1)
+      opt shouldBe defined
+      opt.get shouldBe insertion._2
+    }
+  }
 }

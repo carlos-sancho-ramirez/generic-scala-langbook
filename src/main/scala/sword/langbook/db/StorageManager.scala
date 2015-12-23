@@ -46,4 +46,30 @@ trait StorageManager {
    * @return true if all was fine, or false in case of any problem.
    */
   def replace(register :Register, key :Register.Key) :Boolean
+
+  /**
+   * Returns all keys matching registers that contains the given set identifier.
+   * @param set Set Identifier. As set identifiers can only be added in just one registerDefinition,
+   *            this also identifies the register definition where this is included.
+   * @param id identifier value to be filtered
+   */
+  def getKeysForSet(set: SetIdentifierFieldDefinition, id :Register.SetId) :Set[Register.Key] = {
+    val regDef = registerDefinitions.find(_.fields.contains(set)).get
+    getKeysFor(regDef).flatMap { key =>
+      get(regDef, key).filter { reg =>
+        reg.fields.collectFirst { case x: SetIdentifierField if x.definition == set && x.value == id =>
+          x
+        }.nonEmpty
+      }.map(_ => key)
+    }
+  }
+
+  /**
+   * Returns a Map containing all values inserted for a given register definition.
+   */
+  def getMapFor(registerDefinition :RegisterDefinition) :scala.collection.Map[Register.Key, Register] = {
+    getKeysFor(registerDefinition).groupBy(x => x).map { case (key, _) =>
+      (key, get(registerDefinition, key).get)
+    }
+  }
 }

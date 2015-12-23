@@ -242,4 +242,30 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
       opt.get shouldBe insertion._2
     }
   }
+
+  it should "return a map for all registers with the given set id" in {
+    val manager = newStorageManager(List(regDefWithSet))
+    val ids = List[Register.SetId](1,2,3,1,2,1)
+    val inserted = for (id <- ids) yield {
+      val reg = new Register {
+        override val fields = List(SetIdentifierField(setFieldDef, id))
+        override val definition = regDefWithSet
+      }
+      val key = manager.insert(reg).get
+      (key,reg)
+    }
+
+    for (id <- ids.min until ids.max) {
+      val expected = inserted.filter { case (_, reg) =>
+        reg.fields.head.value == id
+      }
+      val map = manager.getMapForSet(setFieldDef, id)
+      map.size shouldBe expected.size
+      for (expectation <- expected) {
+        val value = map.get(expectation._1)
+        value shouldBe defined
+        value.get shouldBe expectation._2
+      }
+    }
+  }
 }

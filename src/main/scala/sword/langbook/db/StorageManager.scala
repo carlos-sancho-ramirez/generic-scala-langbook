@@ -70,4 +70,13 @@ trait StorageManager {
       }.nonEmpty => key
     }.toSet
   }
+
+  def getMapForSet(set: SetIdentifierFieldDefinition, id :Register.SetId) :scala.collection.Map[Register.Key, Register] = {
+    val regDef = registerDefinitions.find(_.fields.contains(set)).get
+    getMapFor(regDef).filter { case (key, reg) =>
+      reg.fields.collectFirst {
+        case x: SetIdentifierField if x.definition == set && x.value == id => x
+      }.nonEmpty
+    }
+  }
 }

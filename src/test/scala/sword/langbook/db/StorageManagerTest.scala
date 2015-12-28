@@ -110,7 +110,7 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     val storageManager = newStorageManager(List(regDefWithSet, regDefinition2))
     val reg2 = new Register {
       override val fields = List(new ForeignKeyField {
-        override val key = 276L
+        override val key = 276
         override val definition = reg1ForeignKey
       })
       override val definition = regDefinition2

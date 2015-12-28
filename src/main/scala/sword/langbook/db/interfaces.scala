@@ -96,9 +96,9 @@ trait RegisterDefinition {
 
 object Register {
   type Index = Int
-  type Key = Long
+  type Key = Int
   type Position = Int
-  type SetId = Long
+  type SetId = Int
   type UnicodeType = Int
 }
 

@@ -6,50 +6,50 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
 
   def newStorageManager(registerDefinitions: Seq[RegisterDefinition]): StorageManager
 
-  object setFieldDef extends SetIdentifierFieldDefinition
+  object collectionFieldDef extends CollectionIdentifierFieldDefinition
 
-  val regDefWithSet = new RegisterDefinition {
-    override val fields = List(setFieldDef)
+  val collectibleRegDef = new RegisterDefinition {
+    override val fields = List(collectionFieldDef)
   }
 
-  val regSetId :Register.SetId = 23
+  val collectibleRegCollectionId :Register.CollectionId = 23
 
-  val regWithSet = new Register {
-    override val fields = List(SetIdentifierField(setFieldDef, regSetId))
-    override val definition = regDefWithSet
+  val collectibleReg = new Register {
+    override val fields = List(CollectionIdentifierField(collectionFieldDef, collectibleRegCollectionId))
+    override val definition = collectibleRegDef
   }
 
   val reg1ForeignKey = new ForeignKeyFieldDefinition {
-    override val target = regDefWithSet
+    override val target = collectibleRegDef
   }
 
   val regDefinition2 = new RegisterDefinition {
     override val fields = List(reg1ForeignKey)
   }
 
-  val reg3SetRefFieldDef = new SetReferenceFieldDefinition {
-    override val target = setFieldDef
+  val reg3CollRefFieldDef = new CollectionReferenceFieldDefinition {
+    override val target = collectionFieldDef
   }
 
   val regDefinition3 = new RegisterDefinition {
-    override val fields = List(reg3SetRefFieldDef)
+    override val fields = List(reg3CollRefFieldDef)
   }
 
   behavior of "A storage Manager"
 
   it should "throw an IllegalArgumentException if a duplicated register definition is entered" in {
     an [IllegalArgumentException] should be thrownBy {
-      newStorageManager(List(regDefWithSet, regDefWithSet))
+      newStorageManager(List(collectibleRegDef, collectibleRegDef))
     }
   }
 
   it should "throw an IllegalArgumentException if a duplicated set definition is entered" in {
     an [IllegalArgumentException] should be thrownBy {
       val regDef = new RegisterDefinition {
-        override val fields = Vector(setFieldDef, ArrayIndexFieldDefinition)
+        override val fields = Vector(collectionFieldDef, ArrayIndexFieldDefinition)
       }
 
-      newStorageManager(List(regDefWithSet, regDef))
+      newStorageManager(List(collectibleRegDef, regDef))
     }
   }
 
@@ -66,48 +66,48 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
   }
 
   it can "insert a register and retrieve it back with the given identifier" in {
-    val storageManager = newStorageManager(List(regDefWithSet))
-    val keyOption = storageManager.insert(regWithSet)
+    val storageManager = newStorageManager(List(collectibleRegDef))
+    val keyOption = storageManager.insert(collectibleReg)
     keyOption shouldBe defined
 
-    val regOption = storageManager.get(regDefWithSet, keyOption.get)
+    val regOption = storageManager.get(collectibleRegDef, keyOption.get)
     regOption shouldBe defined
-    regOption.get shouldEqual regWithSet
+    regOption.get shouldEqual collectibleReg
   }
 
   it can "return a value more than once for the same key" in {
-    val storageManager = newStorageManager(List(regDefWithSet))
-    val keyOption = storageManager.insert(regWithSet)
+    val storageManager = newStorageManager(List(collectibleRegDef))
+    val keyOption = storageManager.insert(collectibleReg)
     keyOption shouldBe defined
 
-    val regOption1 = storageManager.get(regDefWithSet, keyOption.get)
+    val regOption1 = storageManager.get(collectibleRegDef, keyOption.get)
     regOption1 shouldBe defined
-    regOption1.get shouldEqual regWithSet
+    regOption1.get shouldEqual collectibleReg
 
-    val regOption2 = storageManager.get(regDefWithSet, keyOption.get)
+    val regOption2 = storageManager.get(collectibleRegDef, keyOption.get)
     regOption2 shouldBe defined
-    regOption2.get shouldEqual regWithSet
+    regOption2.get shouldEqual collectibleReg
   }
 
   it can "insert a register and delete it using the given identifier" in {
-    val storageManager = newStorageManager(List(regDefWithSet))
-    val keyOption = storageManager.insert(regWithSet)
+    val storageManager = newStorageManager(List(collectibleRegDef))
+    val keyOption = storageManager.insert(collectibleReg)
     keyOption shouldBe defined
 
-    storageManager.delete(regDefWithSet, keyOption.get) shouldBe true
+    storageManager.delete(collectibleRegDef, keyOption.get) shouldBe true
   }
 
   it can "not delete more than once for the same key" in {
-    val storageManager = newStorageManager(List(regDefWithSet))
-    val keyOption = storageManager.insert(regWithSet)
+    val storageManager = newStorageManager(List(collectibleRegDef))
+    val keyOption = storageManager.insert(collectibleReg)
     keyOption shouldBe defined
 
-    storageManager.delete(regDefWithSet, keyOption.get) shouldBe true
-    storageManager.delete(regDefWithSet, keyOption.get) shouldBe false
+    storageManager.delete(collectibleRegDef, keyOption.get) shouldBe true
+    storageManager.delete(collectibleRegDef, keyOption.get) shouldBe false
   }
 
   it can "not insert a register pointing to nothing" in {
-    val storageManager = newStorageManager(List(regDefWithSet, regDefinition2))
+    val storageManager = newStorageManager(List(collectibleRegDef, regDefinition2))
     val reg2 = new Register {
       override val fields = List(new ForeignKeyField {
         override val key = 276
@@ -120,8 +120,8 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
   }
 
   it can "not delete a register pointed by another one" in {
-    val storageManager = newStorageManager(List(regDefWithSet, regDefinition2))
-    val keyOption = storageManager.insert(regWithSet)
+    val storageManager = newStorageManager(List(collectibleRegDef, regDefinition2))
+    val keyOption = storageManager.insert(collectibleReg)
     keyOption shouldBe defined
 
     val reg2 = new Register {
@@ -135,106 +135,106 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     val keyOption2 = storageManager.insert(reg2)
     keyOption2 shouldBe defined
 
-    storageManager.delete(regDefWithSet, keyOption.get) shouldBe false
+    storageManager.delete(collectibleRegDef, keyOption.get) shouldBe false
     storageManager.delete(regDefinition2, keyOption2.get) shouldBe true
-    storageManager.delete(regDefWithSet, keyOption.get) shouldBe true
+    storageManager.delete(collectibleRegDef, keyOption.get) shouldBe true
   }
 
   it should "return a null set before inserting anything" in {
-    val manager = newStorageManager(List(regDefWithSet))
-    manager.getKeysFor(regDefWithSet).isEmpty shouldBe true
+    val manager = newStorageManager(List(collectibleRegDef))
+    manager.getKeysFor(collectibleRegDef).isEmpty shouldBe true
   }
 
   it should "return only the key for the register inserted" in {
-    val manager = newStorageManager(List(regDefWithSet))
-    val keyOption = manager.insert(regWithSet)
+    val manager = newStorageManager(List(collectibleRegDef))
+    val keyOption = manager.insert(collectibleReg)
     keyOption shouldBe defined
 
-    manager.getKeysFor(regDefWithSet).size shouldBe 1
-    manager.getKeysFor(regDefWithSet) should contain (keyOption.get)
+    manager.getKeysFor(collectibleRegDef).size shouldBe 1
+    manager.getKeysFor(collectibleRegDef) should contain (keyOption.get)
   }
 
   it should "return only the keys for registers inserted (more than one)" in {
-    val manager = newStorageManager(List(regDefWithSet))
-    val keyOption1 = manager.insert(regWithSet)
+    val manager = newStorageManager(List(collectibleRegDef))
+    val keyOption1 = manager.insert(collectibleReg)
     keyOption1 shouldBe defined
 
-    val keyOption2 = manager.insert(regWithSet)
+    val keyOption2 = manager.insert(collectibleReg)
     keyOption2 shouldBe defined
 
-    manager.getKeysFor(regDefWithSet).size shouldBe 2
-    manager.getKeysFor(regDefWithSet) should contain (keyOption1.get)
-    manager.getKeysFor(regDefWithSet) should contain (keyOption2.get)
+    manager.getKeysFor(collectibleRegDef).size shouldBe 2
+    manager.getKeysFor(collectibleRegDef) should contain (keyOption1.get)
+    manager.getKeysFor(collectibleRegDef) should contain (keyOption2.get)
   }
 
   it can "replace one register by another with the same definition" in {
-    val storageManager = newStorageManager(List(regDefWithSet))
-    val keyOption = storageManager.insert(regWithSet)
+    val storageManager = newStorageManager(List(collectibleRegDef))
+    val keyOption = storageManager.insert(collectibleReg)
     keyOption shouldBe defined
 
     val regB = new Register {
-      override val fields = List(SetIdentifierField(setFieldDef, regSetId + 1))
-      override val definition = regDefWithSet
+      override val fields = List(CollectionIdentifierField(collectionFieldDef, collectibleRegCollectionId + 1))
+      override val definition = collectibleRegDef
     }
-    regB should not equal regWithSet
+    regB should not equal collectibleReg
 
     storageManager.replace(regB, keyOption.get) shouldBe true
 
-    val regOption = storageManager.get(regDefWithSet, keyOption.get)
+    val regOption = storageManager.get(collectibleRegDef, keyOption.get)
     regOption shouldBe defined
     regOption.get shouldEqual regB
   }
 
   it can "not replace one register by another if the key is not defined previously" in {
-    val storageManager = newStorageManager(List(regDefWithSet))
-    val keyOption = storageManager.insert(regWithSet)
+    val storageManager = newStorageManager(List(collectibleRegDef))
+    val keyOption = storageManager.insert(collectibleReg)
     keyOption shouldBe defined
 
     val regB = new Register {
-      override val fields = List(SetIdentifierField(setFieldDef, regSetId + 1))
-      override val definition = regDefWithSet
+      override val fields = List(CollectionIdentifierField(collectionFieldDef, collectibleRegCollectionId + 1))
+      override val definition = collectibleRegDef
     }
-    regB should not equal regWithSet
+    regB should not equal collectibleReg
 
     val newKey = keyOption.get + 100
     storageManager.replace(regB, newKey) shouldBe false
 
-    val regOption = storageManager.get(regDefWithSet, keyOption.get)
+    val regOption = storageManager.get(collectibleRegDef, keyOption.get)
     regOption shouldBe defined
-    regOption.get shouldEqual regWithSet
+    regOption.get shouldEqual collectibleReg
 
-    storageManager.get(regDefWithSet, newKey) shouldBe None
+    storageManager.get(collectibleRegDef, newKey) shouldBe None
   }
 
-  it should "return all register keys for those register with the given set id" in {
-    val manager = newStorageManager(List(regDefWithSet))
-    val ids = List[Register.SetId](1,2,3,1,2,1)
+  it should "return all register keys for those register with the given collection id" in {
+    val manager = newStorageManager(List(collectibleRegDef))
+    val ids = List[Register.CollectionId](1,2,3,1,2,1)
     val keys = for (id <- ids) yield {
       manager.insert(new Register {
-        override val fields: Seq[Field] = List(SetIdentifierField(setFieldDef, id))
-        override val definition = regDefWithSet
+        override val fields: Seq[Field] = List(CollectionIdentifierField(collectionFieldDef, id))
+        override val definition = collectibleRegDef
       }).get
     }
 
     for (id <- ids.min until ids.max) {
       val expected = ids zip keys filter { case (i,_) => i == id } map { x => x._2 }
-      manager.getKeysForSet(setFieldDef, id) shouldBe expected.toSet
+      manager.getKeysForCollection(collectionFieldDef, id) shouldBe expected.toSet
     }
   }
 
   it should "return a map containing all inserted registers and grouped by their keys" in {
-    val manager = newStorageManager(List(regDefWithSet))
+    val manager = newStorageManager(List(collectibleRegDef))
     val inserted = for (i <- 0 until 10) yield {
       val reg = new Register {
-        override val fields = List(SetIdentifierField(setFieldDef, i))
-        override val definition: RegisterDefinition = regDefWithSet
+        override val fields = List(CollectionIdentifierField(collectionFieldDef, i))
+        override val definition: RegisterDefinition = collectibleRegDef
       }
       val result = manager.insert(reg).map(key => (key, reg))
       result shouldBe defined
       result.get
     }
 
-    val map = manager.getMapFor(regDefWithSet)
+    val map = manager.getMapFor(collectibleRegDef)
     map.size shouldBe inserted.size
     for (insertion <- inserted) {
       val opt = map.get(insertion._1)
@@ -243,13 +243,13 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     }
   }
 
-  it should "return a map for all registers with the given set id" in {
-    val manager = newStorageManager(List(regDefWithSet))
-    val ids = List[Register.SetId](1,2,3,1,2,1)
+  it should "return a map for all registers with the given collection id" in {
+    val manager = newStorageManager(List(collectibleRegDef))
+    val ids = List[Register.CollectionId](1,2,3,1,2,1)
     val inserted = for (id <- ids) yield {
       val reg = new Register {
-        override val fields = List(SetIdentifierField(setFieldDef, id))
-        override val definition = regDefWithSet
+        override val fields = List(CollectionIdentifierField(collectionFieldDef, id))
+        override val definition = collectibleRegDef
       }
       val key = manager.insert(reg).get
       (key,reg)
@@ -259,7 +259,7 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
       val expected = inserted.filter { case (_, reg) =>
         reg.fields.head.value == id
       }
-      val map = manager.getMapForSet(setFieldDef, id)
+      val map = manager.getMapForCollection(collectionFieldDef, id)
       map.size shouldBe expected.size
       for (expectation <- expected) {
         val value = map.get(expectation._1)

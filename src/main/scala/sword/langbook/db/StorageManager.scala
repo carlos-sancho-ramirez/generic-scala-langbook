@@ -57,25 +57,26 @@ trait StorageManager {
   }
 
   /**
-   * Returns all keys matching registers that contains the given set identifier.
-   * @param set Set Identifier. As set identifiers can only be added in just one registerDefinition,
-   *            this also identifies the register definition where this is included.
+   * Returns all keys matching registers that contains the given collection identifier.
+   * @param collection Identifier. As collection identifiers can only be added in just one
+   *                   registerDefinition, this also identifies the register definition where this
+   *                   is included.
    * @param id identifier value to be filtered
    */
-  def getKeysForSet(set: SetIdentifierFieldDefinition, id :Register.SetId) :Set[Register.Key] = {
-    val regDef = registerDefinitions.find(_.fields.contains(set)).get
+  def getKeysForCollection(collection: CollectionIdentifierFieldDefinition, id :Register.CollectionId) :Set[Register.Key] = {
+    val regDef = registerDefinitions.find(_.fields.contains(collection)).get
     getMapFor(regDef).collect {
       case (key, reg) if reg.fields.collectFirst {
-        case x: SetIdentifierField if x.definition == set && x.value == id => x
+        case x: CollectionIdentifierField if x.definition == collection && x.value == id => x
       }.nonEmpty => key
     }.toSet
   }
 
-  def getMapForSet(set: SetIdentifierFieldDefinition, id :Register.SetId) :scala.collection.Map[Register.Key, Register] = {
-    val regDef = registerDefinitions.find(_.fields.contains(set)).get
+  def getMapForCollection(collection: CollectionIdentifierFieldDefinition, id :Register.CollectionId) :scala.collection.Map[Register.Key, Register] = {
+    val regDef = registerDefinitions.find(_.fields.contains(collection)).get
     getMapFor(regDef).filter { case (key, reg) =>
       reg.fields.collectFirst {
-        case x: SetIdentifierField if x.definition == set && x.value == id => x
+        case x: CollectionIdentifierField if x.definition == collection && x.value == id => x
       }.nonEmpty
     }
   }

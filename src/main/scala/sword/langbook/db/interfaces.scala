@@ -12,21 +12,21 @@ package sword.langbook.db
 trait FieldDefinition
 
 /**
- * When sets are defined within table, following a relational database structure, this identifier
- * is here to group different registers in a same set. All registers with the same set identifier
- * are understood to be part of the same set.
+ * When collections are defined within table, following a relational database structure, this identifier
+ * is here to group different registers together. All registers with the same identifier
+ * are understood to be part of the same collection.
  *
- * A register may have more than one set identifier field in case register may be grouped in
- * different forms. It is important then that every set identifier field definition has its own
+ * A register may have more than one collection identifier field in case register may be grouped in
+ * different forms. It is important then that every identifier field definition has its own
  * instance in order to distinguish them. That's why this is a trait and not an object.
  */
-trait SetIdentifierFieldDefinition extends FieldDefinition
+trait CollectionIdentifierFieldDefinition extends FieldDefinition
 
 /**
  * Definition for fields containing a value that must match a set identifier value within a register.
  */
-trait SetReferenceFieldDefinition extends FieldDefinition {
-  def target :SetIdentifierFieldDefinition
+trait CollectionReferenceFieldDefinition extends FieldDefinition {
+  def target :CollectionIdentifierFieldDefinition
 }
 
 /**
@@ -56,13 +56,13 @@ trait Field {
   def toString :String
 }
 
-case class SetIdentifierField(override val definition :SetIdentifierFieldDefinition, value :Register.SetId) extends Field {
+case class CollectionIdentifierField(override val definition :CollectionIdentifierFieldDefinition, value :Register.CollectionId) extends Field {
   override val toString = value.toString
 }
 
-trait SetReferenceField extends Field {
-  override def definition :SetReferenceFieldDefinition
-  def setId :Register.SetId
+trait CollectionReferenceField extends Field {
+  override def definition :CollectionReferenceFieldDefinition
+  def collectionId :Register.CollectionId
 }
 
 trait ForeignKeyField extends Field {
@@ -95,10 +95,10 @@ trait RegisterDefinition {
 }
 
 object Register {
+  type CollectionId = Int
   type Index = Int
   type Key = Int
   type Position = Int
-  type SetId = Int
   type UnicodeType = Int
 }
 

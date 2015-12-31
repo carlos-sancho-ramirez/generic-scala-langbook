@@ -1,25 +1,25 @@
 package sword.langbook.db
 
-import sword.langbook.db.Register.SetId
+import sword.langbook.db.Register.CollectionId
 
-object PieceReferenceFieldDefinition extends SetReferenceFieldDefinition {
-  def target = PieceSetIdentifierFieldDefinition
+object PieceReferenceFieldDefinition extends CollectionReferenceFieldDefinition {
+  def target = PieceCollectionIdentifierFieldDefinition$
 }
 
-case class PieceReferenceField(override val setId :Register.SetId) extends SetReferenceField {
+case class PieceReferenceField(override val collectionId :Register.CollectionId) extends CollectionReferenceField {
   override val definition = PieceReferenceFieldDefinition
-  override def toString = setId.toString
+  override def toString = collectionId.toString
 }
 
-object PieceSetIdentifierFieldDefinition extends SetIdentifierFieldDefinition
+object PieceCollectionIdentifierFieldDefinition$ extends CollectionIdentifierFieldDefinition
 
 object Piece extends RegisterDefinition {
-  override def fields = Vector(PieceSetIdentifierFieldDefinition, AlphabetReferenceFieldDefinition,
+  override def fields = Vector(PieceCollectionIdentifierFieldDefinition$, AlphabetReferenceFieldDefinition,
     SymbolArrayReferenceFieldDefinition)
 }
 
-case class Piece(setId :Register.SetId, alphabet :Register.Key, symbolArray :Register.Key) extends Register {
+case class Piece(setId :Register.CollectionId, alphabet :Register.Key, symbolArray :Register.Key) extends Register {
   override def definition = Piece
-  override def fields = Vector(SetIdentifierField(PieceSetIdentifierFieldDefinition, setId), AlphabetReferenceField(alphabet),
+  override def fields = Vector(CollectionIdentifierField(PieceCollectionIdentifierFieldDefinition$, setId), AlphabetReferenceField(alphabet),
     SymbolArrayReferenceField(symbolArray))
 }

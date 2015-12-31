@@ -17,7 +17,7 @@ case class SymbolArrayReferenceField(override val key :Register.Key) extends For
   override def toString = key.toString
 }
 
-object SymbolPosition extends RegisterDefinition { 
+object SymbolPosition extends RegisterDefinition {
   override val fields = Vector(SymbolReferenceFieldDefinition, ArrayIndexFieldDefinition)
 }
 

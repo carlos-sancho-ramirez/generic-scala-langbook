@@ -9,13 +9,13 @@ abstract class AbstractStorageManager(override val registerDefinitions :Seq[Regi
     throw new IllegalArgumentException("Duplicated register definitions are not allowed")
   }
 
-  val setDefinitions = registerDefinitions.flatMap(_.fields).collect { case x:SetIdentifierFieldDefinition => x }
+  val setDefinitions = registerDefinitions.flatMap(_.fields).collect { case x:CollectionIdentifierFieldDefinition => x }
 
   if (setDefinitions.toSet.size < setDefinitions.size) {
     throw new IllegalArgumentException("Duplicated set definitions are not allowed")
   }
 
-  if (!registerDefinitions.flatMap(_.fields).collect { case x:SetReferenceFieldDefinition => x }
+  if (!registerDefinitions.flatMap(_.fields).collect { case x:CollectionReferenceFieldDefinition => x }
       .forall(x => setDefinitions.contains(x.target))) {
     throw new IllegalArgumentException("Found an outer set reference")
   }

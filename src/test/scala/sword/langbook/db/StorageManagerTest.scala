@@ -91,6 +91,24 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     }
   }
 
+  it should "throw an IllegalArgumentException if at least one of the given register definitions contains more than one array index field pointing to the same collection identifier" in {
+    /**
+     * If more than one index is allowed for the same collection it can lead to situations of
+     * conflict among the index
+     */
+    an [IllegalArgumentException] should be thrownBy {
+      val regDef = new RegisterDefinition() {
+        override val fields = List(collectionFieldDef, new ArrayIndexFieldDefinition {
+          override val collection = collectionFieldDef
+        }, new ArrayIndexFieldDefinition {
+          override val collection = collectionFieldDef
+        })
+      }
+
+      newStorageManager(List(regDef))
+    }
+  }
+
   it can "insert a register and retrieve it back with the given identifier" in {
     val storageManager = newStorageManager(List(collectibleRegDef))
     val keyOption = storageManager.insert(collectibleReg)

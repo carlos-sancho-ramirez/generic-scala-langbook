@@ -40,8 +40,10 @@ abstract class AbstractStorageManager(override val registerDefinitions :Seq[Regi
       references.groupBy{ case (s,t) => t}.map { case (t, seq) => (t, seq.map(_._1))}
 
   for (regDef <- registerDefinitions) {
-    if (regDef.fields.exists(_.isInstanceOf[ArrayIndexFieldDefinition])) {
-      throw new IllegalArgumentException("Found wrong arra index definition")
+    val collections = regDef.fields.collect { case x :CollectionIdentifierFieldDefinition => x}
+    if (regDef.fields.collect { case x :ArrayIndexFieldDefinition => x }
+        .exists(x => !collections.contains(x.collection))) {
+      throw new IllegalArgumentException("Found wrong array index definition")
     }
   }
 }

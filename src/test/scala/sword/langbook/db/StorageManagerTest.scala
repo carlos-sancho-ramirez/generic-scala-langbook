@@ -1,7 +1,6 @@
 package sword.langbook.db
 
 import org.scalatest.{Matchers, FlatSpec}
-import sword.langbook.db.Register.CollectionId
 
 abstract class StorageManagerTest extends FlatSpec with Matchers {
 
@@ -68,6 +67,16 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     an [IllegalArgumentException] should be thrownBy {
       newStorageManager(List(regDefinition3))
     }
+  }
+
+  it should "allow register definitions containing a valid array index" in {
+    val regDef = new RegisterDefinition() {
+      override val fields = List(collectionFieldDef, new ArrayIndexFieldDefinition {
+        override val collection = collectionFieldDef
+      })
+    }
+
+    newStorageManager(List(regDef))
   }
 
   it should "throw an IllegalArgumentException if at least one of the given register definitions contains an array index field pointing outside the same register" in {

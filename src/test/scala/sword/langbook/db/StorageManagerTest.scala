@@ -64,9 +64,21 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     }
   }
 
-  it should "throw an IllegalArgumentException if at least one of the given register definitions has a set reference that is not included in the list" in {
+  it should "throw an IllegalArgumentException if at least one of the given register definitions has a collection reference that is not included in the list" in {
     an [IllegalArgumentException] should be thrownBy {
       newStorageManager(List(regDefinition3))
+    }
+  }
+
+  it should "throw an IllegalArgumentException if at least one of the given register definitions contains an array index field pointing outside the same register" in {
+    an [IllegalArgumentException] should be thrownBy {
+      val regDef = new RegisterDefinition() {
+        override val fields = List(new ArrayIndexFieldDefinition {
+          override val collection = collectionFieldDef
+        })
+      }
+
+      newStorageManager(List(collectibleRegDef, regDef))
     }
   }
 

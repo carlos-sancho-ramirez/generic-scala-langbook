@@ -9,14 +9,14 @@ abstract class AbstractStorageManager(override val registerDefinitions :Seq[Regi
     throw new IllegalArgumentException("Duplicated register definitions are not allowed")
   }
 
-  val setDefinitions = registerDefinitions.flatMap(_.fields).collect { case x:CollectionIdentifierFieldDefinition => x }
+  val collectionDefinitions = registerDefinitions.flatMap(_.fields).collect { case x:CollectionIdentifierFieldDefinition => x }
 
-  if (setDefinitions.toSet.size < setDefinitions.size) {
-    throw new IllegalArgumentException("Duplicated set definitions are not allowed")
+  if (collectionDefinitions.toSet.size < collectionDefinitions.size) {
+    throw new IllegalArgumentException("Duplicated collection definitions are not allowed")
   }
 
   if (!registerDefinitions.flatMap(_.fields).collect { case x:CollectionReferenceFieldDefinition => x }
-      .forall(x => setDefinitions.contains(x.target))) {
+      .forall(x => collectionDefinitions.contains(x.target))) {
     throw new IllegalArgumentException("Found an outer set reference")
   }
 
@@ -38,4 +38,10 @@ abstract class AbstractStorageManager(override val registerDefinitions :Seq[Regi
 
   val reverseReferences :Map[RegisterDefinition,Seq[RegisterDefinition]] =
       references.groupBy{ case (s,t) => t}.map { case (t, seq) => (t, seq.map(_._1))}
+
+  for (regDef <- registerDefinitions) {
+    if (regDef.fields.exists(_.isInstanceOf[ArrayIndexFieldDefinition])) {
+      throw new IllegalArgumentException("Found wrong arra index definition")
+    }
+  }
 }

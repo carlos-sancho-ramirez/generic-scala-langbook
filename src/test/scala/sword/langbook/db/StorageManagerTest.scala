@@ -1,6 +1,7 @@
 package sword.langbook.db
 
 import org.scalatest.{Matchers, FlatSpec}
+import sword.langbook.db.Register.CollectionId
 
 abstract class StorageManagerTest extends FlatSpec with Matchers {
 
@@ -14,8 +15,12 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
 
   val collectibleRegCollectionId :Register.CollectionId = 23
 
+  case class collectionField(override val value :Register.CollectionId) extends CollectionIdentifierField {
+    override val definition = collectionFieldDef
+  }
+
   val collectibleReg = new Register {
-    override val fields = List(CollectionIdentifierField(collectionFieldDef, collectibleRegCollectionId))
+    override val fields = List(collectionField(collectibleRegCollectionId))
     override val definition = collectibleRegDef
   }
 
@@ -43,10 +48,10 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     }
   }
 
-  it should "throw an IllegalArgumentException if a duplicated set definition is entered" in {
+  it should "throw an IllegalArgumentException if a duplicated collection definition is entered" in {
     an [IllegalArgumentException] should be thrownBy {
       val regDef = new RegisterDefinition {
-        override val fields = Vector(collectionFieldDef, ArrayIndexFieldDefinition)
+        override val fields = Vector(collectionFieldDef, new FieldDefinition() {})
       }
 
       newStorageManager(List(collectibleRegDef, regDef))
@@ -173,7 +178,7 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     keyOption shouldBe defined
 
     val regB = new Register {
-      override val fields = List(CollectionIdentifierField(collectionFieldDef, collectibleRegCollectionId + 1))
+      override val fields = List(collectionField(collectibleRegCollectionId + 1))
       override val definition = collectibleRegDef
     }
     regB should not equal collectibleReg
@@ -191,7 +196,7 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     keyOption shouldBe defined
 
     val regB = new Register {
-      override val fields = List(CollectionIdentifierField(collectionFieldDef, collectibleRegCollectionId + 1))
+      override val fields = List(collectionField(collectibleRegCollectionId + 1))
       override val definition = collectibleRegDef
     }
     regB should not equal collectibleReg
@@ -211,7 +216,7 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     val ids = List[Register.CollectionId](1,2,3,1,2,1)
     val keys = for (id <- ids) yield {
       manager.insert(new Register {
-        override val fields: Seq[Field] = List(CollectionIdentifierField(collectionFieldDef, id))
+        override val fields: Seq[Field] = List(collectionField(id))
         override val definition = collectibleRegDef
       }).get
     }
@@ -226,7 +231,7 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     val manager = newStorageManager(List(collectibleRegDef))
     val inserted = for (i <- 0 until 10) yield {
       val reg = new Register {
-        override val fields = List(CollectionIdentifierField(collectionFieldDef, i))
+        override val fields = List(collectionField(i))
         override val definition: RegisterDefinition = collectibleRegDef
       }
       val result = manager.insert(reg).map(key => (key, reg))
@@ -248,7 +253,7 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     val ids = List[Register.CollectionId](1,2,3,1,2,1)
     val inserted = for (id <- ids) yield {
       val reg = new Register {
-        override val fields = List(CollectionIdentifierField(collectionFieldDef, id))
+        override val fields = List(collectionField(id))
         override val definition = collectibleRegDef
       }
       val key = manager.insert(reg).get

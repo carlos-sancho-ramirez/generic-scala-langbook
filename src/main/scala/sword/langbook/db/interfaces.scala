@@ -44,7 +44,9 @@ object UnicodeFieldDefinition extends FieldDefinition
  * The value contained in this field is used as an index for a list or array,
  * understanding the 0 as the first position, 1 for the second and so on.
  */
-object ArrayIndexFieldDefinition extends FieldDefinition
+trait ArrayIndexFieldDefinition extends FieldDefinition {
+  def collection :CollectionIdentifierFieldDefinition
+}
 
 /**
  * Definition for fields containing a general-purpose char sequence (string).
@@ -56,7 +58,9 @@ trait Field {
   def toString :String
 }
 
-case class CollectionIdentifierField(override val definition :CollectionIdentifierFieldDefinition, value :Register.CollectionId) extends Field {
+trait CollectionIdentifierField extends Field {
+  override def definition :CollectionIdentifierFieldDefinition
+  def value :Register.CollectionId
   override val toString = value.toString
 }
 
@@ -75,8 +79,9 @@ case class UnicodeField(value :Register.UnicodeType) extends Field {
   override val toString = value.toChar.toString
 }
 
-case class ArrayIndexField(index :Register.Index) extends Field {
-  override val definition = ArrayIndexFieldDefinition
+trait ArrayIndexField extends Field {
+  def index :Register.Index
+  override def definition :ArrayIndexFieldDefinition
   override val toString = index.toString
 }
 

@@ -183,7 +183,7 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     val storageManager = newStorageManager(List(collectibleRegDef, regDefinition2))
     val reg2 = new Register {
       override val fields = List(new ForeignKeyField {
-        override val key = 276
+        override val key = Register.Key(0, 276)
         override val definition = reg1ForeignKey
       })
       override val definition = regDefinition2
@@ -269,7 +269,7 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     }
     regB should not equal collectibleReg
 
-    val newKey = keyOption.get + 100
+    val newKey = Register.Key(keyOption.get.group, keyOption.get.index + 100)
     storageManager.replace(regB, newKey) shouldBe false
 
     val regOption = storageManager.get(collectibleRegDef, keyOption.get)

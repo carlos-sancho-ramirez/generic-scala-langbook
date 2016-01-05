@@ -102,7 +102,7 @@ trait RegisterDefinition {
 object Register {
   type CollectionId = Int
   type Index = Int
-  type Key = Int
+  case class Key(group :CollectionId, index :Index)
   type Position = Int
   type UnicodeType = Int
 

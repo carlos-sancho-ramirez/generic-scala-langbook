@@ -9,23 +9,24 @@ import sword.langbook.db.Register.Key
  */
 class MemoryStorageManager(registerDefinitions :Seq[RegisterDefinition]) extends AbstractStorageManager(registerDefinitions) {
 
-  private val tables :Map[RegisterDefinition, scala.collection.mutable.Map[Register.Key, Register]] =
-      registerDefinitions.map(d => (d,scala.collection.mutable.Map[Register.Key, Register]())).toMap
-  private var lastKey :Register.Key = 0
+  private val tables :Map[RegisterDefinition, scala.collection.mutable.Map[Register.Index, Register]] =
+      registerDefinitions.map(d => (d,scala.collection.mutable.Map[Register.Index, Register]())).toMap
+  private var lastIndex :Register.Index = 0
+  private val defaultGroup = 0
 
   private def hasValidReference(register :Register) :Boolean = {
     val fields = register.fields.collect { case field :ForeignKeyField => field }
     fields.isEmpty || fields.forall { field =>
-      tables.getOrElse(field.definition.target, Map[Register.Key, Register]()).contains(field.key)
+      tables.getOrElse(field.definition.target, Map[Register.Index, Register]()).contains(field.key.index)
     }
   }
 
   override def insert(register: Register): Option[Register.Key] = {
     if (hasValidReference(register)) {
       tables.get(register.definition).map { map =>
-        lastKey += 1
-        map.put(lastKey, register)
-        lastKey
+        lastIndex += 1
+        map.put(lastIndex, register)
+        Key(defaultGroup, lastIndex)
       }
     }
     else {
@@ -34,7 +35,7 @@ class MemoryStorageManager(registerDefinitions :Seq[RegisterDefinition]) extends
   }
 
   override def get(registerDefinition: RegisterDefinition, key: Register.Key): Option[Register] = {
-    tables.get(registerDefinition).flatMap(_.get(key))
+    tables.get(registerDefinition).flatMap(_.get(key.index))
   }
 
   private def isReferenced(registerDefinition: RegisterDefinition, key: Register.Key): Boolean = {
@@ -57,18 +58,19 @@ class MemoryStorageManager(registerDefinitions :Seq[RegisterDefinition]) extends
 
   override def delete(registerDefinition: RegisterDefinition, key: Register.Key): Boolean = {
     !isReferenced(registerDefinition, key) &&
-      tables.get(registerDefinition).flatMap(_.remove(key)).isDefined
+      tables.get(registerDefinition).flatMap(_.remove(key.index)).isDefined
   }
 
   override def getKeysFor(registerDefinition: RegisterDefinition) = {
-    tables(registerDefinition).keySet.toSet
+    tables(registerDefinition).keySet.map(Key(defaultGroup,_)).toSet
   }
 
   override def replace(register: Register, key: Key): Boolean = {
-    tables.get(register.definition).filter(_.contains(key)).flatMap(_.put(key, register)).isDefined
+    val index = key.index
+    tables.get(register.definition).filter(_.contains(index)).flatMap(_.put(index, register)).isDefined
   }
 
   override def getMapFor(registerDefinition :RegisterDefinition) = {
-    tables(registerDefinition)
+    tables(registerDefinition).map{ case (k,v) => (Key(defaultGroup, k), v) }
   }
 }

@@ -31,7 +31,7 @@ object PiecePosition extends RegisterDefinition {
 
 case class PiecePosition(piece :Register.Key, arrayId :Register.CollectionId, index :Register.Index) extends Register {
   override val definition = PiecePosition
-  override val fields = Vector(PieceReferenceField(piece),
+  override val fields = Vector(PieceReferenceField(arrayId),
     PieceArrayIdentifierField(arrayId),
     PieceArrayIndexField(index))
 }

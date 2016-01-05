@@ -24,6 +24,7 @@ case class PieceArrayIndexField(override val index :Register.Index) extends Arra
 }
 
 object PiecePosition extends RegisterDefinition {
+  override val isCollectible = true
   override val fields = Vector(PieceReferenceFieldDefinition,
     PieceArrayIdentifierFieldDefinition,
     PieceArrayIndexFieldDefinition)

@@ -96,6 +96,12 @@ case class CharSequenceField(value :String) extends Field {
  * primary key, that is always an integer.
  */
 trait RegisterDefinition {
+  /**
+   * Whether this registers can be grouped within the storage.
+   *
+   * In case of being true, the group within the key can have meaningful values.
+   */
+  def isCollectible :Boolean = false
   def fields :Seq[FieldDefinition]
 }
 

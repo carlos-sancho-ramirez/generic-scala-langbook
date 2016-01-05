@@ -16,6 +16,7 @@ case class PieceCollectionIdentifierField(override val value :Register.Collectio
 }
 
 object Piece extends RegisterDefinition {
+  override val isCollectible = true
   override def fields = Vector(
     PieceCollectionIdentifierFieldDefinition,
     AlphabetReferenceFieldDefinition,

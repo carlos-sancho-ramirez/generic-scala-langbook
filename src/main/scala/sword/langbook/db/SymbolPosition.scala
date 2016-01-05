@@ -29,7 +29,9 @@ case class SymbolArrayIndexField(override val index :Register.Index) extends Arr
 }
 
 object SymbolPosition extends RegisterDefinition {
-  override val fields = Vector(SymbolReferenceFieldDefinition, SymbolArrayIdentifierFieldDefinition,
+  override val isCollectible = true
+  override val fields = Vector(SymbolReferenceFieldDefinition,
+      SymbolArrayIdentifierFieldDefinition,
       SymbolArrayIndexFieldDefinition)
 }
 

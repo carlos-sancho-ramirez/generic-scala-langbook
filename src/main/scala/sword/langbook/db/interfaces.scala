@@ -105,6 +105,8 @@ object Register {
   type Key = Int
   type Position = Int
   type UnicodeType = Int
+
+  val undefinedCollection :CollectionId = 0
 }
 
 trait Register {

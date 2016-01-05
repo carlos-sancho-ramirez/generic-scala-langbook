@@ -1,6 +1,7 @@
 package sword.langbook.db
 
 import org.scalatest.{Matchers, FlatSpec}
+import sword.langbook.db.Register.{Index, CollectionId}
 
 abstract class StorageManagerTest extends FlatSpec with Matchers {
 
@@ -117,6 +118,34 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     val regOption = storageManager.get(collectibleRegDef, keyOption.get)
     regOption shouldBe defined
     regOption.get shouldEqual collectibleReg
+  }
+
+  it can "insert a register with index 0 and retrieve it back with the given identifier" in {
+    val arrayIdFieldDef = new CollectionIdentifierFieldDefinition {}
+    val arrayIndexFieldDef = new ArrayIndexFieldDefinition {
+      override val collection = arrayIdFieldDef
+    }
+    val positionableRegDef = new RegisterDefinition() {
+      override val fields = List(arrayIdFieldDef, arrayIndexFieldDef)
+    }
+
+    val positionableReg = new Register {
+      override val fields = List(new CollectionIdentifierField {
+        override val value = Register.undefinedCollection
+        override val definition = arrayIdFieldDef
+      }, new ArrayIndexField {
+        override val definition = arrayIndexFieldDef
+        override def index = 0
+      })
+      override val definition = positionableRegDef
+    }
+
+    val storageManager = newStorageManager(List(positionableRegDef))
+    val keyOption = storageManager.insert(positionableReg)
+    keyOption shouldBe defined
+
+    val regOption = storageManager.get(positionableRegDef, keyOption.get)
+    regOption shouldBe defined
   }
 
   it can "return a value more than once for the same key" in {

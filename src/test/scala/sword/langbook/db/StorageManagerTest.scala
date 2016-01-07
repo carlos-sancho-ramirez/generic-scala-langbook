@@ -53,7 +53,7 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     }
   }
 
-  ignore should "throw an IllegalArgumentException if at least one of the given register definitions has a collection reference that is not included in the list" in {
+  it should "throw an IllegalArgumentException if at least one of the given register definitions has a collection reference that is not included in the list" in {
     an [IllegalArgumentException] should be thrownBy {
       newStorageManager(List(numRegCollRefRegDef))
     }

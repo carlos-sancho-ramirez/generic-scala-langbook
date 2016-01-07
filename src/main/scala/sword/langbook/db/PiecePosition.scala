@@ -1,12 +1,12 @@
 package sword.langbook.db
 
-object PieceArrayReferenceFieldDefinition extends ForeignKeyFieldDefinition {
+object PieceArrayReferenceFieldDefinition extends CollectionReferenceFieldDefinition {
   val target = PiecePosition
 }
 
-case class PieceArrayReferenceField(override val key :Register.Key) extends ForeignKeyField {
+case class PieceArrayReferenceField(override val collectionId :Register.CollectionId) extends CollectionReferenceField {
   override val definition = PieceArrayReferenceFieldDefinition
-  override def toString = key.toString
+  override def toString = collectionId.toString
 }
 
 object PiecePosition extends ArrayableRegisterDefinition {

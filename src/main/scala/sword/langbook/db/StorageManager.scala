@@ -63,12 +63,12 @@ trait StorageManager {
    *                           where this is included.
    * @param id identifier value to be filtered
    */
-  def getKeysForCollection(registerDefinition :RegisterDefinition, id :Register.CollectionId) :Set[Register.Key] = {
+  def getKeysForCollection(registerDefinition :CollectibleRegisterDefinition, id :Register.CollectionId) :Set[Register.Key] = {
     // TODO: To be implemented
     Set()
   }
 
-  def getMapForCollection(registerDefinition :RegisterDefinition, id :Register.CollectionId) :scala.collection.Map[Register.Key, Register] = {
+  def getMapForCollection(registerDefinition :CollectibleRegisterDefinition, id :Register.CollectionId) :scala.collection.Map[Register.Key, Register] = {
     // TODO: To be implemented
     Map()
   }

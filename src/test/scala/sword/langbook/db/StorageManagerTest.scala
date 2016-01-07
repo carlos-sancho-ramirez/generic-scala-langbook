@@ -1,7 +1,6 @@
 package sword.langbook.db
 
 import org.scalatest.{Matchers, FlatSpec}
-import sword.langbook.db.Register.{Index, CollectionId}
 
 abstract class StorageManagerTest extends FlatSpec with Matchers {
 
@@ -15,8 +14,7 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
 
   val numRegFieldValue = numField(23)
 
-  val numRegDef = new RegisterDefinition {
-    override val isCollectible = true
+  val numRegDef = new CollectibleRegisterDefinition {
     override val fields = List(numFieldDef)
   }
 

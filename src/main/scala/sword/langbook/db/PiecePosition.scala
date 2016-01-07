@@ -9,9 +9,7 @@ case class PieceArrayReferenceField(override val key :Register.Key) extends Fore
   override def toString = key.toString
 }
 
-object PiecePosition extends RegisterDefinition {
-  override val isCollectible = true
-  override val isArrayable = true
+object PiecePosition extends ArrayableRegisterDefinition {
   override val fields = Vector(PieceReferenceFieldDefinition)
 }
 

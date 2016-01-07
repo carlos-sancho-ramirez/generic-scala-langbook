@@ -15,8 +15,7 @@ trait FieldDefinition
  * Definition for fields containing a value that must match a group identifier value within a register.
  */
 trait CollectionReferenceFieldDefinition extends FieldDefinition {
-  // TODO: Ensuring that all definitions pointed must return true for isCollectible
-  def target :RegisterDefinition
+  def target :CollectibleRegisterDefinition
 }
 
 /**
@@ -64,22 +63,18 @@ case class CharSequenceField(value :String) extends Field {
  * primary key, that is always an integer.
  */
 trait RegisterDefinition {
-  /**
-   * Whether this registers can be grouped within the storage.
-   *
-   * In case of being true, the group within the key can have meaningful values.
-   */
-  def isCollectible :Boolean = false
-
-  /**
-   * Whether this registers can be grouped and sortered within the group.
-   *
-   * If this returns true, for sure isCollectible should return true as well.
-   */
-  def isArrayable :Boolean = false
-
   def fields :Seq[FieldDefinition]
 }
+
+/**
+ * A register that can be grouped with its key
+ */
+trait CollectibleRegisterDefinition extends RegisterDefinition
+
+/**
+ * A kind of register that can be grouped in different arrays
+ */
+trait ArrayableRegisterDefinition extends CollectibleRegisterDefinition
 
 object Register {
   type CollectionId = Int

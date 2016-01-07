@@ -9,8 +9,7 @@ case class PieceReferenceField(override val collectionId :Register.CollectionId)
   override def toString = collectionId.toString
 }
 
-object Piece extends RegisterDefinition {
-  override val isCollectible = true
+object Piece extends CollectibleRegisterDefinition {
   override def fields = Vector(
     AlphabetReferenceFieldDefinition,
     SymbolArrayReferenceFieldDefinition)

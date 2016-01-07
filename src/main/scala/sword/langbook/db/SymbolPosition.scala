@@ -6,7 +6,7 @@ package sword.langbook.db
  * This contains a numeric identifier that must match with an existing collection.
  */
 object SymbolArrayReferenceFieldDefinition extends CollectionReferenceFieldDefinition {
-  override val target = Symbol
+  override val target = SymbolPosition
 }
 
 case class SymbolArrayReferenceField(override val collectionId :Register.CollectionId) extends CollectionReferenceField {
@@ -14,9 +14,7 @@ case class SymbolArrayReferenceField(override val collectionId :Register.Collect
   override def toString = collectionId.toString
 }
 
-object SymbolPosition extends RegisterDefinition {
-  override val isCollectible = true
-  override val isArrayable = true
+object SymbolPosition extends ArrayableRegisterDefinition {
   override val fields = Vector(SymbolReferenceFieldDefinition)
 }
 

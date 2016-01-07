@@ -58,26 +58,18 @@ trait StorageManager {
 
   /**
    * Returns all keys matching registers that contains the given collection identifier.
-   * @param collection Identifier. As collection identifiers can only be added in just one
-   *                   registerDefinition, this also identifies the register definition where this
-   *                   is included.
+   * @param registerDefinition Identifier. As collection identifiers can only be added in just one
+   *                           registerDefinition, this also identifies the register definition
+   *                           where this is included.
    * @param id identifier value to be filtered
    */
-  def getKeysForCollection(collection: CollectionIdentifierFieldDefinition, id :Register.CollectionId) :Set[Register.Key] = {
-    val regDef = registerDefinitions.find(_.fields.contains(collection)).get
-    getMapFor(regDef).collect {
-      case (key, reg) if reg.fields.collectFirst {
-        case x: CollectionIdentifierField if x.definition == collection && x.value == id => x
-      }.nonEmpty => key
-    }.toSet
+  def getKeysForCollection(registerDefinition :RegisterDefinition, id :Register.CollectionId) :Set[Register.Key] = {
+    // TODO: To be implemented
+    Set()
   }
 
-  def getMapForCollection(collection: CollectionIdentifierFieldDefinition, id :Register.CollectionId) :scala.collection.Map[Register.Key, Register] = {
-    val regDef = registerDefinitions.find(_.fields.contains(collection)).get
-    getMapFor(regDef).filter { case (key, reg) =>
-      reg.fields.collectFirst {
-        case x: CollectionIdentifierField if x.definition == collection && x.value == id => x
-      }.nonEmpty
-    }
+  def getMapForCollection(registerDefinition :RegisterDefinition, id :Register.CollectionId) :scala.collection.Map[Register.Key, Register] = {
+    // TODO: To be implemented
+    Map()
   }
 }

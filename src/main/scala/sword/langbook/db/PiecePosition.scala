@@ -9,30 +9,13 @@ case class PieceArrayReferenceField(override val key :Register.Key) extends Fore
   override def toString = key.toString
 }
 
-object PieceArrayIdentifierFieldDefinition extends CollectionIdentifierFieldDefinition
-
-case class PieceArrayIdentifierField(override val value :Register.CollectionId) extends CollectionIdentifierField {
-  override val definition = PieceArrayIdentifierFieldDefinition
-}
-
-object PieceArrayIndexFieldDefinition extends ArrayIndexFieldDefinition {
-  override val collection = PieceArrayIdentifierFieldDefinition
-}
-
-case class PieceArrayIndexField(override val index :Register.Index) extends ArrayIndexField {
-  override val definition = PieceArrayIndexFieldDefinition
-}
-
 object PiecePosition extends RegisterDefinition {
   override val isCollectible = true
-  override val fields = Vector(PieceReferenceFieldDefinition,
-    PieceArrayIdentifierFieldDefinition,
-    PieceArrayIndexFieldDefinition)
+  override val isArrayable = true
+  override val fields = Vector(PieceReferenceFieldDefinition)
 }
 
-case class PiecePosition(piece :Register.Key, arrayId :Register.CollectionId, index :Register.Index) extends Register {
+case class PiecePosition(piece :Register.CollectionId) extends Register {
   override val definition = PiecePosition
-  override val fields = Vector(PieceReferenceField(arrayId),
-    PieceArrayIdentifierField(arrayId),
-    PieceArrayIndexField(index))
+  override val fields = Vector(PieceReferenceField(piece))
 }

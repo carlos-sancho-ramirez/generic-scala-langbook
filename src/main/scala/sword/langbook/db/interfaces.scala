@@ -12,21 +12,11 @@ package sword.langbook.db
 trait FieldDefinition
 
 /**
- * When collections are defined within table, following a relational database structure, this identifier
- * is here to group different registers together. All registers with the same identifier
- * are understood to be part of the same collection.
- *
- * A register may have more than one collection identifier field in case register may be grouped in
- * different forms. It is important then that every identifier field definition has its own
- * instance in order to distinguish them. That's why this is a trait and not an object.
- */
-trait CollectionIdentifierFieldDefinition extends FieldDefinition
-
-/**
- * Definition for fields containing a value that must match a set identifier value within a register.
+ * Definition for fields containing a value that must match a group identifier value within a register.
  */
 trait CollectionReferenceFieldDefinition extends FieldDefinition {
-  def target :CollectionIdentifierFieldDefinition
+  // TODO: Ensuring that all definitions pointed must return true for isCollectible
+  def target :RegisterDefinition
 }
 
 /**
@@ -39,16 +29,6 @@ trait ForeignKeyFieldDefinition extends FieldDefinition {
 object UnicodeFieldDefinition extends FieldDefinition
 
 /**
- * Field that contains 0 or a natural number. Never will be null.
- *
- * The value contained in this field is used as an index for a list or array,
- * understanding the 0 as the first position, 1 for the second and so on.
- */
-trait ArrayIndexFieldDefinition extends FieldDefinition {
-  def collection :CollectionIdentifierFieldDefinition
-}
-
-/**
  * Definition for fields containing a general-purpose char sequence (string).
  */
 object CharSequenceFieldDefinition extends FieldDefinition
@@ -56,12 +36,6 @@ object CharSequenceFieldDefinition extends FieldDefinition
 trait Field {
   def definition :FieldDefinition
   def toString :String
-}
-
-trait CollectionIdentifierField extends Field {
-  override def definition :CollectionIdentifierFieldDefinition
-  def value :Register.CollectionId
-  override val toString = value.toString
 }
 
 trait CollectionReferenceField extends Field {
@@ -77,12 +51,6 @@ trait ForeignKeyField extends Field {
 case class UnicodeField(value :Register.UnicodeType) extends Field {
   override val definition = UnicodeFieldDefinition
   override val toString = value.toChar.toString
-}
-
-trait ArrayIndexField extends Field {
-  def index :Register.Index
-  override def definition :ArrayIndexFieldDefinition
-  override val toString = index.toString
 }
 
 case class CharSequenceField(value :String) extends Field {
@@ -102,6 +70,14 @@ trait RegisterDefinition {
    * In case of being true, the group within the key can have meaningful values.
    */
   def isCollectible :Boolean = false
+
+  /**
+   * Whether this registers can be grouped and sortered within the group.
+   *
+   * If this returns true, for sure isCollectible should return true as well.
+   */
+  def isArrayable :Boolean = false
+
   def fields :Seq[FieldDefinition]
 }
 

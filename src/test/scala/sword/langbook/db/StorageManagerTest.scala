@@ -179,7 +179,7 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     keys.filter(_.group == coll2IdOption.get).flatMap(manager.get(numRegDef, _)).toSet shouldBe list2.toSet
   }
 
-  it should "throw an UnsupportedOperationException in case of inserting a collection for non-collectible registers" in {
+  it should "throw an UnsupportedOperationException in case of inserting a collection for non-collectible registers, and this operation should not change the storage state" in {
     val myRegDef = new RegisterDefinition {
       override val fields = List(numFieldDef)
     }
@@ -198,9 +198,11 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     intercept[UnsupportedOperationException] {
       manager.insert(list)
     }
+
+    manager.getKeysFor(myRegDef) shouldBe empty
   }
 
-  it should "throw an UnsupportedOperationException in case of inserting a collection of different collectible registers definitions" in {
+  it should "throw an UnsupportedOperationException in case of inserting a collection of different collectible registers definitions, and this operation should not change the storage state" in {
     val myRegDef = new CollectibleRegisterDefinition {
       override val fields = List(numFieldDef)
     }
@@ -218,6 +220,9 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     intercept[UnsupportedOperationException] {
       manager.insert(list)
     }
+
+    manager.getKeysFor(numRegDef) shouldBe empty
+    manager.getKeysFor(myRegDef) shouldBe empty
   }
 
   it should "return a null set before inserting anything" in {

@@ -40,17 +40,17 @@ class MemoryStorageManager(registerDefinitions :Seq[RegisterDefinition]) extends
   override def insert(registers :Traversable[Register]) = {
     lastGroup += 1
     val group = lastGroup
-    if (registers.map(_.definition).toSet.size != 1) {
+    val definitions = registers.map(_.definition).toSet
+
+    if (definitions.size != 1) {
       throw new UnsupportedOperationException("Unable to insert collections for registers with different definitions")
     }
 
-    registers.foreach { reg =>
-      if (!reg.definition.isInstanceOf[CollectibleRegisterDefinition]) {
-        throw new UnsupportedOperationException("Unable to insert collections for non-collectible registers")
-      }
-      insert(group, reg)
+    if (!definitions.head.isInstanceOf[CollectibleRegisterDefinition]) {
+      throw new UnsupportedOperationException("Unable to insert collections for non-collectible registers")
     }
 
+    registers.foreach( insert(group, _))
     Some(group)
   }
 

@@ -291,19 +291,23 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     storageManager.get(numRegDef, newKey) shouldBe None
   }
 
-  ignore should "return all register keys for those register with the given collection id" in {
+  it should "return all register keys for those register with the given collection id on calling getKeysForCollection" in {
     val manager = newStorageManager(List(numRegDef))
-    val ids = List[Register.CollectionId](1,2,3,1,2,1)
-    val keys = for (id <- ids) yield {
-      manager.insert(new Register {
-        override val fields = List(numField(id))
+    val groups = List[Int](1,2,3,1,2,1)
+    val collections = groups.indices.map(_ + 1).zip(groups).groupBy { case (_,group) => group }
+        .flatMap { case (group, items) =>
+      val regs = items.map { case (index,_) => new Register {
+        override val fields = List(numField(index))
         override val definition = numRegDef
-      }).get
+      }}
+
+      manager.insert(regs).map(id => (group, id))
     }
 
-    for (id <- ids.min until ids.max) {
-      val expected = ids zip keys filter { case (i,_) => i == id } map { x => x._2 }
-      manager.getKeysForCollection(numRegDef, id) shouldBe expected.toSet
+    for (group <- groups.toSet[Int]) {
+      val expected = groups.indices.zip(groups).filter { case (_,g) => g == group } map { x => x._1 + 1 }
+      val keys = manager.getKeysForCollection(numRegDef, collections.find(_._1 == group).head._2)
+      keys.flatMap(manager.get(numRegDef,_)).map(_.fields.head.asInstanceOf[numField].value) shouldBe expected.toSet
     }
   }
 

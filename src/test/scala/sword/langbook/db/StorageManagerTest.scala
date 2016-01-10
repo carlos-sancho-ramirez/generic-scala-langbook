@@ -157,6 +157,28 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     }
   }
 
+  it can "insert more than one collection" in {
+    val manager = newStorageManager(List(numRegDef))
+    val reg1 = new NumRegister(5)
+    val reg2 = new NumRegister(7)
+    val reg3 = new NumRegister(23)
+    val reg4 = new NumRegister(45)
+    val reg5 = new NumRegister(58)
+
+    val list1 = List(reg1, reg2, reg4)
+    val list2 = List(reg3, reg4, reg5)
+    val coll1IdOption = manager.insert(list1)
+    coll1IdOption shouldBe defined
+    val coll2IdOption = manager.insert(list2)
+    coll2IdOption shouldBe defined
+
+    val keys = manager.getKeysFor(reg1.definition)
+    keys.size shouldBe (list1.size + list2.size)
+
+    keys.filter(_.group == coll1IdOption.get).flatMap(manager.get(numRegDef, _)).toSet shouldBe list1.toSet
+    keys.filter(_.group == coll2IdOption.get).flatMap(manager.get(numRegDef, _)).toSet shouldBe list2.toSet
+  }
+
   it should "throw an UnsupportedOperationException in case of inserting a collection for non-collectible registers" in {
     val myRegDef = new RegisterDefinition {
       override val fields = List(numFieldDef)

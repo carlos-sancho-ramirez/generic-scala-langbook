@@ -23,6 +23,11 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     override val definition = numRegDef
   }
 
+  class NumRegister(value :Int) extends Register {
+    override val fields = List(numField(value))
+    override val definition = numRegDef
+  }
+
   val numRegForeignKeyFieldDef = new ForeignKeyFieldDefinition {
     override val target = numRegDef
   }
@@ -132,6 +137,24 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     storageManager.delete(numRegDef, keyOption.get) shouldBe false
     storageManager.delete(numRegRefRegDef, keyOption2.get) shouldBe true
     storageManager.delete(numRegDef, keyOption.get) shouldBe true
+  }
+
+  it can "insert a collection in a single operation" in {
+    val manager = newStorageManager(List(numRegDef))
+    val reg1 = new NumRegister(5)
+    val reg2 = new NumRegister(7)
+    val reg3 = new NumRegister(23)
+
+    val list = List(reg1, reg2, reg3)
+    val collIdOption = manager.insert(list)
+    collIdOption shouldBe defined
+
+    val keys = manager.getKeysFor(reg1.definition)
+    keys.size shouldBe list.size
+
+    for (key <- keys) {
+      key.group shouldBe collIdOption.get
+    }
   }
 
   it should "return a null set before inserting anything" in {

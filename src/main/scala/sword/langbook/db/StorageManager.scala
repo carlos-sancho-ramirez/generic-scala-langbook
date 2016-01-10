@@ -21,6 +21,13 @@ trait StorageManager {
   def insert(register :Register) :Option[Register.Key]
 
   /**
+   * Add a new collection of registers
+   * @param registers Registers to be added in the new collection.
+   * @return A Some instance containing the given collection identifier or None if not possible
+   */
+  def insert(registers :Traversable[Register]) :Option[Register.CollectionId]
+
+  /**
    * Removes the register with the given key and definition if it exists and it's possible.
    * @param registerDefinition Definition for the register to be removed.
    * @param key Primary key for the register to remove, the one returned by insert method when added.

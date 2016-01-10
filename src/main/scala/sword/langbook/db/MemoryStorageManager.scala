@@ -41,6 +41,9 @@ class MemoryStorageManager(registerDefinitions :Seq[RegisterDefinition]) extends
     lastGroup += 1
     val group = lastGroup
     registers.foreach { reg =>
+      if (!reg.definition.isInstanceOf[CollectibleRegisterDefinition]) {
+        throw new UnsupportedOperationException("Unable to insert collections for non-collectible registers")
+      }
       insert(group, reg)
     }
 

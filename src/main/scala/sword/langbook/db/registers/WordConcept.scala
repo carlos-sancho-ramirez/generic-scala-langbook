@@ -1,4 +1,6 @@
-package sword.langbook.db
+package sword.langbook.db.registers
+
+import sword.db.{Register, RegisterDefinition}
 
 object WordConcept extends RegisterDefinition {
   override val fields = Vector(WordReferenceFieldDefinition, ConceptReferenceFieldDefinition)

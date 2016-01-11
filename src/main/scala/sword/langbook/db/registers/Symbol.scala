@@ -1,4 +1,6 @@
-package sword.langbook.db
+package sword.langbook.db.registers
+
+import sword.db._
 
 object SymbolReferenceFieldDefinition extends ForeignKeyFieldDefinition {
   def target = Symbol

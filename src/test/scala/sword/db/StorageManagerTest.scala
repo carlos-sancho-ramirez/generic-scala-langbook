@@ -1,4 +1,4 @@
-package sword.langbook.db
+package sword.db
 
 import org.scalatest.{Matchers, FlatSpec}
 

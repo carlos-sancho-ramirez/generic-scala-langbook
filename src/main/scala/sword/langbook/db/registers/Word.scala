@@ -1,4 +1,6 @@
-package sword.langbook.db
+package sword.langbook.db.registers
+
+import sword.db.{ForeignKeyField, ForeignKeyFieldDefinition, Register, RegisterDefinition}
 
 object WordReferenceFieldDefinition extends ForeignKeyFieldDefinition {
   def target = Word

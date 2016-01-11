@@ -1,4 +1,6 @@
-package sword.langbook.db
+package sword.langbook.db.registers
+
+import sword.db.{ArrayableRegisterDefinition, CollectionReferenceField, CollectionReferenceFieldDefinition, Register}
 
 /**
  * Reference to an array of symbols.

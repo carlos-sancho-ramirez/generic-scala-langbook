@@ -1,12 +1,14 @@
 package sword.langbook
 
-import sword.langbook.db.Concept
+import sword.db.MemoryStorageManager
+import sword.langbook.db.registers
+import sword.langbook.db.registers._
 
 object Main {
   def main(args :Array[String]) :Unit = {
-    val definitions = List(db.Alphabet, Concept, db.Language, db.LanguageAlphabet, db.Piece,
-      db.PiecePosition, db.Symbol, db.SymbolPosition, db.Word, db.WordConcept)
-    val manager = new db.MemoryStorageManager(definitions)
+    val definitions = List(Alphabet, Concept, Language, LanguageAlphabet, Piece,
+      registers.PiecePosition, registers.Symbol, registers.SymbolPosition, registers.Word, registers.WordConcept)
+    val manager = new MemoryStorageManager(definitions)
 
     val conceptOpt = manager.insert(Concept("English"))
     conceptOpt.flatMap(concept => manager.get(Concept, concept)) match {

@@ -1,6 +1,6 @@
-package sword.langbook.db
+package sword.db
 
-import sword.langbook.db.Register.Key
+import sword.db.Register.Key
 
 /**
  * Implementation for StorageManager that saves all its data in memory.

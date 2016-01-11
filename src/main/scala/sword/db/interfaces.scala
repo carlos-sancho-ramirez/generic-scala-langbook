@@ -1,4 +1,4 @@
-package sword.langbook.db
+package sword.db
 
 /**
  * A single piece of information that can be read or written.

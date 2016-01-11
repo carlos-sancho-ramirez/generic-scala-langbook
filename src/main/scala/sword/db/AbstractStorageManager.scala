@@ -1,4 +1,4 @@
-package sword.langbook.db
+package sword.db
 
 /**
  * Abstract class including common implementation that it is expected on each StorageManager implementation.

@@ -1,4 +1,6 @@
-package sword.langbook.db
+package sword.langbook.db.registers
+
+import sword.db.{CollectibleRegisterDefinition, CollectionReferenceField, CollectionReferenceFieldDefinition, Register}
 
 object PieceReferenceFieldDefinition extends CollectionReferenceFieldDefinition {
   override val target = Piece

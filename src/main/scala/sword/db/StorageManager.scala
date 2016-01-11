@@ -1,4 +1,4 @@
-package sword.langbook.db
+package sword.db
 
 /**
  * Trait for basic relational storage.

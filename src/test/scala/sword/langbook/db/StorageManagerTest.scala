@@ -332,29 +332,23 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     }
   }
 
-  ignore should "return a map for all registers with the given collection id" in {
+  it should "return for a given collection identifier a map matching all registers with their keys" in {
     val manager = newStorageManager(List(numRegDef))
-    val ids = List[Register.CollectionId](1,2,3,1,2,1)
-    val inserted = for (id <- ids) yield {
-      val reg = new Register {
-        override val fields = List(numField(id))
-        override val definition = numRegDef
-      }
-      val key = manager.insert(reg).get
-      (key,reg)
-    }
+    val groups = List[Int](1,2,3,1,2,1,3)
+    val collections = groups.indices.map(_ + 1).zip(groups).groupBy { case (_,group) => group }
+      .flatMap { case (group, items) =>
+        val regs = items.map { case (index,_) => new Register {
+          override val fields = List(numField(index))
+          override val definition = numRegDef
+        }}
 
-    for (id <- ids.min until ids.max) {
-      val expected = inserted.filter { case (_, reg) =>
-        reg.fields.head.value == id
+        manager.insert(regs).map(id => (group, id))
       }
-      val map = manager.getMapForCollection(numRegDef, id)
-      map.size shouldBe expected.size
-      for (expectation <- expected) {
-        val value = map.get(expectation._1)
-        value shouldBe defined
-        value.get shouldBe expectation._2
-      }
+
+    for (group <- groups.toSet[Int]) {
+      val expected = groups.indices.zip(groups).filter { case (_,g) => g == group } map { x => x._1 + 1 }
+      val regs = manager.getMapForCollection(numRegDef, collections.find(_._1 == group).head._2)
+      regs.values.map(_.fields.head.asInstanceOf[numField].value).toSet shouldBe expected.toSet
     }
   }
 }

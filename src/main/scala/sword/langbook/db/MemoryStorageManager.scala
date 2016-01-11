@@ -96,4 +96,8 @@ class MemoryStorageManager(registerDefinitions :Seq[RegisterDefinition]) extends
   override def getKeysForCollection(registerDefinition :CollectibleRegisterDefinition, id :Register.CollectionId) = {
     tables(registerDefinition).keys.filter(_.group == id).toSet
   }
+
+  override def getMapForCollection(registerDefinition :CollectibleRegisterDefinition, id :Register.CollectionId) = {
+    tables(registerDefinition).filterKeys(_.group == id)
+  }
 }

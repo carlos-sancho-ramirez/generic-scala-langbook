@@ -72,8 +72,10 @@ trait StorageManager {
    */
   def getKeysForCollection(registerDefinition :CollectibleRegisterDefinition, id :Register.CollectionId) :Set[Register.Key]
 
-  def getMapForCollection(registerDefinition :CollectibleRegisterDefinition, id :Register.CollectionId) :scala.collection.Map[Register.Key, Register] = {
-    // TODO: To be implemented
-    Map()
-  }
+  /**
+   * Returns a map matching keys with their registers for all registers within the given collection
+   * @param registerDefinition Kind of register to be retrieved
+   * @param id Identifier for the collection
+   */
+  def getMapForCollection(registerDefinition :CollectibleRegisterDefinition, id :Register.CollectionId) :scala.collection.Map[Register.Key, Register]
 }

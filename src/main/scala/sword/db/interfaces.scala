@@ -44,7 +44,7 @@ trait CollectionReferenceField extends Field {
 
 trait ForeignKeyField extends Field {
   override def definition :ForeignKeyFieldDefinition
-  def key :Register.Key
+  def key :StorageManager.Key
 }
 
 case class UnicodeField(value :Register.UnicodeType) extends Field {
@@ -79,7 +79,6 @@ trait ArrayableRegisterDefinition extends CollectibleRegisterDefinition
 object Register {
   type CollectionId = Int
   type Index = Int
-  case class Key(group :CollectionId, index :Index)
   type Position = Int
   type UnicodeType = Int
 

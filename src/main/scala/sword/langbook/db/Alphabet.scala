@@ -1,9 +1,9 @@
 package sword.langbook.db
 
-import sword.db.{StorageManager, Register}
+import sword.db.StorageManager
 import sword.langbook.db.registers.Concept
 
-case class Alphabet(storageManager :StorageManager, key :Register.Key) {
+case class Alphabet(storageManager :StorageManager, key :StorageManager.Key) {
   def registerOpt = storageManager.get(registers.Alphabet, key).collectFirst { case reg :registers.Alphabet => reg }
   def concept = registerOpt.flatMap(reg => storageManager.get(Concept, reg.concept)).get
 

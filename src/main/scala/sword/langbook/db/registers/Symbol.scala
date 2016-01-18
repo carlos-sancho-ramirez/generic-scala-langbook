@@ -6,7 +6,7 @@ object SymbolReferenceFieldDefinition extends ForeignKeyFieldDefinition {
   def target = Symbol
 }
 
-case class SymbolReferenceField(override val key :Register.Key) extends ForeignKeyField {
+case class SymbolReferenceField(override val key :StorageManager.Key) extends ForeignKeyField {
   override val definition = ConceptReferenceFieldDefinition
   override def toString = key.toString
 }

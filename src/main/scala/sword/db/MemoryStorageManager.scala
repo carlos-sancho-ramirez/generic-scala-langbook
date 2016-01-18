@@ -1,7 +1,5 @@
 package sword.db
 
-import sword.db.Register.Key
-
 /**
  * Implementation for StorageManager that saves all its data in memory.
  * This is expected to be faster than other implementations but all data will be lost whenever this
@@ -9,8 +7,8 @@ import sword.db.Register.Key
  */
 class MemoryStorageManager(registerDefinitions :Seq[RegisterDefinition]) extends AbstractStorageManager(registerDefinitions) {
 
-  private val tables :Map[RegisterDefinition, scala.collection.mutable.Map[Register.Key, Register]] =
-      registerDefinitions.map(d => (d,scala.collection.mutable.Map[Register.Key, Register]())).toMap
+  private val tables :Map[RegisterDefinition, scala.collection.mutable.Map[Key, Register]] =
+      registerDefinitions.map(d => (d,scala.collection.mutable.Map[Key, Register]())).toMap
   private var lastIndex :Register.Index = 0
   private var lastGroup :Register.CollectionId = 0
   private val defaultGroup = 0
@@ -18,16 +16,17 @@ class MemoryStorageManager(registerDefinitions :Seq[RegisterDefinition]) extends
   private def hasValidReference(register :Register) :Boolean = {
     val fields = register.fields.collect { case field :ForeignKeyField => field }
     fields.isEmpty || fields.forall { field =>
-      tables.getOrElse(field.definition.target, Map[Register.Key, Register]()).contains(field.key)
+      tables.getOrElse(field.definition.target, Map[Key, Register]()).contains(field.key)
     }
   }
 
-  private def insert(group: Register.CollectionId, register: Register): Option[Register.Key] = {
+  private def insert(group: Register.CollectionId, register: Register): Option[Key] = {
     if (hasValidReference(register)) {
       tables.get(register.definition).map { map =>
         lastIndex += 1
-        map.put(Key(group, lastIndex), register)
-        Key(defaultGroup, lastIndex)
+        val key = obtainKey(group, lastIndex)
+        map.put(key, register)
+        key
       }
     }
     else {
@@ -54,11 +53,11 @@ class MemoryStorageManager(registerDefinitions :Seq[RegisterDefinition]) extends
     Some(group)
   }
 
-  override def get(registerDefinition: RegisterDefinition, key: Register.Key): Option[Register] = {
+  override def get(registerDefinition: RegisterDefinition, key: Key): Option[Register] = {
     tables.get(registerDefinition).flatMap(_.get(key))
   }
 
-  private def isReferenced(registerDefinition: RegisterDefinition, key: Register.Key): Boolean = {
+  private def isReferenced(registerDefinition: RegisterDefinition, key: Key): Boolean = {
     val referencers = reverseReferences.getOrElse(registerDefinition, Nil)
     if (referencers.nonEmpty) {
       val references = for {
@@ -76,7 +75,7 @@ class MemoryStorageManager(registerDefinitions :Seq[RegisterDefinition]) extends
     else false
   }
 
-  override def delete(registerDefinition: RegisterDefinition, key: Register.Key): Boolean = {
+  override def delete(registerDefinition: RegisterDefinition, key: Key): Boolean = {
     !isReferenced(registerDefinition, key) &&
       tables.get(registerDefinition).flatMap(_.remove(key)).isDefined
   }

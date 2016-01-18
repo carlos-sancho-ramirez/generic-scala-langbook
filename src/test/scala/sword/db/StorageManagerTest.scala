@@ -107,9 +107,15 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
 
   it can "not insert a register pointing to nothing" in {
     val storageManager = newStorageManager(List(numRegDef, numRegRefRegDef))
+    val keyOpt = storageManager.insert(numReg)
+    keyOpt shouldBe defined
+
+    val numRegKey = keyOpt.get
+    storageManager.delete(numRegDef, numRegKey) shouldBe true
+
     val reg2 = new Register {
       override val fields = List(new ForeignKeyField {
-        override val key = Register.Key(0, 276)
+        override val key = numRegKey
         override val definition = numRegForeignKeyFieldDef
       })
       override val definition = numRegRefRegDef
@@ -281,14 +287,9 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     }
     regB should not equal numReg
 
-    val newKey = Register.Key(keyOption.get.group, keyOption.get.index + 100)
-    storageManager.replace(regB, newKey) shouldBe false
-
-    val regOption = storageManager.get(numRegDef, keyOption.get)
-    regOption shouldBe defined
-    regOption.get shouldEqual numReg
-
-    storageManager.get(numRegDef, newKey) shouldBe None
+    val badKey = keyOption.get
+    storageManager.delete(numRegDef, badKey) shouldBe true
+    storageManager.replace(regB, badKey) shouldBe false
   }
 
   it should "return all register keys for those register with the given collection id on calling getKeysForCollection" in {

@@ -6,7 +6,7 @@ object ConceptReferenceFieldDefinition extends ForeignKeyFieldDefinition {
   def target = Concept
 }
 
-case class ConceptReferenceField(override val key :Register.Key) extends ForeignKeyField {
+case class ConceptReferenceField(override val key :StorageManager.Key) extends ForeignKeyField {
   override val definition = ConceptReferenceFieldDefinition
   override def toString = key.toString
 }

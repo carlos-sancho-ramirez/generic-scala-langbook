@@ -1,6 +1,6 @@
 package sword.langbook.db.registers
 
-import sword.db.{ArrayableRegisterDefinition, CollectionReferenceField, CollectionReferenceFieldDefinition, Register}
+import sword.db._
 
 /**
  * Reference to an array of symbols.
@@ -20,7 +20,7 @@ object SymbolPosition extends ArrayableRegisterDefinition {
   override val fields = Vector(SymbolReferenceFieldDefinition)
 }
 
-case class SymbolPosition(symbol :Register.Key) extends Register {
+case class SymbolPosition(symbol :StorageManager.Key) extends Register {
   override val definition = SymbolPosition
   override val fields = Vector(SymbolReferenceField(symbol))
 }

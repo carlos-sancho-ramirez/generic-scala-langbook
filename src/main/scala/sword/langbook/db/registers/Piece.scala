@@ -1,6 +1,6 @@
 package sword.langbook.db.registers
 
-import sword.db.{CollectibleRegisterDefinition, CollectionReferenceField, CollectionReferenceFieldDefinition, Register}
+import sword.db._
 
 object PieceReferenceFieldDefinition extends CollectionReferenceFieldDefinition {
   override val target = Piece
@@ -17,7 +17,7 @@ object Piece extends CollectibleRegisterDefinition {
     SymbolArrayReferenceFieldDefinition)
 }
 
-case class Piece(alphabet :Register.Key, symbolArray :Register.CollectionId) extends Register {
+case class Piece(alphabet :StorageManager.Key, symbolArray :Register.CollectionId) extends Register {
   override def definition = Piece
   override def fields = Vector(
     AlphabetReferenceField(alphabet),

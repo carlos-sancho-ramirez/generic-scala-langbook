@@ -22,9 +22,10 @@ class MemoryStorageManager(registerDefinitions :Seq[RegisterDefinition]) extends
 
   private def insert(group: Register.CollectionId, register: Register): Option[Key] = {
     if (hasValidReference(register)) {
-      tables.get(register.definition).map { map =>
+      val regDef = register.definition
+      tables.get(regDef).map { map =>
         lastIndex += 1
-        val key = obtainKey(group, lastIndex)
+        val key = obtainKey(regDef, group, lastIndex)
         map.put(key, register)
         key
       }
@@ -53,12 +54,12 @@ class MemoryStorageManager(registerDefinitions :Seq[RegisterDefinition]) extends
     Some(group)
   }
 
-  override def get(registerDefinition: RegisterDefinition, key: Key): Option[Register] = {
-    tables.get(registerDefinition).flatMap(_.get(key))
+  override def get(key: Key): Option[Register] = {
+    tables.get(key.registerDefinition).flatMap(_.get(key))
   }
 
-  private def isReferenced(registerDefinition: RegisterDefinition, key: Key): Boolean = {
-    val referencers = reverseReferences.getOrElse(registerDefinition, Nil)
+  private def isReferenced(key: Key): Boolean = {
+    val referencers = reverseReferences.getOrElse(key.registerDefinition, Nil)
     if (referencers.nonEmpty) {
       val references = for {
         sourceRegDef <- referencers
@@ -66,7 +67,7 @@ class MemoryStorageManager(registerDefinitions :Seq[RegisterDefinition]) extends
       } yield {
         table.exists { case (_,r) =>
           r.fields.collect { case field :ForeignKeyField => field }
-            .exists(field => field.definition.target == registerDefinition && field.key == key)
+            .exists(field => field.definition.target == key.registerDefinition && field.key == key)
         }
       }
 
@@ -75,9 +76,8 @@ class MemoryStorageManager(registerDefinitions :Seq[RegisterDefinition]) extends
     else false
   }
 
-  override def delete(registerDefinition: RegisterDefinition, key: Key): Boolean = {
-    !isReferenced(registerDefinition, key) &&
-      tables.get(registerDefinition).flatMap(_.remove(key)).isDefined
+  override def delete(key: Key): Boolean = {
+    !isReferenced(key) && tables.get(key.registerDefinition).flatMap(_.remove(key)).isDefined
   }
 
   override def getKeysFor(registerDefinition: RegisterDefinition) = {

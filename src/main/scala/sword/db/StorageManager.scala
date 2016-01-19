@@ -8,10 +8,12 @@ object StorageManager {
    * Keys are expected to be created by the storage manager implementation and never by the client
    * of the storage manager implementation.
    *
+   * @param registerDefinition definition of the register that this key is pointing to
    * @param group identifier for a collection of registers
    * @param index identifier to identify a single register within a collection
    */
-  sealed class Key private[StorageManager] (val group :Register.CollectionId, val index :Register.Index)
+  sealed class Key private[StorageManager] (val registerDefinition :RegisterDefinition,
+      val group :Register.CollectionId, val index :Register.Index)
 }
 
 /**
@@ -21,7 +23,8 @@ trait StorageManager {
 
   type Key = StorageManager.Key
 
-  protected def obtainKey(group :Register.CollectionId, index :Register.Index) = new Key(group, index)
+  protected def obtainKey(registerDefinition :RegisterDefinition, group :Register.CollectionId,
+    index :Register.Index) = new Key(registerDefinition, group, index)
 
   /**
    * Sequence for all registerDefinitions that this store manager understand.
@@ -47,17 +50,16 @@ trait StorageManager {
 
   /**
    * Removes the register with the given key and definition if it exists and it's possible.
-   * @param registerDefinition Definition for the register to be removed.
-   * @param key Primary key for the register to remove, the one returned by insert method when added.
+   * @param key Key for the register to remove, the one returned by insert method when added.
    * @return Whether it has been removed.
    */
-  def delete(registerDefinition: RegisterDefinition, key :Key) :Boolean
+  def delete(key :Key) :Boolean
 
   /**
    * Retrieves the register that matches the given key and definition.
    * @return A Some instance with the register instance inside of None if not found.
    */
-  def get(registerDefinition :RegisterDefinition, key :Key) :Option[Register]
+  def get(key :Key) :Option[Register]
 
   /**
    * Get all keys currently included in the given register definition.
@@ -77,7 +79,7 @@ trait StorageManager {
    */
   def getMapFor(registerDefinition :RegisterDefinition) :scala.collection.Map[Key, Register] = {
     getKeysFor(registerDefinition).groupBy(x => x).map { case (key, _) =>
-      (key, get(registerDefinition, key).get)
+      (key, get(key).get)
     }
   }
 

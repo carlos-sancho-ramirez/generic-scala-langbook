@@ -69,7 +69,7 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     val keyOption = storageManager.insert(numReg)
     keyOption shouldBe defined
 
-    val regOption = storageManager.get(numRegDef, keyOption.get)
+    val regOption = storageManager.get(keyOption.get)
     regOption shouldBe defined
     regOption.get shouldEqual numReg
   }
@@ -79,11 +79,11 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     val keyOption = storageManager.insert(numReg)
     keyOption shouldBe defined
 
-    val regOption1 = storageManager.get(numRegDef, keyOption.get)
+    val regOption1 = storageManager.get(keyOption.get)
     regOption1 shouldBe defined
     regOption1.get shouldEqual numReg
 
-    val regOption2 = storageManager.get(numRegDef, keyOption.get)
+    val regOption2 = storageManager.get(keyOption.get)
     regOption2 shouldBe defined
     regOption2.get shouldEqual numReg
   }
@@ -93,7 +93,7 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     val keyOption = storageManager.insert(numReg)
     keyOption shouldBe defined
 
-    storageManager.delete(numRegDef, keyOption.get) shouldBe true
+    storageManager.delete(keyOption.get) shouldBe true
   }
 
   it can "not delete more than once for the same key" in {
@@ -101,8 +101,8 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     val keyOption = storageManager.insert(numReg)
     keyOption shouldBe defined
 
-    storageManager.delete(numRegDef, keyOption.get) shouldBe true
-    storageManager.delete(numRegDef, keyOption.get) shouldBe false
+    storageManager.delete(keyOption.get) shouldBe true
+    storageManager.delete(keyOption.get) shouldBe false
   }
 
   it can "not insert a register pointing to nothing" in {
@@ -111,7 +111,7 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     keyOpt shouldBe defined
 
     val numRegKey = keyOpt.get
-    storageManager.delete(numRegDef, numRegKey) shouldBe true
+    storageManager.delete(numRegKey) shouldBe true
 
     val reg2 = new Register {
       override val fields = List(new ForeignKeyField {
@@ -140,9 +140,9 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     val keyOption2 = storageManager.insert(reg2)
     keyOption2 shouldBe defined
 
-    storageManager.delete(numRegDef, keyOption.get) shouldBe false
-    storageManager.delete(numRegRefRegDef, keyOption2.get) shouldBe true
-    storageManager.delete(numRegDef, keyOption.get) shouldBe true
+    storageManager.delete(keyOption.get) shouldBe false
+    storageManager.delete(keyOption2.get) shouldBe true
+    storageManager.delete(keyOption.get) shouldBe true
   }
 
   it can "insert a collection in a single operation" in {
@@ -181,8 +181,8 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     val keys = manager.getKeysFor(reg1.definition)
     keys.size shouldBe (list1.size + list2.size)
 
-    keys.filter(_.group == coll1IdOption.get).flatMap(manager.get(numRegDef, _)).toSet shouldBe list1.toSet
-    keys.filter(_.group == coll2IdOption.get).flatMap(manager.get(numRegDef, _)).toSet shouldBe list2.toSet
+    keys.filter(_.group == coll1IdOption.get).flatMap(manager.get(_)).toSet shouldBe list1.toSet
+    keys.filter(_.group == coll2IdOption.get).flatMap(manager.get(_)).toSet shouldBe list2.toSet
   }
 
   it should "throw an UnsupportedOperationException in case of inserting a collection for non-collectible registers, and this operation should not change the storage state" in {
@@ -271,7 +271,7 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
 
     storageManager.replace(regB, keyOption.get) shouldBe true
 
-    val regOption = storageManager.get(numRegDef, keyOption.get)
+    val regOption = storageManager.get(keyOption.get)
     regOption shouldBe defined
     regOption.get shouldEqual regB
   }
@@ -288,7 +288,7 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     regB should not equal numReg
 
     val badKey = keyOption.get
-    storageManager.delete(numRegDef, badKey) shouldBe true
+    storageManager.delete(badKey) shouldBe true
     storageManager.replace(regB, badKey) shouldBe false
   }
 
@@ -308,7 +308,7 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     for (group <- groups.toSet[Int]) {
       val expected = groups.indices.zip(groups).filter { case (_,g) => g == group } map { x => x._1 + 1 }
       val keys = manager.getKeysForCollection(numRegDef, collections.find(_._1 == group).head._2)
-      keys.flatMap(manager.get(numRegDef,_)).map(_.fields.head.asInstanceOf[numField].value) shouldBe expected.toSet
+      keys.flatMap(manager.get).map(_.fields.head.asInstanceOf[numField].value) shouldBe expected.toSet
     }
   }
 

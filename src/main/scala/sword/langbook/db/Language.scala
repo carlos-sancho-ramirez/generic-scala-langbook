@@ -4,9 +4,9 @@ import sword.db.{Register, StorageManager}
 import sword.langbook.db.registers.Concept
 
 case class Language(storageManager :StorageManager, key :StorageManager.Key) {
-  def registerOpt = storageManager.get(registers.Language, key).collectFirst { case reg :registers.Language => reg }
+  def registerOpt = storageManager.get(key).collectFirst { case reg :registers.Language => reg }
 
-  def concept = registerOpt.flatMap(reg => storageManager.get(Concept, reg.concept)).get
+  def concept = registerOpt.flatMap(reg => storageManager.get(reg.concept)).get
 
   def alphabets = storageManager.getMapFor(registers.LanguageAlphabet).values.filter(
     reg => LanguageAlphabet.languageKeyExtractor(reg) == key

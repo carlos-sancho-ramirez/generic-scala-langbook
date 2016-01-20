@@ -12,8 +12,11 @@ object StorageManager {
    * @param group identifier for a collection of registers
    * @param index identifier to identify a single register within a collection
    */
-  sealed class Key private[StorageManager] (val registerDefinition :RegisterDefinition,
-      val group :Register.CollectionId, val index :Register.Index)
+  sealed class Key private[StorageManager] (
+      val storageManager :StorageManager,
+      val registerDefinition :RegisterDefinition,
+      val group :Register.CollectionId,
+      val index :Register.Index)
 }
 
 /**
@@ -24,7 +27,7 @@ trait StorageManager {
   type Key = StorageManager.Key
 
   protected def obtainKey(registerDefinition :RegisterDefinition, group :Register.CollectionId,
-    index :Register.Index) = new Key(registerDefinition, group, index)
+    index :Register.Index) = new Key(this, registerDefinition, group, index)
 
   /**
    * Sequence for all registerDefinitions that this store manager understand.

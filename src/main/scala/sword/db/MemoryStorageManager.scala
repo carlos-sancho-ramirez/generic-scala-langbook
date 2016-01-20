@@ -55,6 +55,10 @@ class MemoryStorageManager(registerDefinitions :Seq[RegisterDefinition]) extends
   }
 
   override def get(key: Key): Option[Register] = {
+    if (key.storageManager != this) {
+      throw new IllegalArgumentException("This key do not belong to this storage manager")
+    }
+
     tables.get(key.registerDefinition).flatMap(_.get(key))
   }
 

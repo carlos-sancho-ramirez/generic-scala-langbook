@@ -8,9 +8,9 @@ case class LinkedStorageManager(storageManagerFactory :(List[RegisterDefinition]
 
   def concepts = storageManager.getMapFor(registers.Concept).collect { case (k, v :registers.Concept) => (k,v)}
   def alphabets = storageManager.getKeysFor(registers.Alphabet).groupBy(x => x).map { case (key, _) =>
-    (key, Alphabet(storageManager, key))
+    (key, Alphabet(key))
   }
   def languages = storageManager.getKeysFor(registers.Language).groupBy(x => x).map { case (key, _) =>
-    (key, Language(storageManager, key))
+    (key, Language(key))
   }
 }

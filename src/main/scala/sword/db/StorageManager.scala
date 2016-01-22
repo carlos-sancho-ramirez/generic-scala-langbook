@@ -16,7 +16,9 @@ object StorageManager {
       val storageManager :StorageManager,
       val registerDefinition :RegisterDefinition,
       val group :Register.CollectionId,
-      val index :Register.Index)
+      val index :Register.Index) {
+    def registerOption = storageManager.get(this)
+  }
 }
 
 /**

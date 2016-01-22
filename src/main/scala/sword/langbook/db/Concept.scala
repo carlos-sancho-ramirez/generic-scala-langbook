@@ -1,14 +1,14 @@
 package sword.langbook.db
 
-import sword.db.{ForeignKeyField, StorageManager}
+import sword.db.{CharSequenceField, StorageManager}
 
-case class Alphabet(key :StorageManager.Key) {
+case class Concept(key :StorageManager.Key) {
   def fields = key.registerOption.map(_.fields).getOrElse(Seq())
-  def conceptKeyOpt = fields.collectFirst {
-    case field :ForeignKeyField if field.definition.target == registers.Concept => field.key
+  def hintOpt = fields.collectFirst {
+    case field :CharSequenceField => field.value
   }
 
-  def concept = Concept(conceptKeyOpt.get)
+  def hint = hintOpt.get
 
   def languages = key.storageManager.getMapFor(registers.LanguageAlphabet).values.filter(
     reg => LanguageAlphabet.alphabetKeyExtractor(reg) == key

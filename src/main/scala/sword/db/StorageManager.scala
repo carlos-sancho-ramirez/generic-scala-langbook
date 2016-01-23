@@ -103,4 +103,15 @@ trait StorageManager {
    * @param id Identifier for the collection
    */
   def getMapForCollection(registerDefinition :CollectibleRegisterDefinition, id :Register.CollectionId) :scala.collection.Map[Key, Register]
+
+  /**
+   * Returns all keys matching registers that contains the given collection identifier in the expected order.
+   * @param registerDefinition Identifier. As collection identifiers can only be added in just one
+   *                           registerDefinition, this also identifies the register definition
+   *                           where this is included.
+   * @param id identifier value to be filtered
+   */
+  def getKeysForArray(registerDefinition :ArrayableRegisterDefinition, id :Register.CollectionId) :Seq[Key] = {
+    getKeysForCollection(registerDefinition, id).toSeq.sortBy(_.index)
+  }
 }

@@ -18,6 +18,8 @@ object StorageManager {
       val group :Register.CollectionId,
       val index :Register.Index) {
     def registerOption = storageManager.get(this)
+
+    override def toString = s"$group:$index"
   }
 }
 

@@ -13,6 +13,20 @@ class MemoryStorageManager(registerDefinitions :Seq[RegisterDefinition]) extends
   private var lastGroup :Register.CollectionId = 0
   private val defaultGroup = 0
 
+  private def throwIfWrongRegister(register :Register): Unit = {
+    val regDef = register.definition
+    if (register.fields.size != regDef.fields.size) {
+      throw new IllegalArgumentException("Invalid register: Number of fields in the register and " +
+        "its definition do not match")
+    }
+
+    for { f <- register.fields zip regDef.fields} {
+      if (f._1.definition != f._2) {
+        throw new IllegalArgumentException("invalid register: Fields do not match its definitions")
+      }
+    }
+  }
+
   private def hasValidReference(register :Register) :Boolean = {
     val fields = register.fields.collect { case field :ForeignKeyField => field }
     fields.isEmpty || fields.forall { field =>
@@ -21,6 +35,8 @@ class MemoryStorageManager(registerDefinitions :Seq[RegisterDefinition]) extends
   }
 
   private def insert(group: Register.CollectionId, register: Register): Option[Key] = {
+    throwIfWrongRegister(register)
+
     if (hasValidReference(register)) {
       val regDef = register.definition
       tables.get(regDef).map { map =>

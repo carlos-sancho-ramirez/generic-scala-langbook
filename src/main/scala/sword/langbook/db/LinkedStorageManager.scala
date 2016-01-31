@@ -17,10 +17,14 @@ case class LinkedStorageManager(storageManagerFactory :(List[RegisterDefinition]
 
   val storageManager = storageManagerFactory(registerDefinitions)
 
-  def concepts = storageManager.getMapFor(registers.Concept).collect { case (k, v :registers.Concept) => (k,v)}
+  def concepts = storageManager.getKeysFor(registers.Concept).groupBy(x => x).map { case (key, _) =>
+    (key, Concept(key))
+  }
+
   def alphabets = storageManager.getKeysFor(registers.Alphabet).groupBy(x => x).map { case (key, _) =>
     (key, Alphabet(key))
   }
+
   def languages = storageManager.getKeysFor(registers.Language).groupBy(x => x).map { case (key, _) =>
     (key, Language(key))
   }

@@ -14,9 +14,8 @@ case class Piece(storageManager :StorageManager, collectionId :Register.Collecti
   }
 
   override def get(key: Alphabet): Option[SymbolArray] = {
-    val pieceKey = regKeys.flatMap(k => alphabetKeyOpt(k).map(alphabetKey => (k,alphabetKey))).filter {
-      case (_,alphabetKey) => alphabetKey == key.key
-    }.map(_._1).headOption
+    val pieceKey = regKeys.flatMap(k => alphabetKeyOpt(k).map(alphabetKey => (k,alphabetKey)))
+      .filter { case (_,alphabetKey) => alphabetKey.index == key.key.index }.map(_._1).headOption
 
     pieceKey.flatMap(k => symbolArrayIdOpt(k).map(SymbolArray(storageManager, _)))
   }

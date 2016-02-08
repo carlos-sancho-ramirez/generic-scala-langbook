@@ -13,4 +13,8 @@ case class Language(key :StorageManager.Key) {
   def alphabets = key.storageManager.getMapFor(registers.LanguageAlphabet).values.filter(
     reg => LanguageAlphabet.languageKeyExtractor(reg) == key
   ).map(reg => Alphabet(LanguageAlphabet.alphabetKeyExtractor(reg)))
+
+  override def equals(other: Any) = {
+    other.isInstanceOf[Language] && key == other.asInstanceOf[Language].key
+  }
 }

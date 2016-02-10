@@ -16,6 +16,7 @@ case class Word(key :StorageManager.Key) {
 
   /**
     * Returns in a string the representation of this word in the given alphabet if any.
+    *
     * @return A Some instance containing the string or None if there is no representation for the
     *         given alphabet.
     */
@@ -23,4 +24,25 @@ case class Word(key :StorageManager.Key) {
     // TODO: To be improved to return None instead of Some("") for wrong alphabets
     Some(pieces.flatMap(_.get(alphabet)).flatMap(x => x).map(_.unicode.toChar).mkString(""))
   }
+
+  /**
+    * Return all concepts attached to this word.
+    */
+  def concepts: Set[Concept] = {
+    key.storageManager.getMapFor(registers.WordConcept).values.filter {
+      reg =>
+        reg.fields.collectFirst {
+          case field: ForeignKeyField if field.definition.target == registers.Word =>
+            field.key.index
+        }.contains(key.index)
+    }.flatMap {
+      reg =>
+        reg.fields.collectFirst {
+          case field: ForeignKeyField if field.definition.target == registers.Concept =>
+            Concept(field.key)
+        }
+    }.toSet
+  }
+
+  def synonyms: Set[Word] = concepts.flatMap(_.wordsForLanguage(language)).filterNot(_.key == key)
 }

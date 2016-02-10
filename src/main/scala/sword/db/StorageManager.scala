@@ -63,14 +63,17 @@ trait StorageManager {
    * @return A some option including the key or None in case of error
    */
   def decode(encodedKey: String): Option[Key] = {
-    try {
-      val array = encodedKey.split(":").map(_.toInt)
-      Some(obtainKey(registerDefinitions(array(0)), array(1), array(2)))
+    if (encodedKey != null) {
+      try {
+        val array = encodedKey.split(":").map(_.toInt)
+        Some(obtainKey(registerDefinitions(array(0)), array(1), array(2)))
+      }
+      catch {
+        case _: ArrayIndexOutOfBoundsException => None
+        case _: NumberFormatException => None
+      }
     }
-    catch {
-      case _: ArrayIndexOutOfBoundsException => None
-      case _: NumberFormatException => None
-    }
+    else None
   }
 
   /**

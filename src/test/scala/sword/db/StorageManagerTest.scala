@@ -364,6 +364,13 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     }
   }
 
+  it can "return keys containing the same storageManager instance" in {
+    val manager = newStorageManager(List(numRegDef))
+    val keyOpt = manager.insert(numReg)
+    keyOpt shouldBe defined
+    keyOpt.get.storageManager shouldBe manager
+  }
+
   it can "encode a key and decode it back" in {
     val manager = newStorageManager(List(numRegDef))
     val keyOpt = manager.insert(numReg)

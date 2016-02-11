@@ -363,4 +363,15 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
       regs.values.map(_.fields.head.asInstanceOf[numField].value).toSet shouldBe expected.toSet
     }
   }
+
+  it can "encode a key and decode it back" in {
+    val manager = newStorageManager(List(numRegDef))
+    val keyOpt = manager.insert(numReg)
+    keyOpt shouldBe defined
+
+    val str = manager.encode(keyOpt.get)
+    val newKey = manager.decode(str)
+    newKey shouldBe defined
+    newKey.get shouldEqual keyOpt.get
+  }
 }

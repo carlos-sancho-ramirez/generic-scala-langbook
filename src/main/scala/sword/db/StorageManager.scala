@@ -22,25 +22,9 @@ object StorageManager {
     override def toString = s"$group:$index"
 
     /**
-      * Transforms this key into an string that can be used to serialize this key and reconstruct it
-      * again later. This is valuable for those situations where the key instance cannot be keep.
-      *
-      * Some concrete scenarios are:
-      *   * Web: when the key has to be send as GET parameter
-      *   * Android: when the key has to go across process (Inter-process communication) and has to
-      *     be added in a Parcel.
-      *
-      * Every StorageManager implementation can create its own implementation in order to protect
-      * any confidential info.
-      *
-      * It is assumed that any instance of the same storage manager implementation can decode again
-      * keys if they have the same register definitions and in the same order.
-      */
-    def encoded: String = {
-      val regDefIndex = storageManager.registerDefinitions.indexOf(registerDefinition)
-      s"$regDefIndex:$group:$index"
-    }
-
+     * Encodes this key.
+     */
+    def encoded = storageManager.encode(this)
     override def equals(other: Any) = other.isInstanceOf[Key] && other.asInstanceOf[Key].encoded == encoded
     override def hashCode = group * 31 + index
   }
@@ -55,6 +39,26 @@ trait StorageManager {
 
   protected def obtainKey(registerDefinition :RegisterDefinition, group :Register.CollectionId,
     index :Register.Index) = new Key(this, registerDefinition, group, index)
+
+  /**
+   * Transforms the given key into an string that can be used to serialize it and reconstruct it
+   * again later. This is valuable for those situations where the key instance cannot be kept.
+   *
+   * Some concrete scenarios are:
+   *   * Web: when the key has to be send as GET parameter
+   *   * Android: when the key has to go across process (Inter-process communication) and has to
+   *     be added in a Parcel.
+   *
+   * Every StorageManager implementation can create its own implementation in order to protect
+   * any confidential info.
+   *
+   * It is assumed that any instance of the same storage manager implementation can decode again
+   * keys if they have the same register definitions and in the same order.
+   */
+  def encode(key: Key): String = {
+    val regDefIndex = registerDefinitions.indexOf(key.registerDefinition)
+    s"$regDefIndex:${key.group}:${key.index}"
+  }
 
   /**
    * Complementary process of encoding. This retrieves a key back that has been encoded by this

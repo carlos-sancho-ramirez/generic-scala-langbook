@@ -66,4 +66,9 @@ case class Word(key :StorageManager.Key) {
   }
 
   def synonyms: Set[Word] = concepts.flatMap(_.wordsForLanguage(language)).filterNot(_.key == key)
+
+  def translations: Set[Word] = {
+    val thisLanguage = language
+    concepts.flatMap(_.words).filterNot(_.language == thisLanguage)
+  }
 }

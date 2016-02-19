@@ -10,7 +10,6 @@ case class Alphabet(key :StorageManager.Key) {
 
   def concept = Concept(conceptKeyOpt.get)
 
-  def languages = key.storageManager.getMapFor(registers.LanguageAlphabet).values.filter(
-    reg => LanguageAlphabet.alphabetKeyExtractor(reg) == key
-  ).map(reg => Language(LanguageAlphabet.languageKeyExtractor(reg)))
+  // TODO: To be implemented
+  def languages = ???
 }

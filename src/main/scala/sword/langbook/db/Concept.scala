@@ -2,17 +2,14 @@ package sword.langbook.db
 
 import sword.db.{ForeignKeyField, CharSequenceField, StorageManager}
 
-case class Concept(key :StorageManager.Key) {
+sealed trait ConceptEntity
+sealed case class Concept(key :StorageManager.Key) extends ConceptEntity {
   def fields = key.registerOption.map(_.fields).getOrElse(Seq())
   def hintOpt = fields.collectFirst {
     case field :CharSequenceField => field.value
   }
 
   def hint = hintOpt.get
-
-  def languages = key.storageManager.getMapFor(registers.LanguageAlphabet).values.filter(
-    reg => LanguageAlphabet.alphabetKeyExtractor(reg) == key
-  ).map(reg => Language(LanguageAlphabet.languageKeyExtractor(reg)))
 
   def words = {
     key.storageManager.getMapFor(registers.WordConcept).values.filter( reg =>
@@ -32,3 +29,5 @@ case class Concept(key :StorageManager.Key) {
     words.filter(_.language == language)
   }
 }
+
+sealed case class ConceptParams(hint: String) extends ConceptEntity

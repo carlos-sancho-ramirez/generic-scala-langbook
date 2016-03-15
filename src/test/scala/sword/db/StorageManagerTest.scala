@@ -10,6 +10,16 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
 
   case class numField(value :Int) extends Field {
     override val definition = numFieldDef
+
+    override def equals(other: Any) = {
+      super.equals(other) && (other match {
+        case that: numField => value == that.value
+        case _ => false
+      })
+    }
+
+    override def hashCode = value
+    override def canEqual(other: Any) = other.isInstanceOf[numField]
   }
 
   val numRegFieldValue = numField(23)

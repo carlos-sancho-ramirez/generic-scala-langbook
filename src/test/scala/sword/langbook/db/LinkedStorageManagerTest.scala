@@ -43,4 +43,23 @@ class LinkedStorageManagerTest extends FlatSpec with Matchers {
     languages.size shouldBe 1
     languages.values.head shouldBe languageOption.get
   }
+
+  it can "insert a language with an existing concept" in {
+    val manager = newManager
+    manager.languages shouldBe empty
+
+    val conceptOption = manager.addConcept(ConceptParams("Concept"))
+    conceptOption shouldBe defined
+
+    val languageOption = manager.addLanguage(LanguageParams(conceptOption.get))
+    languageOption shouldBe defined
+
+    val concepts = manager.concepts
+    concepts.size shouldBe 1
+    concepts.values.head shouldBe conceptOption.get
+
+    val languages = manager.languages
+    languages.size shouldBe 1
+    languages.values.head shouldBe languageOption.get
+  }
 }

@@ -41,7 +41,7 @@ case class LinkedStorageManager(storageManagerFactory :(List[RegisterDefinition]
         Some(concept.key)
     }
 
-    conceptKeyOpt.flatMap(conceptKey => storageManager.insert(registers.Language(conceptKey)))
+    conceptKeyOpt.flatMap(conceptKey => storageManager.insert(registers.Language(conceptKey))).map(Language)
   }
 
   def words = storageManager.getKeysFor(registers.Word).groupBy(x => x).map { case (key, _) =>

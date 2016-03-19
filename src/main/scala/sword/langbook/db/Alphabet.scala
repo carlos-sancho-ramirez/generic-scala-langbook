@@ -13,3 +13,13 @@ case class Alphabet(key :StorageManager.Key) {
   // TODO: To be implemented
   def languages = ???
 }
+
+object Alphabet {
+  def from(manager: LinkedStorageManager, register: registers.Alphabet): Option[Alphabet] = {
+    manager.storageManager.insert(register).map(apply)
+  }
+
+  def from(manager: LinkedStorageManager, concept: Concept): Option[Alphabet] = {
+    from(manager, registers.Alphabet(concept.key))
+  }
+}

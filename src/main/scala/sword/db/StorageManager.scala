@@ -18,6 +18,7 @@ object StorageManager {
       val group :Register.CollectionId,
       val index :Register.Index) {
     def registerOption = storageManager.get(this)
+    def delete = storageManager.delete(this)
 
     override def toString = s"$group:$index"
 

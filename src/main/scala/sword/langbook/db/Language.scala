@@ -34,7 +34,7 @@ case class Language(key :StorageManager.Key) {
     pieces.flatMap(_.fields.collectFirst {
       case field: ForeignKeyField if field.definition.target == registers.Alphabet =>
         field.key
-    }).toSet.map(Alphabet)
+    }).toSet[StorageManager.Key].map(key => Alphabet(key))
   }
 
   override def equals(other: Any) = {

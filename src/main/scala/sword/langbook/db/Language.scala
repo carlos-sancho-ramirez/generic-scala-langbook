@@ -42,11 +42,7 @@ case class Language(key :StorageManager.Key) {
   }
 }
 
-object Language {
-  def from(manager: LinkedStorageManager, register: registers.Language): Option[Language] = {
-    manager.storageManager.insert(register).map(apply)
-  }
-
+object Language extends ElementFactory[registers.Language, Language] {
   def from(manager: LinkedStorageManager, concept: Concept): Option[Language] = {
     from(manager, registers.Language(concept.key))
   }

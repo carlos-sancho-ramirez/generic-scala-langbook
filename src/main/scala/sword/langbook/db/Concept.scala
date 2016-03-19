@@ -29,11 +29,7 @@ case class Concept(key: StorageManager.Key) {
   }
 }
 
-object Concept {
-  def from(manager: LinkedStorageManager, register: registers.Concept): Option[Concept] = {
-    manager.storageManager.insert(register).map(apply)
-  }
-
+object Concept extends ElementFactory[registers.Concept, Concept] {
   def from(manager: LinkedStorageManager, hint: String): Option[Concept] = {
     from(manager, registers.Concept(hint))
   }

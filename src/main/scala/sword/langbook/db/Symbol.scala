@@ -15,11 +15,7 @@ case class Symbol(key :StorageManager.Key) {
   def unicode = unicodeOpt.get
 }
 
-object Symbol {
-  def from(manager: LinkedStorageManager, register: registers.Symbol): Option[Symbol] = {
-    manager.storageManager.insert(register).map(apply)
-  }
-
+object Symbol extends ElementFactory[registers.Symbol, Symbol] {
   def from(manager: LinkedStorageManager, unicode: Register.UnicodeType): Option[Symbol] = {
     from(manager, registers.Symbol(unicode))
   }

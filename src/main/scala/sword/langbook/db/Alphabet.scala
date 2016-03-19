@@ -14,11 +14,7 @@ case class Alphabet(key :StorageManager.Key) {
   def languages = ???
 }
 
-object Alphabet {
-  def from(manager: LinkedStorageManager, register: registers.Alphabet): Option[Alphabet] = {
-    manager.storageManager.insert(register).map(apply)
-  }
-
+object Alphabet extends ElementFactory[registers.Alphabet, Alphabet] {
   def from(manager: LinkedStorageManager, concept: Concept): Option[Alphabet] = {
     from(manager, registers.Alphabet(concept.key))
   }

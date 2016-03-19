@@ -28,6 +28,10 @@ case class LinkedStorageManager(storageManagerFactory :(List[RegisterDefinition]
     (key, Language(key))
   }
 
+  def symbols = storageManager.getKeysFor(registers.Symbol).groupBy(x => x).map { case (key, _) =>
+    (key, Symbol(key))
+  }
+
   def words = storageManager.getKeysFor(registers.Word).groupBy(x => x).map { case (key, _) =>
     (key, Word(key))
   }

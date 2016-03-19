@@ -64,4 +64,16 @@ class LinkedStorageManagerTest extends FlatSpec with Matchers {
     alphabets.size shouldBe 1
     alphabets.values.head shouldBe alphabetOption.get
   }
+
+  it can "insert a symbol" in {
+    val manager = newManager
+    manager.symbols shouldBe empty
+
+    val symbolOption = Symbol.from(manager, 'a')
+    symbolOption shouldBe defined
+
+    val symbols = manager.symbols
+    symbols.size shouldBe 1
+    symbols.values.head shouldBe symbolOption.get
+  }
 }

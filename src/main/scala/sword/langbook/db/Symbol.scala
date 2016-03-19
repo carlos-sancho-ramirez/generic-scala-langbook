@@ -1,6 +1,6 @@
 package sword.langbook.db
 
-import sword.db.{UnicodeField, StorageManager}
+import sword.db.{Register, UnicodeField, StorageManager}
 
 case class Symbol(key :StorageManager.Key) {
   if (key.registerDefinition != registers.Symbol) {
@@ -13,4 +13,14 @@ case class Symbol(key :StorageManager.Key) {
   }
 
   def unicode = unicodeOpt.get
+}
+
+object Symbol {
+  def from(manager: LinkedStorageManager, register: registers.Symbol): Option[Symbol] = {
+    manager.storageManager.insert(register).map(apply)
+  }
+
+  def from(manager: LinkedStorageManager, unicode: Register.UnicodeType): Option[Symbol] = {
+    from(manager, registers.Symbol(unicode))
+  }
 }

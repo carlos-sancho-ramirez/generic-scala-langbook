@@ -2,8 +2,7 @@ package sword.langbook.db
 
 import sword.db.{ForeignKeyField, CharSequenceField, StorageManager}
 
-sealed trait ConceptEntity
-sealed case class Concept(key :StorageManager.Key) extends ConceptEntity {
+case class Concept(key: StorageManager.Key) {
   def fields = key.registerOption.map(_.fields).getOrElse(Seq())
   def hintOpt = fields.collectFirst {
     case field :CharSequenceField => field.value
@@ -30,4 +29,12 @@ sealed case class Concept(key :StorageManager.Key) extends ConceptEntity {
   }
 }
 
-sealed case class ConceptParams(hint: String) extends ConceptEntity
+object Concept {
+  def from(manager: LinkedStorageManager, register: registers.Concept): Option[Concept] = {
+    manager.storageManager.insert(register).map(apply)
+  }
+
+  def from(manager: LinkedStorageManager, hint: String): Option[Concept] = {
+    from(manager, registers.Concept(hint))
+  }
+}

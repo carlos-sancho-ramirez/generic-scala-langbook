@@ -2,8 +2,7 @@ package sword.langbook.db
 
 import sword.db.{CollectionReferenceField, ForeignKeyField, StorageManager}
 
-sealed trait LanguageEntity
-sealed case class Language(key :StorageManager.Key) extends LanguageEntity {
+case class Language(key :StorageManager.Key) {
   def fields = key.registerOption.map(_.fields).getOrElse(Seq())
   def conceptKeyOpt = fields.collectFirst {
     case field :ForeignKeyField if field.definition.target == registers.Concept => field.key
@@ -43,4 +42,12 @@ sealed case class Language(key :StorageManager.Key) extends LanguageEntity {
   }
 }
 
-sealed case class LanguageParams(concept: ConceptEntity)
+object Language {
+  def from(manager: LinkedStorageManager, register: registers.Language): Option[Language] = {
+    manager.storageManager.insert(register).map(apply)
+  }
+
+  def from(manager: LinkedStorageManager, concept: Concept): Option[Language] = {
+    from(manager, registers.Language(concept.key))
+  }
+}

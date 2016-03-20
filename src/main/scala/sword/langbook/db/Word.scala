@@ -72,3 +72,9 @@ case class Word(key :StorageManager.Key) {
     concepts.flatMap(_.words).filterNot(_.language == thisLanguage)
   }
 }
+
+object Word extends ElementFactory[registers.Word, Word] {
+  def from(manager: LinkedStorageManager, language: Language, pieces: PieceArray): Option[Word] = {
+    from(manager, registers.Word(language.key, pieces.arrayId))
+  }
+}

@@ -199,4 +199,53 @@ class LinkedStorageManagerTest extends FlatSpec with Matchers {
     piece(kana) shouldBe umbrellaKanaSymbolArray
     piece(kanji) shouldBe umbrellaKanjiSymbolArray
   }
+
+  it can "insert a piece array" in {
+    val manager = newManager
+    val spanish = Concept.from(manager, "Spanish").flatMap(Alphabet.from(manager,_)).get
+
+    val symbolArray1 = SymbolArray.from(manager, "ca").get
+    val symbolArray2 = SymbolArray.from(manager, "sa").get
+
+    val map1 = Map[Alphabet, SymbolArray](spanish -> symbolArray1)
+    val map2 = Map[Alphabet, SymbolArray](spanish -> symbolArray2)
+
+    val piece1 = Piece.from(manager, map1).get
+    val piece2 = Piece.from(manager, map2).get
+
+    val array = PieceArray.from(manager, List(piece1, piece2)).get
+    array.size shouldBe 2
+    array(0) shouldBe piece1
+    array(1) shouldBe piece2
+  }
+
+  it can "insert a word" in {
+    val manager = newManager
+    val japanese = Concept.from(manager, "Japanese").flatMap(Language.from(manager,_)).get
+    val hiragana = Concept.from(manager, "Hiragana").flatMap(Alphabet.from(manager,_)).get
+    val kanji = Concept.from(manager, "Kanji").flatMap(Alphabet.from(manager,_)).get
+
+    val hiraganaArray1 = SymbolArray.from(manager, "て").get
+    val hiraganaArray2 = SymbolArray.from(manager, "がみ").get
+    val kanjiArray1 = SymbolArray.from(manager, "手").get
+    val kanjiArray2 = SymbolArray.from(manager, "紙").get
+
+    val map1 = Map[Alphabet, SymbolArray](
+      hiragana -> hiraganaArray1,
+      kanji -> kanjiArray1
+    )
+    val map2 = Map[Alphabet, SymbolArray](
+      hiragana -> hiraganaArray2,
+      kanji -> kanjiArray2
+    )
+
+    val piece1 = Piece.from(manager, map1).get
+    val piece2 = Piece.from(manager, map2).get
+
+    val pieceArray = PieceArray.from(manager, List(piece1, piece2)).get
+    val word = Word.from(manager, japanese, pieceArray).get
+
+    word.language shouldBe japanese
+    word.pieces shouldBe pieceArray
+  }
 }

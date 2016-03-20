@@ -19,3 +19,11 @@ case class PieceArray(storageManager :StorageManager, arrayId :Register.Collecti
     override def next() = Piece(storageManager, pieceCollIdOpt(keys.next()).get)
   }
 }
+
+object PieceArray {
+  def from(manager: LinkedStorageManager, pieces: Seq[Piece]): Option[PieceArray] = {
+    val storageManager = manager.storageManager
+    val positions = pieces.map(piece => registers.PiecePosition(piece.collectionId))
+    storageManager.insert(positions).map(apply(storageManager,_))
+  }
+}

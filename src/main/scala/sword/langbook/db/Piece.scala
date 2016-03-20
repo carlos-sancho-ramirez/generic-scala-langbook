@@ -32,3 +32,15 @@ case class Piece(storageManager :StorageManager, collectionId :Register.Collecti
   override def +[B1 >: SymbolArray](kv: (Alphabet, B1)): Map[Alphabet, B1] = ???
   override def -(key: Alphabet): Map[Alphabet, SymbolArray] = ???
 }
+
+object Piece extends {
+  def from(manager: LinkedStorageManager, map: scala.collection.Map[Alphabet, SymbolArray]): Option[Piece] = {
+    val regs = for {
+      (alphabet, symbolArray) <- map
+    } yield {
+      registers.Piece(alphabet.key, symbolArray.arrayId)
+    }
+
+    manager.storageManager.insert(regs).map(apply(manager.storageManager, _))
+  }
+}

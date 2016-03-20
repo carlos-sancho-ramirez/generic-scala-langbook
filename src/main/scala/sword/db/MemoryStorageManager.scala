@@ -1,5 +1,7 @@
 package sword.db
 
+import sword.db.Register.CollectionId
+
 /**
  * Implementation for StorageManager that saves all its data in memory.
  * This is expected to be faster than other implementations but all data will be lost whenever this
@@ -34,7 +36,7 @@ class MemoryStorageManager(registerDefinitions :Seq[RegisterDefinition]) extends
     }
   }
 
-  private def insert(group: Register.CollectionId, register: Register): Option[Key] = {
+  override def insert(group: Register.CollectionId, register: Register): Option[Key] = {
     throwIfWrongRegister(register)
 
     if (hasValidReference(register)) {

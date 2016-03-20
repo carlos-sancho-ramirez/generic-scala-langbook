@@ -106,6 +106,16 @@ trait StorageManager {
   def insert(registers :Traversable[Register]) :Option[Register.CollectionId]
 
   /**
+   * Inserts a register into a collection. In case it is an arrayable register, the given register
+   * will be added at the end of the array.
+   *
+   * @param collectionId identifier for the collection where the register is going to be inserted.
+   * @param register New register to be added. It must be collectible or arrayable.
+   * @return A Some instance with the Key for the new register, or None if something went wrong.
+   */
+  def insert(collectionId :Register.CollectionId, register :Register) :Option[Key]
+
+  /**
    * Removes the register with the given key and definition if it exists and it's possible.
    *
    * @param key Key for the register to remove, the one returned by insert method when added.

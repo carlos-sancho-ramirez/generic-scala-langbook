@@ -173,14 +173,33 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
     val reg3 = new NumRegister(23)
 
     val list = List(reg1, reg2, reg3)
-    val collIdOption = manager.insert(list)
-    collIdOption shouldBe defined
+    val collId = manager.insert(list).get
 
     val keys = manager.getKeysFor(reg1.definition)
     keys.size shouldBe list.size
 
     for (key <- keys) {
-      key.group shouldBe collIdOption.get
+      key.group shouldBe collId
+    }
+  }
+
+  it can "insert a new register into an existing collection" in {
+    val manager = newStorageManager(List(numRegDef))
+    val reg1 = new NumRegister(5)
+    val reg2 = new NumRegister(7)
+    val reg3 = new NumRegister(23)
+
+    val list = List(reg1, reg2, reg3)
+    val collId = manager.insert(list).get
+
+    val reg4 = new NumRegister(14)
+    manager.insert(collId, reg4) shouldBe defined
+
+    val keys = manager.getKeysFor(reg1.definition)
+    keys.size shouldBe 4
+
+    for (key <- keys) {
+      key.group shouldBe collId
     }
   }
 

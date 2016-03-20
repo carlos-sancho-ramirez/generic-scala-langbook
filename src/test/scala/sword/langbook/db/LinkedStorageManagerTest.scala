@@ -248,4 +248,59 @@ class LinkedStorageManagerTest extends FlatSpec with Matchers {
     word.language shouldBe japanese
     word.pieces shouldBe pieceArray
   }
+
+  it should "recognise words linked to the same concept as synonym only if they belong to the same language" in {
+    val manager = newManager
+    val english = Concept.from(manager, "English").flatMap(Language.from(manager,_)).get
+    val latin = Concept.from(manager, "Latin").flatMap(Alphabet.from(manager,_)).get
+
+    val bigPiece = SymbolArray.from(manager, "big").flatMap(Piece.from(manager, latin, _)).get
+    val largePiece = SymbolArray.from(manager, "large").flatMap(Piece.from(manager, latin, _)).get
+
+    val bigWord = PieceArray.from(manager, List(bigPiece)).flatMap(Word.from(manager, english, _)).get
+    val largeWord = PieceArray.from(manager, List(bigPiece)).flatMap(Word.from(manager, english, _)).get
+
+    bigWord.synonyms shouldBe empty
+    largeWord.synonyms shouldBe empty
+
+    bigWord.concepts shouldBe empty
+    val concept = Concept.from(manager, "Big").get
+    bigWord.concepts += concept
+    bigWord.concepts.size shouldBe 1
+    bigWord.concepts.head shouldBe concept
+
+    bigWord.synonyms shouldBe empty
+    largeWord.synonyms shouldBe empty
+
+    largeWord.concepts shouldBe empty
+    largeWord.concepts += concept
+    largeWord.concepts.size shouldBe 1
+    largeWord.concepts.head shouldBe concept
+
+    bigWord.synonyms should not contain bigWord
+    largeWord.synonyms should not contain largeWord
+
+    bigWord.synonyms should contain (largeWord)
+    largeWord.synonyms should contain (bigWord)
+  }
+
+  it should "not recognise words linked to the same concept as translation if they belong to the same language" in {
+    val manager = newManager
+    val english = Concept.from(manager, "English").flatMap(Language.from(manager,_)).get
+    val latin = Concept.from(manager, "Latin").flatMap(Alphabet.from(manager,_)).get
+
+    val bigPiece = SymbolArray.from(manager, "big").flatMap(Piece.from(manager, latin, _)).get
+    val largePiece = SymbolArray.from(manager, "large").flatMap(Piece.from(manager, latin, _)).get
+
+    val bigWord = PieceArray.from(manager, List(bigPiece)).flatMap(Word.from(manager, english, _)).get
+    val largeWord = PieceArray.from(manager, List(bigPiece)).flatMap(Word.from(manager, english, _)).get
+
+    bigWord.concepts shouldBe empty
+    val concept = Concept.from(manager, "Big").get
+    bigWord.concepts += concept
+    largeWord.concepts += concept
+
+    bigWord.translations shouldBe empty
+    largeWord.translations shouldBe empty
+  }
 }

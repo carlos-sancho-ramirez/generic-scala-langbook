@@ -46,30 +46,69 @@ case class Word(key :StorageManager.Key) {
     override def -(key: Alphabet): Map[Alphabet, String] = ???
   }
 
-  /**
-    * Return all concepts attached to this word.
-    */
-  def concepts: Set[Concept] = {
-    key.storageManager.getMapFor(registers.WordConcept).values.filter {
-      reg =>
-        reg.fields.collectFirst {
-          case field: ForeignKeyField if field.definition.target == registers.Word =>
-            field.key.index
-        }.contains(key.index)
-    }.flatMap {
-      reg =>
-        reg.fields.collectFirst {
-          case field: ForeignKeyField if field.definition.target == registers.Concept =>
-            Concept(field.key)
+  lazy val concepts = new scala.collection.mutable.Set[Concept]() {
+    // TODO: This should check if the concept is already included, and avoid inserting anything in that case
+    override def +=(elem: Concept): this.type = {
+      val reg = registers.WordConcept(key, elem.key)
+      key.storageManager.insert(reg)
+      this
+    }
+
+    override def -=(elem: Concept): this.type = ???
+
+    override def contains(elem: Concept): Boolean = {
+      key.storageManager.getMapFor(registers.WordConcept).values.filter {
+        reg =>
+          reg.fields.collectFirst {
+            case field: ForeignKeyField if field.definition.target == registers.Word =>
+              field.key.index
+          }.contains(key.index)
+      }.flatMap {
+        reg =>
+          reg.fields.collectFirst {
+            case field: ForeignKeyField if field.definition.target == registers.Concept =>
+              Concept(field.key)
+          }
+      }.toSet.contains(elem)
+    }
+
+    override def iterator = new Iterator[Concept]() {
+      val it = key.storageManager.getMapFor(registers.WordConcept).values.iterator
+
+      def findNextConcept: Concept = {
+        var result: Concept = null
+        while(result == null && it.hasNext) {
+          val reg = it.next()
+          if (reg.fields.collectFirst {
+            case field: ForeignKeyField if field.definition.target == registers.Word =>
+              field.key.index
+          }.contains(key.index)) {
+            reg.fields.collectFirst {
+              case field: ForeignKeyField if field.definition.target == registers.Concept =>
+                Concept(field.key)
+            }.foreach(concept => result = concept)
+          }
         }
-    }.toSet
+
+        result
+      }
+
+      var nextConcept = findNextConcept
+
+      override def hasNext = nextConcept != null
+      override def next() = {
+        val next = nextConcept
+        nextConcept = findNextConcept
+        next
+      }
+    }
   }
 
-  def synonyms: Set[Word] = concepts.flatMap(_.wordsForLanguage(language)).filterNot(_.key == key)
+  def synonyms: Set[Word] = concepts.toSet[Concept].flatMap(_.wordsForLanguage(language)).filterNot(_.key == key)
 
   def translations: Set[Word] = {
     val thisLanguage = language
-    concepts.flatMap(_.words).filterNot(_.language == thisLanguage)
+    concepts.toSet[Concept].flatMap(_.words).filterNot(_.language == thisLanguage)
   }
 }
 

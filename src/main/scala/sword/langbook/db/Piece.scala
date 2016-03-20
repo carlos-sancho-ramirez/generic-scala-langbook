@@ -3,7 +3,7 @@ package sword.langbook.db
 import sword.db.{Register, CollectionReferenceField, ForeignKeyField, StorageManager}
 
 case class Piece(storageManager :StorageManager, collectionId :Register.CollectionId) extends
-    Map[Alphabet, SymbolArray] {
+    scala.collection.mutable.Map[Alphabet, SymbolArray] {
   def regKeys = storageManager.getKeysForCollection(registers.Piece, collectionId)
   def fields(key :StorageManager.Key) = key.registerOption.map(_.fields).getOrElse(Seq())
   def alphabetKeyOpt(key :StorageManager.Key) = fields(key).collectFirst {
@@ -29,8 +29,13 @@ case class Piece(storageManager :StorageManager, collectionId :Register.Collecti
     }
   }
 
-  override def +[B1 >: SymbolArray](kv: (Alphabet, B1)): Map[Alphabet, B1] = ???
-  override def -(key: Alphabet): Map[Alphabet, SymbolArray] = ???
+  override def +=(kv: (Alphabet, SymbolArray)): Piece.this.type = {
+    val reg = registers.Piece(kv._1.key, kv._2.arrayId)
+    storageManager.insert(collectionId, reg)
+    this
+  }
+
+  override def -=(key: Alphabet): Piece.this.type = ???
 }
 
 object Piece extends {
@@ -42,5 +47,9 @@ object Piece extends {
     }
 
     manager.storageManager.insert(regs).map(apply(manager.storageManager, _))
+  }
+
+  def from(manager: LinkedStorageManager, alphabet: Alphabet, symbolArray: SymbolArray): Option[Piece] = {
+    from(manager, Map(alphabet -> symbolArray))
   }
 }

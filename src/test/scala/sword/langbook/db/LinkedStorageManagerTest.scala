@@ -128,6 +128,18 @@ class LinkedStorageManagerTest extends FlatSpec with Matchers {
     checkAllSymbolsInserted(manager, "Hello", 1) // Only 'e' was missing
   }
 
+  it can "insert a piece" in {
+    val manager = newManager
+    val english = Concept.from(manager, "English").flatMap(Alphabet.from(manager,_)).get
+    val homeSymbolArray = SymbolArray.from(manager, "Home").get
+    val piece = Piece.from(manager, english, homeSymbolArray).get
+    piece.size shouldBe 1
+
+    val entry = piece.head
+    entry._1 shouldBe english
+    entry._2 shouldBe homeSymbolArray
+  }
+
   it can "insert a piece providing a map with a single entry" in {
     val manager = newManager
     val english = Concept.from(manager, "English").flatMap(Alphabet.from(manager,_)).get
@@ -159,6 +171,27 @@ class LinkedStorageManagerTest extends FlatSpec with Matchers {
     )
 
     val piece = Piece.from(manager, map).get
+    piece.size shouldBe 2
+    piece.contains(kana) shouldBe true
+    piece.contains(kanji) shouldBe true
+
+    piece(kana) shouldBe umbrellaKanaSymbolArray
+    piece(kanji) shouldBe umbrellaKanjiSymbolArray
+  }
+
+  it can "insert a piece and inserts another" in {
+    val manager = newManager
+
+    val kana = Concept.from(manager, "Hiragana").flatMap(Alphabet.from(manager,_)).get
+    val kanji = Concept.from(manager, "Kanji").flatMap(Alphabet.from(manager,_)).get
+    kana should not be kanji
+
+    val umbrellaKanaSymbolArray = SymbolArray.from(manager, "かさ").get
+    val umbrellaKanjiSymbolArray = SymbolArray.from(manager, "傘").get
+    umbrellaKanaSymbolArray should not be umbrellaKanjiSymbolArray
+
+    val piece = Piece.from(manager, kana, umbrellaKanaSymbolArray).get
+    piece += ((kanji, umbrellaKanjiSymbolArray))
     piece.size shouldBe 2
     piece.contains(kana) shouldBe true
     piece.contains(kanji) shouldBe true

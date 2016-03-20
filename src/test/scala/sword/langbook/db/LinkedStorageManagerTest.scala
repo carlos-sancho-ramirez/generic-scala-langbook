@@ -76,4 +76,55 @@ class LinkedStorageManagerTest extends FlatSpec with Matchers {
     symbols.size shouldBe 1
     symbols.values.head shouldBe symbolOption.get
   }
+
+  private def checkAllSymbolsInserted(manager: LinkedStorageManager, text: String, newCharCount: Int) = {
+    val initCharCount = manager.symbols.size
+
+    val arrayOption = SymbolArray.from(manager, text)
+    arrayOption shouldBe defined
+
+    val symbols = manager.symbols
+    symbols.size shouldBe (initCharCount + newCharCount)
+
+    val unicodes = symbols.values.map(_.unicode).toSet
+    for (char <- text) {
+      unicodes.contains(char.toInt) shouldBe true
+    }
+
+    arrayOption.get.size shouldBe text.length
+    arrayOption.get.map(_.unicode).zip(text.map(_.toInt)).foreach {
+      case (given, expected) =>
+        given shouldBe expected
+    }
+  }
+
+  it can "insert a symbol array for all different chars" in {
+    val manager = newManager
+    manager.symbols shouldBe empty
+
+    checkAllSymbolsInserted(manager, "Hola", 4)
+  }
+
+  it can "insert a symbol array for some repeated chars" in {
+    val manager = newManager
+    manager.symbols shouldBe empty
+
+    checkAllSymbolsInserted(newManager, "Hello", 4)
+  }
+
+  it should "not add new symbols on adding the same symbol array again" in {
+    val manager = newManager
+    manager.symbols shouldBe empty
+
+    checkAllSymbolsInserted(manager, "Hola", 4)
+    checkAllSymbolsInserted(manager, "Hola", 0)
+  }
+
+  it should "only insert missing symbols on adding a second symbol array" in {
+    val manager = newManager
+    manager.symbols shouldBe empty
+
+    checkAllSymbolsInserted(manager, "Hola", 4)
+    checkAllSymbolsInserted(manager, "Hello", 1) // Only 'e' was missing
+  }
 }

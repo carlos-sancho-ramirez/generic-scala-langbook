@@ -2,6 +2,8 @@ package sword.langbook.db
 
 import sword.db.{CollectionReferenceField, ForeignKeyField, StorageManager}
 
+import scala.collection
+
 case class Word(key :StorageManager.Key) {
   def fields = key.registerOption.map(_.fields).getOrElse(Seq())
   def languageKeyOpt = fields.collectFirst {
@@ -104,7 +106,17 @@ case class Word(key :StorageManager.Key) {
     }
   }
 
-  def synonyms: Set[Word] = concepts.toSet[Concept].flatMap(_.wordsForLanguage(language)).filterNot(_.key == key)
+  lazy val synonyms = new scala.collection.AbstractSet[Word]() {
+    override def contains(elem: Word) = {
+      elem.key != key && concepts.flatMap(_.wordsForLanguage(language)).contains(elem)
+    }
+
+    override def +(elem: Word): collection.Set[Word] = ???
+
+    override def -(elem: Word): collection.Set[Word] = ???
+
+    override def iterator = concepts.toSet[Concept].flatMap(_.wordsForLanguage(language)).filterNot(_.key == key).iterator
+  }
 
   def translations: Set[Word] = {
     val thisLanguage = language

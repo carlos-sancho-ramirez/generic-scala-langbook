@@ -258,7 +258,7 @@ class LinkedStorageManagerTest extends FlatSpec with Matchers {
     val largePiece = SymbolArray.from(manager, "large").flatMap(Piece.from(manager, latin, _)).get
 
     val bigWord = PieceArray.from(manager, List(bigPiece)).flatMap(Word.from(manager, english, _)).get
-    val largeWord = PieceArray.from(manager, List(bigPiece)).flatMap(Word.from(manager, english, _)).get
+    val largeWord = PieceArray.from(manager, List(largePiece)).flatMap(Word.from(manager, english, _)).get
 
     bigWord.synonyms shouldBe empty
     largeWord.synonyms shouldBe empty
@@ -284,6 +284,46 @@ class LinkedStorageManagerTest extends FlatSpec with Matchers {
     largeWord.synonyms should contain (bigWord)
   }
 
+  it should "recognise words linked to the same concept as synonym only if they belong to the same language (reusing set instances)" in {
+    val manager = newManager
+    val english = Concept.from(manager, "English").flatMap(Language.from(manager,_)).get
+    val latin = Concept.from(manager, "Latin").flatMap(Alphabet.from(manager,_)).get
+
+    val bigPiece = SymbolArray.from(manager, "big").flatMap(Piece.from(manager, latin, _)).get
+    val largePiece = SymbolArray.from(manager, "large").flatMap(Piece.from(manager, latin, _)).get
+
+    val bigWord = PieceArray.from(manager, List(bigPiece)).flatMap(Word.from(manager, english, _)).get
+    val largeWord = PieceArray.from(manager, List(largePiece)).flatMap(Word.from(manager, english, _)).get
+
+    val bigSynonyms = bigWord.synonyms
+    val largeSynonyms = largeWord.synonyms
+    val bigConcepts = bigWord.concepts
+    val largeConcepts = largeWord.concepts
+
+    bigSynonyms shouldBe empty
+    largeSynonyms shouldBe empty
+    bigConcepts shouldBe empty
+
+    val concept = Concept.from(manager, "Big").get
+    bigConcepts += concept
+    bigConcepts.size shouldBe 1
+    bigConcepts.head shouldBe concept
+
+    bigSynonyms shouldBe empty
+    largeSynonyms shouldBe empty
+
+    largeConcepts shouldBe empty
+    largeConcepts += concept
+    largeConcepts.size shouldBe 1
+    largeConcepts.head shouldBe concept
+
+    bigSynonyms should not contain bigWord
+    largeSynonyms should not contain largeWord
+
+    bigSynonyms should contain (largeWord)
+    largeSynonyms should contain (bigWord)
+  }
+
   it should "not recognise words linked to the same concept as translation if they belong to the same language" in {
     val manager = newManager
     val english = Concept.from(manager, "English").flatMap(Language.from(manager,_)).get
@@ -293,7 +333,7 @@ class LinkedStorageManagerTest extends FlatSpec with Matchers {
     val largePiece = SymbolArray.from(manager, "large").flatMap(Piece.from(manager, latin, _)).get
 
     val bigWord = PieceArray.from(manager, List(bigPiece)).flatMap(Word.from(manager, english, _)).get
-    val largeWord = PieceArray.from(manager, List(bigPiece)).flatMap(Word.from(manager, english, _)).get
+    val largeWord = PieceArray.from(manager, List(largePiece)).flatMap(Word.from(manager, english, _)).get
 
     bigWord.concepts shouldBe empty
     val concept = Concept.from(manager, "Big").get

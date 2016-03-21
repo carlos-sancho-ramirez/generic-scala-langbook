@@ -118,9 +118,20 @@ case class Word(key :StorageManager.Key) {
     override def iterator = concepts.toSet[Concept].flatMap(_.wordsForLanguage(language)).filterNot(_.key == key).iterator
   }
 
-  def translations: Set[Word] = {
-    val thisLanguage = language
-    concepts.toSet[Concept].flatMap(_.words).filterNot(_.language == thisLanguage)
+  lazy val translations = new scala.collection.AbstractSet[Word]() {
+    override def contains(elem: Word) = {
+      val thisLanguage = language
+      concepts.toSet[Concept].flatMap(_.words).filterNot(_.language == thisLanguage).contains(elem)
+    }
+
+    override def +(elem: Word): collection.Set[Word] = ???
+
+    override def -(elem: Word): collection.Set[Word] = ???
+
+    override def iterator = {
+      val thisLanguage = language
+      concepts.toSet[Concept].flatMap(_.words).filterNot(_.language == thisLanguage).iterator
+    }
   }
 }
 

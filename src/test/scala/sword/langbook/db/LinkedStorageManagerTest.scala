@@ -343,4 +343,105 @@ class LinkedStorageManagerTest extends FlatSpec with Matchers {
     bigWord.translations shouldBe empty
     largeWord.translations shouldBe empty
   }
+
+  it should "recognise words linked to the same concept as translations only if they belong to different languages" in {
+    val manager = newManager
+    val english = Concept.from(manager, "English").flatMap(Language.from(manager,_)).get
+    val spanish = Concept.from(manager, "Spanish").flatMap(Language.from(manager,_)).get
+
+    val latin = Concept.from(manager, "Latin").flatMap(Alphabet.from(manager,_)).get
+
+    val enPiece = SymbolArray.from(manager, "white").flatMap(Piece.from(manager, latin, _)).get
+    val spPiece = SymbolArray.from(manager, "blanco").flatMap(Piece.from(manager, latin, _)).get
+
+    val enWord = PieceArray.from(manager, List(enPiece)).flatMap(Word.from(manager, english, _)).get
+    val spWord = PieceArray.from(manager, List(spPiece)).flatMap(Word.from(manager, spanish, _)).get
+
+    enWord.translations shouldBe empty
+    spWord.translations shouldBe empty
+
+    enWord.concepts shouldBe empty
+    val concept = Concept.from(manager, "White").get
+    enWord.concepts += concept
+    enWord.concepts.size shouldBe 1
+    enWord.concepts.head shouldBe concept
+
+    enWord.translations shouldBe empty
+    spWord.translations shouldBe empty
+
+    spWord.concepts shouldBe empty
+    spWord.concepts += concept
+    spWord.concepts.size shouldBe 1
+    spWord.concepts.head shouldBe concept
+
+    enWord.translations should not contain enWord
+    spWord.translations should not contain spWord
+
+    enWord.translations should contain (spWord)
+    spWord.translations should contain (enWord)
+  }
+
+  it should "recognise words linked to the same concept as translation only if they belong to different languages (reusing set instances)" in {
+    val manager = newManager
+    val english = Concept.from(manager, "English").flatMap(Language.from(manager,_)).get
+    val spanish = Concept.from(manager, "Spanish").flatMap(Language.from(manager,_)).get
+
+    val latin = Concept.from(manager, "Latin").flatMap(Alphabet.from(manager,_)).get
+
+    val enPiece = SymbolArray.from(manager, "white").flatMap(Piece.from(manager, latin, _)).get
+    val spPiece = SymbolArray.from(manager, "blanco").flatMap(Piece.from(manager, latin, _)).get
+
+    val enWord = PieceArray.from(manager, List(enPiece)).flatMap(Word.from(manager, english, _)).get
+    val spWord = PieceArray.from(manager, List(spPiece)).flatMap(Word.from(manager, spanish, _)).get
+
+    val enTranslations = enWord.translations
+    val spTranslations = spWord.translations
+    val enConcepts = enWord.concepts
+    val spConcepts = spWord.concepts
+
+    enTranslations shouldBe empty
+    spTranslations shouldBe empty
+    enConcepts shouldBe empty
+
+    val concept = Concept.from(manager, "White").get
+    enConcepts += concept
+    enConcepts.size shouldBe 1
+    enConcepts.head shouldBe concept
+
+    enTranslations shouldBe empty
+    spTranslations shouldBe empty
+
+    spConcepts shouldBe empty
+    spConcepts += concept
+    spConcepts.size shouldBe 1
+    spConcepts.head shouldBe concept
+
+    enTranslations should not contain enWord
+    spTranslations should not contain spWord
+
+    enTranslations should contain (spWord)
+    spTranslations should contain (enWord)
+  }
+
+  it should "not recognise words linked to the same concept as synonyms if they belong to different languages" in {
+    val manager = newManager
+    val english = Concept.from(manager, "English").flatMap(Language.from(manager,_)).get
+    val spanish = Concept.from(manager, "Spanish").flatMap(Language.from(manager,_)).get
+
+    val latin = Concept.from(manager, "Latin").flatMap(Alphabet.from(manager,_)).get
+
+    val enPiece = SymbolArray.from(manager, "white").flatMap(Piece.from(manager, latin, _)).get
+    val spPiece = SymbolArray.from(manager, "blanco").flatMap(Piece.from(manager, latin, _)).get
+
+    val enWord = PieceArray.from(manager, List(enPiece)).flatMap(Word.from(manager, english, _)).get
+    val spWord = PieceArray.from(manager, List(spPiece)).flatMap(Word.from(manager, spanish, _)).get
+
+    enWord.concepts shouldBe empty
+    val concept = Concept.from(manager, "White").get
+    enWord.concepts += concept
+    spWord.concepts += concept
+
+    enWord.synonyms shouldBe empty
+    spWord.synonyms shouldBe empty
+  }
 }

@@ -41,7 +41,7 @@ case class Language(key :StorageManager.Key) {
       pieces.flatMap(_.fields.collectFirst {
         case field: ForeignKeyField if field.definition.target == registers.Alphabet =>
           field.key
-      }).toSet[StorageManager.Key].map(key => Alphabet(key))
+      }).toSet[StorageManager.Key].map(key => Alphabet(key)) + preferredAlphabet
     }
 
     override def contains(elem: Alphabet) = retrieveInnerSet.contains(elem)

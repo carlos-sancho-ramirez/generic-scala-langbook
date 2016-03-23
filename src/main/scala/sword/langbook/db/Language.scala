@@ -9,8 +9,12 @@ case class Language(key :StorageManager.Key) {
   def conceptKeyOpt = fields.collectFirst {
     case field :ForeignKeyField if field.definition.target == registers.Concept => field.key
   }
+  def preferredAlphabetKeyOpt = fields.collectFirst {
+    case field :ForeignKeyField if field.definition.target == registers.Alphabet => field.key
+  }
 
   def concept = Concept(conceptKeyOpt.get)
+  def preferredAlphabet = Alphabet(preferredAlphabetKeyOpt.get)
 
   lazy val alphabets = new scala.collection.AbstractSet[Alphabet]() {
     private def retrieveInnerSet = {
@@ -55,7 +59,7 @@ case class Language(key :StorageManager.Key) {
 }
 
 object Language extends ElementFactory[registers.Language, Language] {
-  def from(manager: LinkedStorageManager, concept: Concept): Option[Language] = {
-    from(manager, registers.Language(concept.key))
+  def from(manager: LinkedStorageManager, concept: Concept, preferredAlphabet: Alphabet): Option[Language] = {
+    from(manager, registers.Language(concept.key, preferredAlphabet.key))
   }
 }

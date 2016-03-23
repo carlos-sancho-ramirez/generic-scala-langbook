@@ -6,16 +6,16 @@ object LanguageReferenceFieldDefinition extends ForeignKeyFieldDefinition {
   def target = Language
 }
 
-case class LanguageReferenceField(override val key :StorageManager.Key) extends ForeignKeyField {
+case class LanguageReferenceField(override val key: StorageManager.Key) extends ForeignKeyField {
   override val definition = LanguageReferenceFieldDefinition
   override def toString = key.toString
 }
 
 object Language extends RegisterDefinition {
-  override val fields = List(ConceptReferenceFieldDefinition)
+  override val fields = List(ConceptReferenceFieldDefinition, AlphabetReferenceFieldDefinition)
 }
 
-case class Language(concept :StorageManager.Key) extends Register {
+case class Language(concept: StorageManager.Key, preferredAlphabet: StorageManager.Key) extends Register {
   override val definition = Language
-  override val fields = List(ConceptReferenceField(concept))
+  override val fields = List(ConceptReferenceField(concept), AlphabetReferenceField(preferredAlphabet))
 }

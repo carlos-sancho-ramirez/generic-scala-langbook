@@ -15,19 +15,22 @@ class LanguageTest extends FlatSpec with Matchers {
     val manager = newManager
     manager.languages shouldBe empty
 
-    val conceptOption = Concept.from(manager, "Concept")
-    conceptOption shouldBe defined
-
-    val languageOption = Language.from(manager, conceptOption.get)
-    languageOption shouldBe defined
-
-    val concepts = manager.concepts
-    concepts.size shouldBe 1
-    concepts.values.head shouldBe conceptOption.get
+    val concept = Concept.from(manager, "Concept").get
+    val alphabet = Alphabet.from(manager, Concept.from(manager, "latin").get).get
+    val language = Language.from(manager, concept, alphabet).get
 
     val languages = manager.languages
     languages.size shouldBe 1
-    languages.values.head shouldBe languageOption.get
+    languages.values.head shouldBe language
+  }
+
+  it must "return the preferred alphabet entered when created" in {
+    val manager = newManager
+    val concept = Concept.from(manager, "Concept").get
+    val alphabet = Alphabet.from(manager, Concept.from(manager, "latin").get).get
+    val language = Language.from(manager, concept, alphabet).get
+
+    language.preferredAlphabet shouldBe alphabet
   }
 
   private def reusingSetInstance(f: (Language => scala.collection.Set[Alphabet]) => Unit) = {
@@ -43,8 +46,8 @@ class LanguageTest extends FlatSpec with Matchers {
 
   private def checkReturnAllAlphabetsWhenSignleWordEntered(set: Language => scala.collection.Set[Alphabet]): Unit = {
     val manager = newManager
-    val english = Concept.from(manager, "English").flatMap(Language.from(manager,_)).get
     val latin = Concept.from(manager, "Latin").flatMap(Alphabet.from(manager,_)).get
+    val english = Concept.from(manager, "English").flatMap(Language.from(manager, _, latin)).get
     val piece = SymbolArray.from(manager, "party").flatMap(Piece.from(manager, latin, _)).get
     set(english) shouldBe empty
 
@@ -63,9 +66,9 @@ class LanguageTest extends FlatSpec with Matchers {
 
   private def checkReturnAlphabetsWhen2WordsWithExcludedAlphabetsEntered(set: Language => scala.collection.Set[Alphabet]): Unit = {
     val manager = newManager
-    val japanese = Concept.from(manager, "japanese").flatMap(Language.from(manager,_)).get
     val hiragana = Concept.from(manager, "Hiragana").flatMap(Alphabet.from(manager,_)).get
     val kanji = Concept.from(manager, "Kanji").flatMap(Alphabet.from(manager,_)).get
+    val japanese = Concept.from(manager, "japanese").flatMap(Language.from(manager, _, kanji)).get
     val suruPiece = SymbolArray.from(manager, "する").flatMap(Piece.from(manager, hiragana, _)).get
     val imaPiece = SymbolArray.from(manager, "今").flatMap(Piece.from(manager, kanji, _)).get
     set(japanese) shouldBe empty
@@ -97,9 +100,9 @@ class LanguageTest extends FlatSpec with Matchers {
 
   private def checkReturnAlphabetsWhenWordWithMoreThanOneAlphabetEntered(set: Language => scala.collection.Set[Alphabet]): Unit = {
     val manager = newManager
-    val japanese = Concept.from(manager, "japanese").flatMap(Language.from(manager,_)).get
     val hiragana = Concept.from(manager, "Hiragana").flatMap(Alphabet.from(manager,_)).get
     val kanji = Concept.from(manager, "Kanji").flatMap(Alphabet.from(manager,_)).get
+    val japanese = Concept.from(manager, "japanese").flatMap(Language.from(manager, _, kanji)).get
     val piece = imaPiece(manager, hiragana, kanji)
     set(japanese) shouldBe empty
 
@@ -119,9 +122,9 @@ class LanguageTest extends FlatSpec with Matchers {
 
   private def checkReturnAlphabetsWhenFirstWordContainsMoreAlphabetsThanSecond(set: Language => scala.collection.Set[Alphabet]): Unit = {
     val manager = newManager
-    val japanese = Concept.from(manager, "japanese").flatMap(Language.from(manager,_)).get
     val hiragana = Concept.from(manager, "Hiragana").flatMap(Alphabet.from(manager,_)).get
     val kanji = Concept.from(manager, "Kanji").flatMap(Alphabet.from(manager,_)).get
+    val japanese = Concept.from(manager, "japanese").flatMap(Language.from(manager, _, kanji)).get
     val piece = imaPiece(manager, hiragana, kanji)
     val piece2 = SymbolArray.from(manager, "する").flatMap(Piece.from(manager, hiragana, _)).get
     set(japanese) shouldBe empty
@@ -147,9 +150,9 @@ class LanguageTest extends FlatSpec with Matchers {
 
   private def checkReturnAlphabetsWhenFirstWordContainsLessAlphabetsThanSecond(set: Language => scala.collection.Set[Alphabet]) = {
     val manager = newManager
-    val japanese = Concept.from(manager, "japanese").flatMap(Language.from(manager,_)).get
     val hiragana = Concept.from(manager, "Hiragana").flatMap(Alphabet.from(manager,_)).get
     val kanji = Concept.from(manager, "Kanji").flatMap(Alphabet.from(manager,_)).get
+    val japanese = Concept.from(manager, "japanese").flatMap(Language.from(manager, _, kanji)).get
     val piece = imaPiece(manager, hiragana, kanji)
     val piece2 = SymbolArray.from(manager, "する").flatMap(Piece.from(manager, hiragana, _)).get
     set(japanese) shouldBe empty

@@ -202,9 +202,9 @@ class LinkedStorageManagerTest extends FlatSpec with Matchers {
 
   it can "insert a word" in {
     val manager = newManager
-    val japanese = Concept.from(manager, "Japanese").flatMap(Language.from(manager,_)).get
     val hiragana = Concept.from(manager, "Hiragana").flatMap(Alphabet.from(manager,_)).get
     val kanji = Concept.from(manager, "Kanji").flatMap(Alphabet.from(manager,_)).get
+    val japanese = Concept.from(manager, "Japanese").flatMap(Language.from(manager, _, kanji)).get
 
     val hiraganaArray1 = SymbolArray.from(manager, "て").get
     val hiraganaArray2 = SymbolArray.from(manager, "がみ").get
@@ -232,8 +232,8 @@ class LinkedStorageManagerTest extends FlatSpec with Matchers {
 
   it should "recognise words linked to the same concept as synonym only if they belong to the same language" in {
     val manager = newManager
-    val english = Concept.from(manager, "English").flatMap(Language.from(manager,_)).get
     val latin = Concept.from(manager, "Latin").flatMap(Alphabet.from(manager,_)).get
+    val english = Concept.from(manager, "English").flatMap(Language.from(manager, _, latin)).get
 
     val bigPiece = SymbolArray.from(manager, "big").flatMap(Piece.from(manager, latin, _)).get
     val largePiece = SymbolArray.from(manager, "large").flatMap(Piece.from(manager, latin, _)).get
@@ -267,8 +267,8 @@ class LinkedStorageManagerTest extends FlatSpec with Matchers {
 
   it should "recognise words linked to the same concept as synonym only if they belong to the same language (reusing set instances)" in {
     val manager = newManager
-    val english = Concept.from(manager, "English").flatMap(Language.from(manager,_)).get
     val latin = Concept.from(manager, "Latin").flatMap(Alphabet.from(manager,_)).get
+    val english = Concept.from(manager, "English").flatMap(Language.from(manager, _, latin)).get
 
     val bigPiece = SymbolArray.from(manager, "big").flatMap(Piece.from(manager, latin, _)).get
     val largePiece = SymbolArray.from(manager, "large").flatMap(Piece.from(manager, latin, _)).get
@@ -307,8 +307,8 @@ class LinkedStorageManagerTest extends FlatSpec with Matchers {
 
   it should "not recognise words linked to the same concept as translation if they belong to the same language" in {
     val manager = newManager
-    val english = Concept.from(manager, "English").flatMap(Language.from(manager,_)).get
-    val latin = Concept.from(manager, "Latin").flatMap(Alphabet.from(manager,_)).get
+    val latin = Concept.from(manager, "Latin").flatMap(Alphabet.from(manager, _)).get
+    val english = Concept.from(manager, "English").flatMap(Language.from(manager, _, latin)).get
 
     val bigPiece = SymbolArray.from(manager, "big").flatMap(Piece.from(manager, latin, _)).get
     val largePiece = SymbolArray.from(manager, "large").flatMap(Piece.from(manager, latin, _)).get
@@ -327,10 +327,9 @@ class LinkedStorageManagerTest extends FlatSpec with Matchers {
 
   it should "recognise words linked to the same concept as translations only if they belong to different languages" in {
     val manager = newManager
-    val english = Concept.from(manager, "English").flatMap(Language.from(manager,_)).get
-    val spanish = Concept.from(manager, "Spanish").flatMap(Language.from(manager,_)).get
-
     val latin = Concept.from(manager, "Latin").flatMap(Alphabet.from(manager,_)).get
+    val english = Concept.from(manager, "English").flatMap(Language.from(manager, _, latin)).get
+    val spanish = Concept.from(manager, "Spanish").flatMap(Language.from(manager, _, latin)).get
 
     val enPiece = SymbolArray.from(manager, "white").flatMap(Piece.from(manager, latin, _)).get
     val spPiece = SymbolArray.from(manager, "blanco").flatMap(Piece.from(manager, latin, _)).get
@@ -364,10 +363,9 @@ class LinkedStorageManagerTest extends FlatSpec with Matchers {
 
   it should "recognise words linked to the same concept as translation only if they belong to different languages (reusing set instances)" in {
     val manager = newManager
-    val english = Concept.from(manager, "English").flatMap(Language.from(manager,_)).get
-    val spanish = Concept.from(manager, "Spanish").flatMap(Language.from(manager,_)).get
-
     val latin = Concept.from(manager, "Latin").flatMap(Alphabet.from(manager,_)).get
+    val english = Concept.from(manager, "English").flatMap(Language.from(manager, _, latin)).get
+    val spanish = Concept.from(manager, "Spanish").flatMap(Language.from(manager, _, latin)).get
 
     val enPiece = SymbolArray.from(manager, "white").flatMap(Piece.from(manager, latin, _)).get
     val spPiece = SymbolArray.from(manager, "blanco").flatMap(Piece.from(manager, latin, _)).get
@@ -406,10 +404,9 @@ class LinkedStorageManagerTest extends FlatSpec with Matchers {
 
   it should "not recognise words linked to the same concept as synonyms if they belong to different languages" in {
     val manager = newManager
-    val english = Concept.from(manager, "English").flatMap(Language.from(manager,_)).get
-    val spanish = Concept.from(manager, "Spanish").flatMap(Language.from(manager,_)).get
-
     val latin = Concept.from(manager, "Latin").flatMap(Alphabet.from(manager,_)).get
+    val english = Concept.from(manager, "English").flatMap(Language.from(manager, _, latin)).get
+    val spanish = Concept.from(manager, "Spanish").flatMap(Language.from(manager, _, latin)).get
 
     val enPiece = SymbolArray.from(manager, "white").flatMap(Piece.from(manager, latin, _)).get
     val spPiece = SymbolArray.from(manager, "blanco").flatMap(Piece.from(manager, latin, _)).get

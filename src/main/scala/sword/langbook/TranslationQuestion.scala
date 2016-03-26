@@ -14,13 +14,19 @@ import sword.langbook.db._
   */
 class TranslationQuestion(val concept: Concept,
   val sourceWord: Word, val targetLanguage: Language,
-  val sourceAlphabets: Set[Alphabet], val targetAlphabets: Set[Alphabet]) {
+  val sourceAlphabets: Set[Alphabet], val targetAlphabets: Set[Alphabet]) extends Question {
 
-  def clues: Map[Alphabet, String] = sourceAlphabets.map(alphabet => (alphabet, sourceWord.text(alphabet))).toMap
-  def possibleAnswers: Set[Map[Alphabet, String]] = {
+  override val clues: Map[Alphabet, String] = sourceAlphabets.map(alphabet => (alphabet, sourceWord.text(alphabet))).toMap
+  override val possibleAnswers = {
     concept.wordsForLanguage(targetLanguage).filter { word =>
       targetAlphabets.diff(word.text.keySet).isEmpty
     }.map(word => targetAlphabets.map(alphabet => (alphabet, word.text(alphabet))).toMap).toSet
+  }
+
+  override def encoded: String = {
+    val sources = sourceAlphabets.map(_.key.encoded).mkString(",")
+    val targets = targetAlphabets.map(_.key.encoded).mkString(",")
+    s"${concept.key.encoded};${sourceWord.key.encoded};${targetLanguage.key.encoded};$sources;$targets"
   }
 }
 
@@ -53,5 +59,31 @@ object TranslationQuestion {
       else None
     }
     else None
+  }
+
+  def decode(manager: LinkedStorageManager, encodedQuestion: String) = {
+    try {
+      val storageManager = manager.storageManager
+      val array = encodedQuestion.split(";")
+      if (array.size == 5) {
+        val conceptOption = storageManager.decode(array.head).map(key => Concept(key))
+        val sourceWordOption = storageManager.decode(array(1)).map(key => Word(key))
+        val targetLanguageOption = storageManager.decode(array(2)).map(key => Language(key))
+        val sources = array(3).split(",").flatMap(manager.storageManager.decode)
+          .map(key => Alphabet(key)).toSet
+        val targets = array(4).split(",").flatMap(manager.storageManager.decode)
+          .map(key => Alphabet(key)).toSet
+
+        if (conceptOption.isDefined && sourceWordOption.isDefined && targetLanguageOption.isDefined) {
+          Some(new TranslationQuestion(conceptOption.get, sourceWordOption.get,
+            targetLanguageOption.get, sources, targets))
+        }
+        else None
+      }
+      else None
+    }
+    catch {
+      case _: ArrayIndexOutOfBoundsException => None
+    }
   }
 }

@@ -9,19 +9,29 @@ import scala.util.Random
   *
   * This class implementation assumes that the word passed contains all demanded alphabets.
   * It is recommended to use the companion object methods to generate an instance of this class.
+  *
   * @param word Word to be asked
   * @param sourceAlphabets alphabets that will be displayed as question/clues.
   * @param targetAlphabets expected answers.
   */
-class InterAlphabetQuestion (
-    val word: Word, val sourceAlphabets: Set[Alphabet], val targetAlphabets: Set[Alphabet]) {
+class InterAlphabetQuestion(
+    val word: Word, val sourceAlphabets: Set[Alphabet], val targetAlphabets: Set[Alphabet])
+    extends Question {
 
   private def extractAlphabets(alphabets: Set[Alphabet]) = {
     alphabets.map(alphabet => (alphabet, word.text(alphabet))).toMap
   }
 
-  def clues: Map[Alphabet, String] = extractAlphabets(sourceAlphabets)
   def expectedAnswer: Map[Alphabet, String] = extractAlphabets(targetAlphabets)
+
+  override val clues: Map[Alphabet, String] = extractAlphabets(sourceAlphabets)
+  override val possibleAnswers = Set(expectedAnswer)
+
+  override def encoded: String = {
+    val sources = sourceAlphabets.map(_.key).mkString(",")
+    val targets = targetAlphabets.map(_.key).mkString(",")
+    s"${word.key};$sources;$targets"
+  }
 }
 
 object InterAlphabetQuestion {
@@ -38,16 +48,23 @@ object InterAlphabetQuestion {
     }
     else None
   }
-}
 
-/*
-case class SynonymQuestion(val concept: Concept, val sourceWord: Word, val sourceAlphabets: Set[Alphabet], val targetAlphabets: Set[Alphabet]) {
-  def clues: Map[Alphabet, String]
-  def expectedAnswer: Set[Map[Alphabet, String]]
+  def decode(manager: LinkedStorageManager, encodedQuestion: String) = {
+    try {
+      val storageManager = manager.storageManager
+      val array = encodedQuestion.split(";")
+      if (array.size == 3) {
+        val wordOption = storageManager.decode(array.head).map(key => Word(key))
+        val sources = array(1).split(",").flatMap(manager.storageManager.decode)
+          .map(key => Alphabet(key)).toSet
+        val targets = array(2).split(",").flatMap(manager.storageManager.decode)
+          .map(key => Alphabet(key)).toSet
+        wordOption.map(word => new InterAlphabetQuestion(word, sources, targets))
+      }
+      else None
+    }
+    catch {
+      case _: ArrayIndexOutOfBoundsException => None
+    }
+  }
 }
-
-case class TranslationQuestion(val concept: Concept, val sourceLanguage: Language, val targetLanguage: Language, val sourceAlphabets: Set[Alphabet], val targetAlphabets: Set[Alphabet]) {
-  def clues: Map[Alphabet, String]
-  def expectedAnswer: Set[Map[Alphabet, String]]
-}
-*/

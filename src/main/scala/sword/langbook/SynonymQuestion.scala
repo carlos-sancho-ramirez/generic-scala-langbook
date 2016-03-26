@@ -18,11 +18,15 @@ import scala.util.Random
   * @param sourceWord Word in the question.
   * @param alphabet Alphabet to be used to display all words.
   */
-class SynonymQuestion( val concept: Concept, val sourceWord: Word, val alphabet: Alphabet) {
-  def clues: String = sourceWord.text(alphabet)
-  def possibleAnswers: Set[String] = {
-    sourceWord.synonyms.filter(_.concepts.contains(concept)).map(_.text(alphabet)).toSet
+class SynonymQuestion(val concept: Concept, val sourceWord: Word, val alphabet: Alphabet) extends Question {
+  def clue: String = sourceWord.text(alphabet)
+  override val possibleAnswers: Set[Map[Alphabet, String]] = {
+    sourceWord.synonyms.filter(_.concepts.contains(concept)).map(word => Map(alphabet -> word.text(alphabet))).toSet
   }
+
+  override val clues: Map[Alphabet, String] = Map(alphabet -> clue)
+
+  override def encoded = s"${concept.key.encoded};${sourceWord.key.encoded};${alphabet.key.encoded}"
 }
 
 object SynonymQuestion {
@@ -30,9 +34,9 @@ object SynonymQuestion {
     val allPossibilities = manager.words.values.flatMap { word =>
       if (word.text.keySet.contains(alphabet)) {
         word.concepts.filter { concept =>
-          concept.wordsForLanguage(word.language).filter { w =>
+          concept.wordsForLanguage(word.language).exists { w =>
             w != word && w.text.keySet.contains(alphabet)
-          }.nonEmpty
+          }
         }.map((_, word))
       }
       else None
@@ -43,5 +47,26 @@ object SynonymQuestion {
       Some(new SynonymQuestion(concept, word, alphabet))
     }
     else None
+  }
+
+  def decode(manager: LinkedStorageManager, encodedQuestion: String) = {
+    try {
+      val storageManager = manager.storageManager
+      val array = encodedQuestion.split(";")
+      if (array.size == 3) {
+        val conceptOption = storageManager.decode(array.head).map(key => Concept(key))
+        val sourceWordOption = storageManager.decode(array(1)).map(key => Word(key))
+        val alphabetOption = storageManager.decode(array(2)).map(key => Alphabet(key))
+
+        if (conceptOption.isDefined && sourceWordOption.isDefined && alphabetOption.isDefined) {
+          Some(new SynonymQuestion(conceptOption.get, sourceWordOption.get, alphabetOption.get))
+        }
+        else None
+      }
+      else None
+    }
+    catch {
+      case _: ArrayIndexOutOfBoundsException => None
+    }
   }
 }

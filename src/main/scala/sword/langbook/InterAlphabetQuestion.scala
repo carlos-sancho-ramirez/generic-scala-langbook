@@ -28,9 +28,9 @@ class InterAlphabetQuestion(
   override val possibleAnswers = Set(expectedAnswer)
 
   override def encoded: String = {
-    val sources = sourceAlphabets.map(_.key).mkString(",")
-    val targets = targetAlphabets.map(_.key).mkString(",")
-    s"${word.key};$sources;$targets"
+    val sources = sourceAlphabets.map(_.key.encoded).mkString(",")
+    val targets = targetAlphabets.map(_.key.encoded).mkString(",")
+    s"${word.key.encoded};$sources;$targets"
   }
 }
 
@@ -51,14 +51,19 @@ object InterAlphabetQuestion {
 
   def decode(manager: LinkedStorageManager, encodedQuestion: String) = {
     try {
+      println(s"InterAlphabetQuestion. Decoding: $encodedQuestion")
       val storageManager = manager.storageManager
       val array = encodedQuestion.split(";")
+      println(s"InterAlphabetQuestion. Array size is ${array.size}. $array")
       if (array.size == 3) {
         val wordOption = storageManager.decode(array.head).map(key => Word(key))
+        println(s"InterAlphabetQuestion. Word option: $wordOption")
         val sources = array(1).split(",").flatMap(manager.storageManager.decode)
           .map(key => Alphabet(key)).toSet
+        println(s"InterAlphabetQuestion. sources: $sources")
         val targets = array(2).split(",").flatMap(manager.storageManager.decode)
           .map(key => Alphabet(key)).toSet
+        println(s"InterAlphabetQuestion. targets: $targets")
         wordOption.map(word => new InterAlphabetQuestion(word, sources, targets))
       }
       else None

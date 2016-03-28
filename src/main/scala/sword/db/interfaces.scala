@@ -27,6 +27,8 @@ trait ForeignKeyFieldDefinition extends FieldDefinition {
 
 object UnicodeFieldDefinition extends FieldDefinition
 
+object LanguageCodeFieldDefinition extends FieldDefinition
+
 /**
  * Definition for fields containing a general-purpose char sequence (string).
  */
@@ -104,6 +106,21 @@ case class CharSequenceField(value :String) extends Field {
   override def canEqual(other: Any) = other.isInstanceOf[UnicodeField]
 }
 
+case class LanguageCodeField(code :Register.LanguageCode) extends Field {
+  override val definition = LanguageCodeFieldDefinition
+  override val toString = code
+
+  override def equals(other: Any) = {
+    super.equals(other) && (other match {
+      case that: LanguageCodeField => code == that.code
+      case _ => false
+    })
+  }
+
+  override def hashCode = Option(code).map(_.hashCode).getOrElse(0)
+  override def canEqual(other: Any) = other.isInstanceOf[UnicodeField]
+}
+
 /**
  * Sequence of fields composing a set of data.
  * In SQL terms, this is equivalent to a table row definition excluding the
@@ -128,6 +145,7 @@ object Register {
   type Index = Int
   type Position = Int
   type UnicodeType = Int
+  type LanguageCode = String // ISO 639-1: 2 lower-case char string uniquely identifying a language
 
   val undefinedCollection :CollectionId = 0
 }

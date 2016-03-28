@@ -14,7 +14,7 @@ object Main {
 
     for {
       alphabet <- Concept.from(manager, "Latin alphabet").flatMap(Alphabet.from(manager, _))
-      language <- Concept.from(manager, "Spanish").flatMap(Language.from(manager, _, alphabet))
+      language <- Concept.from(manager, "Spanish").flatMap(Language.from(manager, _, "es", alphabet))
       symbolArray <- SymbolArray.from(manager, "carta")
       cartaPiece <- Piece.from(manager, alphabet, symbolArray)
       cartaPieceArray <- PieceArray.from(manager, List(cartaPiece))

@@ -12,10 +12,17 @@ case class LanguageReferenceField(override val key: StorageManager.Key) extends 
 }
 
 object Language extends RegisterDefinition {
-  override val fields = List(ConceptReferenceFieldDefinition, AlphabetReferenceFieldDefinition)
+  override val fields = List(
+    ConceptReferenceFieldDefinition,
+    LanguageCodeFieldDefinition,
+    AlphabetReferenceFieldDefinition)
 }
 
-case class Language(concept: StorageManager.Key, preferredAlphabet: StorageManager.Key) extends Register {
+case class Language(concept: StorageManager.Key, code: Register.LanguageCode,
+    preferredAlphabet: StorageManager.Key) extends Register {
   override val definition = Language
-  override val fields = List(ConceptReferenceField(concept), AlphabetReferenceField(preferredAlphabet))
+  override val fields = List(
+    ConceptReferenceField(concept),
+    LanguageCodeField(code),
+    AlphabetReferenceField(preferredAlphabet))
 }

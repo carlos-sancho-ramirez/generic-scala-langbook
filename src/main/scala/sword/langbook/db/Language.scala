@@ -1,6 +1,6 @@
 package sword.langbook.db
 
-import sword.db.{CollectionReferenceField, ForeignKeyField, StorageManager}
+import sword.db._
 
 import scala.collection.Set
 
@@ -14,6 +14,14 @@ case class Language(key :StorageManager.Key) {
   }
 
   def concept = Concept(conceptKeyOpt.get)
+
+  /**
+   * Returns the ISO 639-1 2 lower-case char string that uniquely identifies this language
+   */
+  def code = fields.collectFirst {
+    case field :LanguageCodeField => field.code
+  }.get
+
   def preferredAlphabet = Alphabet(preferredAlphabetKeyOpt.get)
 
   lazy val alphabets = new scala.collection.AbstractSet[Alphabet]() {
@@ -59,7 +67,8 @@ case class Language(key :StorageManager.Key) {
 }
 
 object Language extends ElementFactory[registers.Language, Language] {
-  def from(manager: LinkedStorageManager, concept: Concept, preferredAlphabet: Alphabet): Option[Language] = {
-    from(manager, registers.Language(concept.key, preferredAlphabet.key))
+  def from(manager: LinkedStorageManager, concept: Concept, code: Register.LanguageCode,
+      preferredAlphabet: Alphabet): Option[Language] = {
+    from(manager, registers.Language(concept.key, code, preferredAlphabet.key))
   }
 }

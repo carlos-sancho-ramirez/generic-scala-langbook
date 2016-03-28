@@ -17,7 +17,7 @@ class LanguageTest extends FlatSpec with Matchers {
 
     val concept = Concept.from(manager, "Concept").get
     val alphabet = Alphabet.from(manager, Concept.from(manager, "latin").get).get
-    val language = Language.from(manager, concept, alphabet).get
+    val language = Language.from(manager, concept, "??", alphabet).get
 
     val languages = manager.languages
     languages.size shouldBe 1
@@ -28,7 +28,7 @@ class LanguageTest extends FlatSpec with Matchers {
     val manager = newManager
     val concept = Concept.from(manager, "Concept").get
     val alphabet = Alphabet.from(manager, Concept.from(manager, "latin").get).get
-    val language = Language.from(manager, concept, alphabet).get
+    val language = Language.from(manager, concept, "??", alphabet).get
 
     language.preferredAlphabet shouldBe alphabet
   }
@@ -47,7 +47,7 @@ class LanguageTest extends FlatSpec with Matchers {
   private def checkReturnAllAlphabetsWhenSignleWordEntered(set: Language => scala.collection.Set[Alphabet]): Unit = {
     val manager = newManager
     val latin = Concept.from(manager, "Latin").flatMap(Alphabet.from(manager,_)).get
-    val english = Concept.from(manager, "English").flatMap(Language.from(manager, _, latin)).get
+    val english = Concept.from(manager, "English").flatMap(Language.from(manager, _, "en", latin)).get
     val piece = SymbolArray.from(manager, "party").flatMap(Piece.from(manager, latin, _)).get
     set(english).size shouldBe 1
 
@@ -68,7 +68,7 @@ class LanguageTest extends FlatSpec with Matchers {
     val manager = newManager
     val hiragana = Concept.from(manager, "Hiragana").flatMap(Alphabet.from(manager,_)).get
     val kanji = Concept.from(manager, "Kanji").flatMap(Alphabet.from(manager,_)).get
-    val japanese = Concept.from(manager, "japanese").flatMap(Language.from(manager, _, kanji)).get
+    val japanese = Concept.from(manager, "japanese").flatMap(Language.from(manager, _, "ja", kanji)).get
     val suruPiece = SymbolArray.from(manager, "する").flatMap(Piece.from(manager, hiragana, _)).get
     val imaPiece = SymbolArray.from(manager, "今").flatMap(Piece.from(manager, kanji, _)).get
     set(japanese).size shouldBe 1
@@ -103,7 +103,7 @@ class LanguageTest extends FlatSpec with Matchers {
     val manager = newManager
     val hiragana = Concept.from(manager, "Hiragana").flatMap(Alphabet.from(manager, _)).get
     val kanji = Concept.from(manager, "Kanji").flatMap(Alphabet.from(manager, _)).get
-    val japanese = Concept.from(manager, "japanese").flatMap(Language.from(manager, _, kanji)).get
+    val japanese = Concept.from(manager, "japanese").flatMap(Language.from(manager, _, "ja", kanji)).get
     val piece = imaPiece(manager, hiragana, kanji)
     set(japanese).size shouldBe 1
 
@@ -125,7 +125,7 @@ class LanguageTest extends FlatSpec with Matchers {
     val manager = newManager
     val hiragana = Concept.from(manager, "Hiragana").flatMap(Alphabet.from(manager,_)).get
     val kanji = Concept.from(manager, "Kanji").flatMap(Alphabet.from(manager, _)).get
-    val japanese = Concept.from(manager, "japanese").flatMap(Language.from(manager, _, kanji)).get
+    val japanese = Concept.from(manager, "japanese").flatMap(Language.from(manager, _, "ja", kanji)).get
     val piece = imaPiece(manager, hiragana, kanji)
     val piece2 = SymbolArray.from(manager, "する").flatMap(Piece.from(manager, hiragana, _)).get
     set(japanese).size shouldBe 1
@@ -153,7 +153,7 @@ class LanguageTest extends FlatSpec with Matchers {
     val manager = newManager
     val hiragana = Concept.from(manager, "Hiragana").flatMap(Alphabet.from(manager,_)).get
     val kanji = Concept.from(manager, "Kanji").flatMap(Alphabet.from(manager, _)).get
-    val japanese = Concept.from(manager, "japanese").flatMap(Language.from(manager, _, kanji)).get
+    val japanese = Concept.from(manager, "japanese").flatMap(Language.from(manager, _, "ja", kanji)).get
     val piece = imaPiece(manager, hiragana, kanji)
     val piece2 = SymbolArray.from(manager, "する").flatMap(Piece.from(manager, hiragana, _)).get
     set(japanese).size shouldBe 1
@@ -181,7 +181,7 @@ class LanguageTest extends FlatSpec with Matchers {
     val manager = newManager
     val concept = Concept.from(manager, "Concept").get
     val alphabet = Alphabet.from(manager, Concept.from(manager, "latin").get).get
-    val language = Language.from(manager, concept, alphabet).get
+    val language = Language.from(manager, concept, "??", alphabet).get
 
     language.alphabets.contains(alphabet) shouldBe true
   }

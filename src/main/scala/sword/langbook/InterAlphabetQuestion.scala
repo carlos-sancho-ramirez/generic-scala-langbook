@@ -49,6 +49,33 @@ object InterAlphabetQuestion {
     else None
   }
 
+  /**
+    * Find all different combinations of source/target alphabets for the current state of the database.
+    * The result of this method ensures that at least on e question can be created with the given
+    * source/target alphabets when calling {@link #newAleatoryQuestion}
+    * @param manager LinkedStorageManager to check the current database state
+    * @return A set of pairs of source/target alphabets sets. This set will be empty if no
+    *         InterAlphabetQuestion can be created at all. This can perfectly happen if there is no
+    *         language in the database with at least 2 alphabets.
+    */
+  def findPossibleQuestionTypes(manager: LinkedStorageManager): Set[(Set[Alphabet], Set[Alphabet])] = {
+    val result = scala.collection.mutable.Set[(Set[Alphabet], Set[Alphabet])]()
+    for {
+      language <- manager.languages.values
+    } {
+      val alphabets = language.alphabets.toList
+      if (alphabets.size > 1) {
+        for {
+          permutation <- alphabets.permutations
+        } {
+          result += ((Set(permutation.head), Set(permutation(1))))
+        }
+      }
+    }
+
+    result.toSet
+  }
+
   def decode(manager: LinkedStorageManager, encodedQuestion: String) = {
     try {
       val storageManager = manager.storageManager

@@ -49,6 +49,33 @@ object SynonymQuestion {
     else None
   }
 
+  /**
+   * Checks in the database all synonyms that share the same alphabet.
+   * It is expected that {@link #newAleatoryQuestion} will never return null for all alphabets
+   * returned here.
+   * @param manager LinkedStorageManager used to check the database.
+   * @return A Set of alphabets that can be used to generate valid questions.
+   *         This may be empty if no question can be created at all with the current database state.
+   */
+  def findPossibleQuestionTypes(manager: LinkedStorageManager): Set[Alphabet] = {
+
+    val result = scala.collection.mutable.Set[Alphabet]()
+    for {
+      concept <- manager.concepts.values
+    } {
+      val semiResult = scala.collection.mutable.Set[Alphabet]()
+      for {
+        word <- concept.words
+        alphabet <- word.text.keySet
+      } {
+        if (semiResult.contains(alphabet)) result += alphabet
+        else semiResult += alphabet
+      }
+    }
+
+    result.toSet
+  }
+
   def decode(manager: LinkedStorageManager, encodedQuestion: String) = {
     try {
       val storageManager = manager.storageManager

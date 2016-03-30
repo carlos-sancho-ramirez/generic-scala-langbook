@@ -48,6 +48,15 @@ case class Word(key :StorageManager.Key) {
     override def -(key: Alphabet): Map[Alphabet, String] = ???
   }
 
+  /**
+   * Return the suitable human readable string for this word based on the preferredAlphabet
+   * @return A Some instance with the string inside, or None if no text is found for this word.
+   */
+  def suitableText: Option[String] = {
+    val preferredText = text.get(language.preferredAlphabet)
+    if (preferredText.isEmpty) text.values.headOption else preferredText
+  }
+
   lazy val concepts = new scala.collection.mutable.Set[Concept]() {
     // TODO: This should check if the concept is already included, and avoid inserting anything in that case
     override def +=(elem: Concept): this.type = {

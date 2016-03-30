@@ -22,6 +22,30 @@ case class Language(key :StorageManager.Key) {
     case field :LanguageCodeField => field.code
   }.get
 
+  /**
+   * Returns a human readable string for this language.
+   * This first looks for a word written in this same language. If not, it just pick the first word
+   * representing this in any language it is written.
+   *
+   * @return A some instance with the text inside, or None if no word was found.
+   */
+  def suitableText: Option[String] = {
+    val firstOption = concept.wordsForLanguage(this).headOption
+    val wordOption = if (firstOption.isEmpty) concept.words.headOption else firstOption
+    wordOption.flatMap(_.suitableText)
+  }
+
+  /**
+   * Retrieves a suitable human readable string based in the given preferredLanguage.
+   * If there is no word assigned for the given language, it will look for alternatives.
+   * @param preferredLanguage Desired language the user what to read
+   * @return A some instance containing a string, or None if no possible text can be found.
+   */
+  def suitableTextForLanguage(preferredLanguage: Language): Option[String] = {
+    val firstOption = concept.wordsForLanguage(preferredLanguage).headOption
+    if (firstOption.isEmpty) suitableText else firstOption.flatMap(_.suitableText)
+  }
+
   def preferredAlphabet = Alphabet(preferredAlphabetKeyOpt.get)
 
   lazy val alphabets = new scala.collection.AbstractSet[Alphabet]() {

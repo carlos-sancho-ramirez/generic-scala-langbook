@@ -12,6 +12,20 @@ case class Alphabet(key :StorageManager.Key) {
 
   // TODO: To be implemented
   def languages = ???
+
+  /**
+   * Returns a suitable human readable string for the given language if any
+   * @param preferredLanguage Desired language that the user would like to read.
+   */
+  def suitableTextForLanguage(preferredLanguage: Language): Option[String] = {
+    val preferredWordOption = concept.wordsForLanguage(preferredLanguage).headOption
+    val wordOption = {
+      if (preferredWordOption.isDefined) preferredWordOption
+      else concept.words.headOption
+    }
+
+    wordOption.flatMap(_.suitableText)
+  }
 }
 
 object Alphabet extends ElementFactory[registers.Alphabet, Alphabet] {

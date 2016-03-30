@@ -61,6 +61,17 @@ object TranslationQuestion {
     else None
   }
 
+  def findPossibleQuestionTypes(manager: LinkedStorageManager): Set[(Language, Language, Set[Alphabet], Set[Alphabet])] = {
+    (for {
+      sourceLanguage <- manager.languages.values
+      targetLanguage <- manager.languages.values if targetLanguage != sourceLanguage
+      sources <- sourceLanguage.alphabets.toSet.subsets() if sources != Set[Alphabet]()
+      targets <- targetLanguage.alphabets.toSet.subsets() if targets != Set[Alphabet]()
+    } yield {
+      (sourceLanguage, targetLanguage, sources, targets)
+    }).toSet
+  }
+
   def decode(manager: LinkedStorageManager, encodedQuestion: String) = {
     try {
       val storageManager = manager.storageManager

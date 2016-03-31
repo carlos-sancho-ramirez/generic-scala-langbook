@@ -31,6 +31,14 @@ class AlphabetTest extends FlatSpec with Matchers {
     set(alphabet).head shouldBe language
   }
 
+  private def checkReturnNoLanguageIfNoAlphabetRegisteredAsPreferred(set: Alphabet => scala.collection.Set[Language]): Unit = {
+    val manager = newManager
+    val alphabet = Alphabet.from(manager, Concept.from(manager, "Alphabet").get).get
+    val alphabet2 = Alphabet.from(manager, Concept.from(manager, "Alphabet2").get).get
+    Language.from(manager, Concept.from(manager, "Language").get, "xx", alphabet2).get
+    set(alphabet) shouldBe empty
+  }
+
   private def checkReturnAllLanguagesWithThisAlphabetAsPreferred(set: Alphabet => scala.collection.Set[Language]): Unit = {
     val manager = newManager
     val alphabet = Alphabet.from(manager, Concept.from(manager, "Alphabet").get).get
@@ -68,6 +76,14 @@ class AlphabetTest extends FlatSpec with Matchers {
 
   it must "return the language that uses this alphabet as preferred (reusing set instances)" in {
     reusingSetInstance(checkReturnLanguageWithThisAlphabetAsPreferred)
+  }
+
+  it must "return no language at all if it is not registered as preferred" in {
+    checkReturnNoLanguageIfNoAlphabetRegisteredAsPreferred(_.languages)
+  }
+
+  it must "return no language at all if it is not registered as preferred (reusing set instances)" in {
+    reusingSetInstance(checkReturnNoLanguageIfNoAlphabetRegisteredAsPreferred)
   }
 
   it must "return all languages that uses this alphabet as preferred" in {

@@ -9,6 +9,28 @@ class AlphabetTest extends FlatSpec with Matchers {
     LinkedStorageManager(defs => new MemoryStorageManager(defs))
   }
 
+  private def reusingSetInstance(f: (Alphabet => scala.collection.Set[Language]) => Unit) = {
+    var instance: scala.collection.Set[Language] = null
+    f { alphabet =>
+      if (instance == null) {
+        instance = alphabet.languages
+      }
+
+      instance
+    }
+  }
+
+  private def checkReturnLanguageWithThisAlphabetAsPreferred(set: Alphabet => scala.collection.Set[Language]): Unit = {
+    val manager = newManager
+    val alphabet = Alphabet.from(manager, Concept.from(manager, "Alphabet").get).get
+    val languageConcept = Concept.from(manager, "Language").get
+    set(alphabet) shouldBe empty
+
+    val language = Language.from(manager, languageConcept, "xx", alphabet).get
+    set(alphabet).size shouldBe 1
+    set(alphabet).head shouldBe language
+  }
+
   behavior of "Alphabet"
 
   it can "be created" in {
@@ -28,15 +50,11 @@ class AlphabetTest extends FlatSpec with Matchers {
     alphabet.concept shouldBe concept
   }
 
-  it must "return the language that uses this alphabet preferred" in {
-    val manager = newManager
-    val alphabet = Alphabet.from(manager, Concept.from(manager, "Alphabet").get).get
-    val languageConcept = Concept.from(manager, "Language").get
-    alphabet.languages shouldBe empty
+  it must "return the language that uses this alphabet as preferred" in {
+    checkReturnLanguageWithThisAlphabetAsPreferred(_.languages)
+  }
 
-    val language = Language.from(manager, languageConcept, "xx", alphabet).get
-    val languages = alphabet.languages
-    languages.size shouldBe 1
-    languages.head shouldBe language
+  it must "return the language that uses this alphabet as preferred (reusing set instances)" in {
+    reusingSetInstance(checkReturnLanguageWithThisAlphabetAsPreferred)
   }
 }

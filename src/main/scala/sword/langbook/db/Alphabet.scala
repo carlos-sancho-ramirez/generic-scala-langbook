@@ -10,13 +10,20 @@ case class Alphabet(key :StorageManager.Key) {
 
   def concept = Concept(conceptKeyOpt.get)
 
-  // TODO: To be fully implemented, checking more than just preferred alphabets in languages
-  def languages: Set[Language] = key.storageManager.getMapFor(registers.Language).flatMap {
-    case (languageKey, language) =>
-      language.fields.collectFirst {
-        case f: registers.AlphabetReferenceField if f.key == key => Language(languageKey)
-      }
-  }.toSet
+  lazy val languages = new scala.collection.AbstractSet[Language] {
+    // TODO: To be fully implemented, checking more than just preferred alphabets in languages
+    private def wrappedSet = key.storageManager.getMapFor(registers.Language).flatMap {
+      case (languageKey, language) =>
+        language.fields.collectFirst {
+          case f: registers.AlphabetReferenceField if f.key == key => Language(languageKey)
+        }
+    }.toSet
+
+    override def contains(elem: Language) = wrappedSet.contains(elem)
+    override def +(elem: Language) = wrappedSet + elem
+    override def -(elem: Language) = wrappedSet - elem
+    override def iterator = wrappedSet.iterator
+  }
 
   /**
    * Returns a suitable human readable string for the given language if any

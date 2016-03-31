@@ -27,25 +27,6 @@ class LinkedStorageManagerTest extends FlatSpec with Matchers {
     concepts.values.head shouldBe conceptOption.get
   }
 
-  it can "insert an alphabet with an existing concept" in {
-    val manager = newManager
-    manager.alphabets shouldBe empty
-
-    val conceptOption = Concept.from(manager, "Alphabet")
-    conceptOption shouldBe defined
-
-    val alphabetOption = Alphabet.from(manager, conceptOption.get)
-    alphabetOption shouldBe defined
-
-    val concepts = manager.concepts
-    concepts.size shouldBe 1
-    concepts.values.head shouldBe conceptOption.get
-
-    val alphabets = manager.alphabets
-    alphabets.size shouldBe 1
-    alphabets.values.head shouldBe alphabetOption.get
-  }
-
   it can "insert a symbol" in {
     val manager = newManager
     manager.symbols shouldBe empty

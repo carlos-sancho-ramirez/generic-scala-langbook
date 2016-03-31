@@ -27,4 +27,16 @@ class AlphabetTest extends FlatSpec with Matchers {
     val alphabet = Alphabet.from(manager, concept).get
     alphabet.concept shouldBe concept
   }
+
+  it must "return the language that uses this alphabet preferred" in {
+    val manager = newManager
+    val alphabet = Alphabet.from(manager, Concept.from(manager, "Alphabet").get).get
+    val languageConcept = Concept.from(manager, "Language").get
+    alphabet.languages shouldBe empty
+
+    val language = Language.from(manager, languageConcept, "xx", alphabet).get
+    val languages = alphabet.languages
+    languages.size shouldBe 1
+    languages.head shouldBe language
+  }
 }

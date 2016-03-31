@@ -10,8 +10,13 @@ case class Alphabet(key :StorageManager.Key) {
 
   def concept = Concept(conceptKeyOpt.get)
 
-  // TODO: To be implemented
-  def languages = ???
+  // TODO: To be fully implemented, checking more than just preferred alphabets in languages
+  def languages: Set[Language] = key.storageManager.getMapFor(registers.Language).flatMap {
+    case (languageKey, language) =>
+      language.fields.collectFirst {
+        case f: registers.AlphabetReferenceField if f.key == key => Language(languageKey)
+      }
+  }.toSet
 
   /**
    * Returns a suitable human readable string for the given language if any

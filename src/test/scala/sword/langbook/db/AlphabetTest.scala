@@ -24,6 +24,15 @@ class AlphabetTest extends FlatSpec with Matchers {
   object underTest extends InstanceOption
   object nonTested extends InstanceOption
 
+  private def checkSet(expected: scala.collection.Set[Language], testedAlphabet: Alphabet, set: Alphabet => scala.collection.Set[Language]): Unit = {
+    set(testedAlphabet).size shouldBe expected.size
+    set(testedAlphabet).diff(expected) shouldBe empty
+
+    for (expectedLanguage <- expected) {
+      set(testedAlphabet).contains(expectedLanguage) shouldBe true
+    }
+  }
+
   private def checkReturnExpectedLanguages(preferredAlphabetsInstanceOptions: List[InstanceOption])(set: Alphabet => scala.collection.Set[Language]): Unit = {
     val manager = newManager
     val testedAlphabet = Alphabet.from(manager, Concept.from(manager, "Alphabet under test").get).get
@@ -39,41 +48,39 @@ class AlphabetTest extends FlatSpec with Matchers {
     for (thisAlphabet <- preferredAlphabets) {
       val lang = Language.from(manager, Concept.from(manager, "MyLanguage").get, "xx", thisAlphabet).get
       if (thisAlphabet == testedAlphabet) targetLanguages += lang
-
-      set(testedAlphabet).size shouldBe targetLanguages.size
-      set(testedAlphabet).diff(targetLanguages) shouldBe empty
-
-      for (targetLanguage <- targetLanguages) {
-        set(testedAlphabet).contains(targetLanguage) shouldBe true
-      }
+      checkSet(targetLanguages, testedAlphabet, set)
     }
   }
 
-  private def checkReturnLanguageIncludingWordWithPieceUsingThisAlphabet(pieceAlphabetInstanceOption: InstanceOption)(set: Alphabet => scala.collection.Set[Language]): Unit = {
+  private def checkReturnLanguageIncludingWordWithPieceUsingThisAlphabet(pieceAlphabetsInstanceOption: InstanceOption*)(set: Alphabet => scala.collection.Set[Language]): Unit = {
     val manager = newManager
     val testedAlphabet = Alphabet.from(manager, Concept.from(manager, "Alphabet under test").get).get
     val preferredAlphabet = Alphabet.from(manager, Concept.from(manager, "Preferred Alphabet").get).get
-    val language = Language.from(manager, Concept.from(manager, "Language").get, "xx", preferredAlphabet).get
-    set(testedAlphabet) shouldBe empty
-
-    val pieceAlphabet = pieceAlphabetInstanceOption match {
-      case `underTest` => testedAlphabet
-      case `nonTested` => preferredAlphabet
+    val languages = for(_ <- pieceAlphabetsInstanceOption) yield {
+      Language.from(manager, Concept.from(manager, "Language").get, "xx", preferredAlphabet).get
     }
-
-    val piece = Piece.from(manager, pieceAlphabet, SymbolArray.from(manager, "Hello").get).get
     set(testedAlphabet) shouldBe empty
 
-    val pieces = PieceArray.from(manager, List(piece)).get
-    set(testedAlphabet) shouldBe empty
+    val expectedLanguages = scala.collection.mutable.Set[Language]()
+    for ((language, instanceOption) <- languages zip pieceAlphabetsInstanceOption) {
+      val pieceAlphabet = instanceOption match {
+        case `underTest` => testedAlphabet
+        case `nonTested` => preferredAlphabet
+      }
 
-    Word.from(manager, language, pieces) shouldBe defined
-    pieceAlphabetInstanceOption match {
-      case `underTest` =>
-        set(testedAlphabet).size shouldBe 1
-        set(testedAlphabet).head shouldBe language
-      case `nonTested` =>
-        set(testedAlphabet) shouldBe empty
+      val piece = Piece.from(manager, pieceAlphabet, SymbolArray.from(manager, "Hello").get).get
+      checkSet(expectedLanguages, testedAlphabet, set)
+
+      val pieces = PieceArray.from(manager, List(piece)).get
+      checkSet(expectedLanguages, testedAlphabet, set)
+
+      Word.from(manager, language, pieces) shouldBe defined
+      instanceOption match {
+        case `underTest` =>
+          expectedLanguages += language
+        case `nonTested` =>
+      }
+      checkSet(expectedLanguages, testedAlphabet, set)
     }
   }
 
@@ -160,5 +167,37 @@ class AlphabetTest extends FlatSpec with Matchers {
 
   it must "return no language if none includes a word with a piece using this alphabet (reusing set instances)" in {
     reusingSetInstance(checkReturnLanguageIncludingWordWithPieceUsingThisAlphabet(nonTested))
+  }
+
+  it must "return both languages if 2 languages are entered including both a word with a piece using this alphabet" in {
+    checkReturnLanguageIncludingWordWithPieceUsingThisAlphabet(underTest, underTest)(_.languages)
+  }
+
+  it must "return both languages if 2 languages are entered including both a word with a piece using this alphabet (reusing set instances)" in {
+    reusingSetInstance(checkReturnLanguageIncludingWordWithPieceUsingThisAlphabet(underTest, underTest))
+  }
+
+  it must "return none of the languages if 2 languages are entered including neither a word with a piece using this alphabet" in {
+    checkReturnLanguageIncludingWordWithPieceUsingThisAlphabet(nonTested, nonTested)(_.languages)
+  }
+
+  it must "return none of the languages if 2 languages are entered including neither a word with a piece using this alphabet (reusing set instances)" in {
+    reusingSetInstance(checkReturnLanguageIncludingWordWithPieceUsingThisAlphabet(nonTested, nonTested))
+  }
+
+  it must "return the first language if 2 languages are entered but only the first includes a word with a piece using this alphabet" in {
+    checkReturnLanguageIncludingWordWithPieceUsingThisAlphabet(underTest, nonTested)(_.languages)
+  }
+
+  it must "return the first language if 2 languages are entered but only the first includes a word with a piece using this alphabet (reusing set instances)" in {
+    reusingSetInstance(checkReturnLanguageIncludingWordWithPieceUsingThisAlphabet(underTest, nonTested))
+  }
+
+  it must "return the second language if 2 languages are entered but only the second includes a word with a piece using this alphabet" in {
+    checkReturnLanguageIncludingWordWithPieceUsingThisAlphabet(nonTested, underTest)(_.languages)
+  }
+
+  it must "return the second language if 2 languages are entered but only the second includes a word with a piece using this alphabet (reusing set instances)" in {
+    reusingSetInstance(checkReturnLanguageIncludingWordWithPieceUsingThisAlphabet(nonTested, underTest))
   }
 }

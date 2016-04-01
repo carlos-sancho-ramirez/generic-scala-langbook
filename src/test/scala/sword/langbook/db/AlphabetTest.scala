@@ -20,35 +20,33 @@ class AlphabetTest extends FlatSpec with Matchers {
     }
   }
 
-  private def checkReturnLanguageWithThisAlphabetAsPreferred(set: Alphabet => scala.collection.Set[Language]): Unit = {
+  sealed trait InstanceOption
+  object underTest extends InstanceOption
+  object nonTested extends InstanceOption
+
+  private def checkReturnExpectedLanguages(preferredAlphabetsInstanceOptions: List[InstanceOption])(set: Alphabet => scala.collection.Set[Language]): Unit = {
     val manager = newManager
-    val alphabet = Alphabet.from(manager, Concept.from(manager, "Alphabet").get).get
-    val languageConcept = Concept.from(manager, "Language").get
-    set(alphabet) shouldBe empty
+    val testedAlphabet = Alphabet.from(manager, Concept.from(manager, "Alphabet under test").get).get
+    val otherAlphabet = Alphabet.from(manager, Concept.from(manager, "Other alphabet").get).get
+    val preferredAlphabets = preferredAlphabetsInstanceOptions.map {
+      case `underTest` => testedAlphabet
+      case `nonTested` => otherAlphabet
+    }
 
-    val language = Language.from(manager, languageConcept, "xx", alphabet).get
-    set(alphabet).size shouldBe 1
-    set(alphabet).head shouldBe language
-  }
+    set(testedAlphabet) shouldBe empty
+    val targetLanguages = scala.collection.mutable.Set[Language]()
 
-  private def checkReturnNoLanguageIfNoAlphabetRegisteredAsPreferred(set: Alphabet => scala.collection.Set[Language]): Unit = {
-    val manager = newManager
-    val alphabet = Alphabet.from(manager, Concept.from(manager, "Alphabet").get).get
-    val alphabet2 = Alphabet.from(manager, Concept.from(manager, "Alphabet2").get).get
-    Language.from(manager, Concept.from(manager, "Language").get, "xx", alphabet2).get
-    set(alphabet) shouldBe empty
-  }
+    for (thisAlphabet <- preferredAlphabets) {
+      val lang = Language.from(manager, Concept.from(manager, "MyLanguage").get, "xx", thisAlphabet).get
+      if (thisAlphabet == testedAlphabet) targetLanguages += lang
 
-  private def checkReturnAllLanguagesWithThisAlphabetAsPreferred(set: Alphabet => scala.collection.Set[Language]): Unit = {
-    val manager = newManager
-    val alphabet = Alphabet.from(manager, Concept.from(manager, "Alphabet").get).get
-    set(alphabet) shouldBe empty
+      set(testedAlphabet).size shouldBe targetLanguages.size
+      set(testedAlphabet).diff(targetLanguages) shouldBe empty
 
-    val language = Language.from(manager, Concept.from(manager, "Language").get, "xx", alphabet).get
-    val language2 = Language.from(manager, Concept.from(manager, "Language2").get, "xy", alphabet).get
-    set(alphabet).size shouldBe 2
-    set(alphabet).contains(language) shouldBe true
-    set(alphabet).contains(language2) shouldBe true
+      for (targetLanguage <- targetLanguages) {
+        set(testedAlphabet).contains(targetLanguage) shouldBe true
+      }
+    }
   }
 
   behavior of "Alphabet"
@@ -70,27 +68,51 @@ class AlphabetTest extends FlatSpec with Matchers {
     alphabet.concept shouldBe concept
   }
 
-  it must "return the language that uses this alphabet as preferred" in {
-    checkReturnLanguageWithThisAlphabetAsPreferred(_.languages)
+  it must "return the entered language that uses this alphabet as preferred" in {
+    checkReturnExpectedLanguages(List(underTest))(_.languages)
   }
 
-  it must "return the language that uses this alphabet as preferred (reusing set instances)" in {
-    reusingSetInstance(checkReturnLanguageWithThisAlphabetAsPreferred)
+  it must "return the entered language that uses this alphabet as preferred (reusing set instances)" in {
+    reusingSetInstance(checkReturnExpectedLanguages(List(underTest)))
   }
 
-  it must "return no language at all if it is not registered as preferred" in {
-    checkReturnNoLanguageIfNoAlphabetRegisteredAsPreferred(_.languages)
+  it must "not return the only entered language if it does not use this alphabet as preferred" in {
+    checkReturnExpectedLanguages(List(nonTested))(_.languages)
   }
 
-  it must "return no language at all if it is not registered as preferred (reusing set instances)" in {
-    reusingSetInstance(checkReturnNoLanguageIfNoAlphabetRegisteredAsPreferred)
+  it must "not return the only entered language if it does not use this alphabet as preferred (reusing set instances)" in {
+    reusingSetInstance(checkReturnExpectedLanguages(List(nonTested)))
   }
 
-  it must "return all languages that uses this alphabet as preferred" in {
-    checkReturnAllLanguagesWithThisAlphabetAsPreferred(_.languages)
+  it must "return only the first entered language when 2 languages are entered and only the first uses this alphabet as preferred" in {
+    checkReturnExpectedLanguages(List(underTest, nonTested))(_.languages)
   }
 
-  it must "return all languages that uses this alphabet as preferred (reusing set instances)" in {
-    reusingSetInstance(checkReturnAllLanguagesWithThisAlphabetAsPreferred)
+  it must "return only the first entered language when 2 languages are entered and only the first uses this alphabet as preferred (reusing set instances)" in {
+    reusingSetInstance(checkReturnExpectedLanguages(List(underTest, nonTested)))
+  }
+
+  it must "return only the second entered language when 2 languages are entered and only the second uses this alphabet as preferred" in {
+    checkReturnExpectedLanguages(List(nonTested, underTest))(_.languages)
+  }
+
+  it must "return only the second entered language when 2 languages are entered and only the second uses this alphabet as preferred (reusing set instances)" in {
+    reusingSetInstance(checkReturnExpectedLanguages(List(nonTested, underTest)))
+  }
+
+  it must "return both entered languages when 2 languages are entered and both uses this alphabet as preferred" in {
+    checkReturnExpectedLanguages(List(underTest, underTest))(_.languages)
+  }
+
+  it must "return both entered languages when 2 languages are entered and both uses this alphabet as preferred (reusing set instances)" in {
+    reusingSetInstance(checkReturnExpectedLanguages(List(underTest, underTest)))
+  }
+
+  it must "return none of the entered languages when 2 languages are entered and neither uses this alphabet as preferred" in {
+    checkReturnExpectedLanguages(List(nonTested, nonTested))(_.languages)
+  }
+
+  it must "return none of the entered languages when 2 languages are entered and neither uses this alphabet as preferred (reusing set instances)" in {
+    reusingSetInstance(checkReturnExpectedLanguages(List(nonTested, nonTested)))
   }
 }

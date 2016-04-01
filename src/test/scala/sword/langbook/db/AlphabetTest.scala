@@ -49,6 +49,34 @@ class AlphabetTest extends FlatSpec with Matchers {
     }
   }
 
+  private def checkReturnLanguageIncludingWordWithPieceUsingThisAlphabet(pieceAlphabetInstanceOption: InstanceOption)(set: Alphabet => scala.collection.Set[Language]): Unit = {
+    val manager = newManager
+    val testedAlphabet = Alphabet.from(manager, Concept.from(manager, "Alphabet under test").get).get
+    val preferredAlphabet = Alphabet.from(manager, Concept.from(manager, "Preferred Alphabet").get).get
+    val language = Language.from(manager, Concept.from(manager, "Language").get, "xx", preferredAlphabet).get
+    set(testedAlphabet) shouldBe empty
+
+    val pieceAlphabet = pieceAlphabetInstanceOption match {
+      case `underTest` => testedAlphabet
+      case `nonTested` => preferredAlphabet
+    }
+
+    val piece = Piece.from(manager, pieceAlphabet, SymbolArray.from(manager, "Hello").get).get
+    set(testedAlphabet) shouldBe empty
+
+    val pieces = PieceArray.from(manager, List(piece)).get
+    set(testedAlphabet) shouldBe empty
+
+    Word.from(manager, language, pieces) shouldBe defined
+    pieceAlphabetInstanceOption match {
+      case `underTest` =>
+        set(testedAlphabet).size shouldBe 1
+        set(testedAlphabet).head shouldBe language
+      case `nonTested` =>
+        set(testedAlphabet) shouldBe empty
+    }
+  }
+
   behavior of "Alphabet"
 
   it can "be created" in {
@@ -67,6 +95,8 @@ class AlphabetTest extends FlatSpec with Matchers {
     val alphabet = Alphabet.from(manager, concept).get
     alphabet.concept shouldBe concept
   }
+
+  behavior of "Alphabet.language"
 
   it must "return the entered language that uses this alphabet as preferred" in {
     checkReturnExpectedLanguages(List(underTest))(_.languages)
@@ -114,5 +144,21 @@ class AlphabetTest extends FlatSpec with Matchers {
 
   it must "return none of the entered languages when 2 languages are entered and neither uses this alphabet as preferred (reusing set instances)" in {
     reusingSetInstance(checkReturnExpectedLanguages(List(nonTested, nonTested)))
+  }
+
+  it must "return any language including a word with a piece using this alphabet" in {
+    checkReturnLanguageIncludingWordWithPieceUsingThisAlphabet(underTest)(_.languages)
+  }
+
+  it must "return any language including a word with a piece using this alphabet (reusing set instances)" in {
+    reusingSetInstance(checkReturnLanguageIncludingWordWithPieceUsingThisAlphabet(underTest))
+  }
+
+  it must "return no language if none includes a word with a piece using this alphabet" in {
+    checkReturnLanguageIncludingWordWithPieceUsingThisAlphabet(nonTested)(_.languages)
+  }
+
+  it must "return no language if none includes a word with a piece using this alphabet (reusing set instances)" in {
+    reusingSetInstance(checkReturnLanguageIncludingWordWithPieceUsingThisAlphabet(nonTested))
   }
 }

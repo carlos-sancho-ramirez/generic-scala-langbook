@@ -1,6 +1,7 @@
 package sword.langbook.db
 
 import sword.db.{ForeignKeyField, StorageManager}
+import sword.langbook.db.registers.{AlphabetReferenceField, PieceReferenceField}
 
 case class Alphabet(key :StorageManager.Key) {
   def fields = key.registerOption.map(_.fields).getOrElse(Seq())
@@ -11,13 +12,48 @@ case class Alphabet(key :StorageManager.Key) {
   def concept = Concept(conceptKeyOpt.get)
 
   lazy val languages = new scala.collection.AbstractSet[Language] {
-    // TODO: To be fully implemented, checking more than just preferred alphabets in languages
-    private def wrappedSet = key.storageManager.getMapFor(registers.Language).flatMap {
+
+    private def wrappedSetForPreferred = key.storageManager.getMapFor(registers.Language).flatMap {
       case (languageKey, language) =>
         language.fields.collectFirst {
           case f: registers.AlphabetReferenceField if f.key == key => Language(languageKey)
         }
     }.toSet
+
+    // TODO: Looking in pieces for alphabets including this as preferred alphabet should be avoided for performance reasons
+    private def wrappedSetForIncludedInPieces = {
+      val storageManager = key.storageManager
+      storageManager.getMapFor(registers.Language).filter {
+        case (languageKey, language) =>
+          storageManager.getMapFor(registers.Word).exists {
+            case (wordKey, wordReg) =>
+              wordReg.fields.collectFirst {
+                case f: registers.LanguageReferenceField if f.key == languageKey => f
+              }.isDefined && {
+                val pieceArrayCollIdOpt = wordReg.fields.collectFirst {
+                  case f: registers.PieceArrayReferenceField => f.collectionId
+                }
+                pieceArrayCollIdOpt.exists { pieceArrayCollId =>
+                  val pieces = storageManager.getMapForCollection(registers.PiecePosition, pieceArrayCollId).values.flatMap {
+                    _.fields.collectFirst {
+                      case f: PieceReferenceField => f.collectionId
+                    }
+                  }
+                  pieces.exists { pieceId =>
+                    storageManager.getMapForCollection(registers.Piece, pieceId).values.exists {
+                      case pieceReg =>
+                        pieceReg.fields.collectFirst {
+                          case f: AlphabetReferenceField if f.key == key => key
+                        }.isDefined
+                    }
+                  }
+                }
+              }
+          }
+      }.map { case (languageKey,_) => Language(languageKey)}.toSet
+    }
+
+    private def wrappedSet = wrappedSetForPreferred ++ wrappedSetForIncludedInPieces
 
     override def contains(elem: Language) = wrappedSet.contains(elem)
     override def +(elem: Language) = wrappedSet + elem

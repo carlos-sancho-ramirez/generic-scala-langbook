@@ -1,6 +1,6 @@
 package sword.langbook.db
 
-import sword.db.{ForeignKeyField, StorageManager}
+import sword.db.{CollectionReferenceField, ForeignKeyField, StorageManager}
 import sword.langbook.db.registers.{AlphabetReferenceField, PieceReferenceField}
 
 case class Alphabet(key :StorageManager.Key) {
@@ -16,7 +16,7 @@ case class Alphabet(key :StorageManager.Key) {
     private def wrappedSetForPreferred = key.storageManager.getMapFor(registers.Language).flatMap {
       case (languageKey, language) =>
         language.fields.collectFirst {
-          case f: registers.AlphabetReferenceField if f.key == key => Language(languageKey)
+          case f: ForeignKeyField if f.definition.target == registers.Alphabet && f.key == key => Language(languageKey)
         }
     }.toSet
 
@@ -28,22 +28,22 @@ case class Alphabet(key :StorageManager.Key) {
           storageManager.getMapFor(registers.Word).exists {
             case (wordKey, wordReg) =>
               wordReg.fields.collectFirst {
-                case f: registers.LanguageReferenceField if f.key == languageKey => f
+                case f: ForeignKeyField if f.definition.target == registers.Language && f.key == languageKey => f
               }.isDefined && {
                 val pieceArrayCollIdOpt = wordReg.fields.collectFirst {
-                  case f: registers.PieceArrayReferenceField => f.collectionId
+                  case f: CollectionReferenceField if f.definition.target == registers.PiecePosition => f.collectionId
                 }
                 pieceArrayCollIdOpt.exists { pieceArrayCollId =>
                   val pieces = storageManager.getMapForCollection(registers.PiecePosition, pieceArrayCollId).values.flatMap {
                     _.fields.collectFirst {
-                      case f: PieceReferenceField => f.collectionId
+                      case f: CollectionReferenceField if f.definition.target == registers.Piece => f.collectionId
                     }
                   }
                   pieces.exists { pieceId =>
                     storageManager.getMapForCollection(registers.Piece, pieceId).values.exists {
                       case pieceReg =>
                         pieceReg.fields.collectFirst {
-                          case f: AlphabetReferenceField if f.key == key => key
+                          case f: ForeignKeyField if f.definition.target == registers.Alphabet && f.key == key => key
                         }.isDefined
                     }
                   }

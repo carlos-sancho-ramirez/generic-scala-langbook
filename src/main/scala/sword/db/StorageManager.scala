@@ -153,6 +153,15 @@ trait StorageManager {
     }
   }
 
+  def getMapFor(registerDefinition: RegisterDefinition, filter: ForeignKeyField): scala.collection.Map[Key, Register] = {
+    getMapFor(registerDefinition).filter {
+      case (key, reg) =>
+        reg.fields.collectFirst {
+          case f: ForeignKeyField if f.definition.target == filter.definition.target && f.key == filter.key => true
+        }.isDefined
+    }
+  }
+
   /**
    * Returns all keys matching registers that contains the given collection identifier.
    *

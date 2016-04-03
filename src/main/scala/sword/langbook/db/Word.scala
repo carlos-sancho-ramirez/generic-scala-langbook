@@ -1,6 +1,7 @@
 package sword.langbook.db
 
 import sword.db.{CollectionReferenceField, ForeignKeyField, StorageManager}
+import sword.langbook.db.registers.WordReferenceField
 
 import scala.collection
 
@@ -50,6 +51,7 @@ case class Word(key :StorageManager.Key) {
 
   /**
    * Return the suitable human readable string for this word based on the preferredAlphabet
+ *
    * @return A Some instance with the string inside, or None if no text is found for this word.
    */
   def suitableText: Option[String] = {
@@ -68,14 +70,8 @@ case class Word(key :StorageManager.Key) {
     override def -=(elem: Concept): this.type = ???
 
     override def contains(elem: Concept): Boolean = {
-      key.storageManager.getMapFor(registers.WordConcept).values.filter {
-        reg =>
-          reg.fields.collectFirst {
-            case field: ForeignKeyField if field.definition.target == registers.Word =>
-              field.key.index
-          }.contains(key.index)
-      }.flatMap {
-        reg =>
+      key.storageManager.getMapFor(registers.WordConcept, WordReferenceField(key)).flatMap {
+        case (_,reg) =>
           reg.fields.collectFirst {
             case field: ForeignKeyField if field.definition.target == registers.Concept =>
               Concept(field.key)

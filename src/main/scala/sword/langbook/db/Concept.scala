@@ -1,6 +1,7 @@
 package sword.langbook.db
 
 import sword.db.{ForeignKeyField, CharSequenceField, StorageManager}
+import sword.langbook.db.registers.ConceptReferenceField
 
 case class Concept(key: StorageManager.Key) {
   def fields = key.registerOption.map(_.fields).getOrElse(Seq())
@@ -11,17 +12,13 @@ case class Concept(key: StorageManager.Key) {
   def hint = hintOpt.get
 
   def words = {
-    key.storageManager.getMapFor(registers.WordConcept).values.filter( reg =>
-      reg.fields.collectFirst {
-        case field: ForeignKeyField if field.definition.target == registers.Concept =>
-          field.key.index
-      }.contains(key.index)
-    ).flatMap( reg =>
-      reg.fields.collectFirst {
-        case field: ForeignKeyField if field.definition.target == registers.Word =>
-          Word(field.key)
-      }
-    )
+    key.storageManager.getMapFor(registers.WordConcept, ConceptReferenceField(key)).flatMap {
+      case (_, reg) =>
+        reg.fields.collectFirst {
+          case field: ForeignKeyField if field.definition.target == registers.Word =>
+            Word(field.key)
+        }
+    }
   }
 
   def wordsForLanguage(language :Language) = {

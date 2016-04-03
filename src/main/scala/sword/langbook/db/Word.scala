@@ -51,8 +51,8 @@ case class Word(key :StorageManager.Key) {
 
   /**
    * Return the suitable human readable string for this word based on the preferredAlphabet
- *
-   * @return A Some instance with the string inside, or None if no text is found for this word.
+    *
+    * @return A Some instance with the string inside, or None if no text is found for this word.
    */
   def suitableText: Option[String] = {
     val preferredText = text.get(language.preferredAlphabet)
@@ -60,6 +60,11 @@ case class Word(key :StorageManager.Key) {
   }
 
   lazy val concepts = new scala.collection.mutable.Set[Concept]() {
+
+    private def filteredWordConceptMap = {
+      key.storageManager.getMapFor(registers.WordConcept, WordReferenceField(key))
+    }
+
     // TODO: This should check if the concept is already included, and avoid inserting anything in that case
     override def +=(elem: Concept): this.type = {
       val reg = registers.WordConcept(key, elem.key)
@@ -70,7 +75,7 @@ case class Word(key :StorageManager.Key) {
     override def -=(elem: Concept): this.type = ???
 
     override def contains(elem: Concept): Boolean = {
-      key.storageManager.getMapFor(registers.WordConcept, WordReferenceField(key)).flatMap {
+      filteredWordConceptMap.flatMap {
         case (_,reg) =>
           reg.fields.collectFirst {
             case field: ForeignKeyField if field.definition.target == registers.Concept =>
@@ -80,21 +85,16 @@ case class Word(key :StorageManager.Key) {
     }
 
     override def iterator = new Iterator[Concept]() {
-      val it = key.storageManager.getMapFor(registers.WordConcept).values.iterator
+      val it = filteredWordConceptMap.values.iterator
 
       def findNextConcept: Concept = {
         var result: Concept = null
         while(result == null && it.hasNext) {
           val reg = it.next()
-          if (reg.fields.collectFirst {
-            case field: ForeignKeyField if field.definition.target == registers.Word =>
-              field.key.index
-          }.contains(key.index)) {
-            reg.fields.collectFirst {
-              case field: ForeignKeyField if field.definition.target == registers.Concept =>
-                Concept(field.key)
-            }.foreach(concept => result = concept)
-          }
+          reg.fields.collectFirst {
+            case field: ForeignKeyField if field.definition.target == registers.Concept =>
+              Concept(field.key)
+          }.foreach(concept => result = concept)
         }
 
         result
@@ -112,31 +112,22 @@ case class Word(key :StorageManager.Key) {
   }
 
   lazy val synonyms = new scala.collection.AbstractSet[Word]() {
-    override def contains(elem: Word) = {
-      elem.key != key && concepts.flatMap(_.wordsForLanguage(language)).contains(elem)
-    }
+    private def wrappedSet = concepts.flatMap(_.wordsForLanguage(language))
+    private def filteredWrappedSet = wrappedSet.filterNot(_.key == key)
 
-    override def +(elem: Word): collection.Set[Word] = ???
-
-    override def -(elem: Word): collection.Set[Word] = ???
-
-    override def iterator = concepts.toSet[Concept].flatMap(_.wordsForLanguage(language)).filterNot(_.key == key).iterator
+    override def contains(elem: Word) = elem.key != key && wrappedSet.contains(elem)
+    override def +(elem: Word): collection.Set[Word] = filteredWrappedSet + elem
+    override def -(elem: Word): collection.Set[Word] = filteredWrappedSet - elem
+    override def iterator = filteredWrappedSet.iterator
   }
 
   lazy val translations = new scala.collection.AbstractSet[Word]() {
-    override def contains(elem: Word) = {
-      val thisLanguage = language
-      concepts.toSet[Concept].flatMap(_.words).filterNot(_.language == thisLanguage).contains(elem)
-    }
+    private def wrappedSet = concepts.flatMap(_.words).filterNot(_.language == language)
 
-    override def +(elem: Word): collection.Set[Word] = ???
-
-    override def -(elem: Word): collection.Set[Word] = ???
-
-    override def iterator = {
-      val thisLanguage = language
-      concepts.toSet[Concept].flatMap(_.words).filterNot(_.language == thisLanguage).iterator
-    }
+    override def contains(elem: Word) = wrappedSet.contains(elem)
+    override def +(elem: Word): collection.Set[Word] = wrappedSet + elem
+    override def -(elem: Word): collection.Set[Word] = wrappedSet + elem
+    override def iterator = wrappedSet.iterator
   }
 }
 

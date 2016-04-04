@@ -5,6 +5,7 @@ import sword.db.{RegisterDefinition, StorageManager}
 case class LinkedStorageManager(storageManagerFactory :(List[RegisterDefinition]) => StorageManager) {
   val registerDefinitions = List(
       registers.Concept,
+      registers.ConceptTypeRelation,
       registers.Alphabet,
       registers.Language,
       registers.Piece,

@@ -50,12 +50,7 @@ case class Language(key :StorageManager.Key) {
 
   lazy val alphabets = new scala.collection.AbstractSet[Alphabet]() {
     private def retrieveInnerSet = {
-      val allWords = key.storageManager.getMapFor(registers.Word).values.filter {
-        _.fields.collectFirst {
-          case field :ForeignKeyField if field.definition.target == registers.Language && field.key == key =>
-            true
-        }.isDefined
-      }
+      val allWords = key.storageManager.getMapFor(registers.Word, registers.LanguageReferenceField(key)).values
 
       val pieceArrays = allWords.flatMap(_.fields.collectFirst {
         case field :CollectionReferenceField if field.definition.target == registers.PiecePosition =>
@@ -77,11 +72,8 @@ case class Language(key :StorageManager.Key) {
     }
 
     override def contains(elem: Alphabet) = retrieveInnerSet.contains(elem)
-
-    override def +(elem: Alphabet): Set[Alphabet] = ???
-
-    override def -(elem: Alphabet): Set[Alphabet] = ???
-
+    override def +(elem: Alphabet): Set[Alphabet] = retrieveInnerSet + elem
+    override def -(elem: Alphabet): Set[Alphabet] = retrieveInnerSet - elem
     override def iterator = retrieveInnerSet.iterator
   }
 

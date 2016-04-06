@@ -31,9 +31,9 @@ class TranslationQuestion(val concept: Concept,
 }
 
 object TranslationQuestion {
-  def newAleatoryQuestion(manager: LinkedStorageManager,
-      sourceLanguage: Language, targetLanguage: Language,
-      sourceAlphabets: Set[Alphabet], targetAlphabets: Set[Alphabet]): Option[TranslationQuestion] = {
+  def newAleatoryQuestion(sourceLanguage: Language, targetLanguage: Language,
+      sourceAlphabets: Set[Alphabet], targetAlphabets: Set[Alphabet])(manager: LinkedStorageManager): Option[TranslationQuestion] = {
+
     if (sourceLanguage != targetLanguage) {
       val possibilities = manager.concepts.values.flatMap { concept =>
         val validTarget = concept.wordsForLanguage(targetLanguage).exists { word =>

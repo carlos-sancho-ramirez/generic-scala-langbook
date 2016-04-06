@@ -35,8 +35,9 @@ class InterAlphabetQuestion(
 }
 
 object InterAlphabetQuestion {
-  def newAleatoryQuestion(manager: LinkedStorageManager, sourceAlphabets: Set[Alphabet],
-      targetAlphabets: Set[Alphabet]): Option[InterAlphabetQuestion] = {
+  def newAleatoryQuestion(sourceAlphabets: Set[Alphabet], targetAlphabets: Set[Alphabet])(
+      manager: LinkedStorageManager): Option[InterAlphabetQuestion] = {
+
     val allAlphabets = sourceAlphabets ++ targetAlphabets
     if (allAlphabets.size == sourceAlphabets.size + targetAlphabets.size) {
       val words = manager.words.collect {

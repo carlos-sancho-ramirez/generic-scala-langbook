@@ -30,7 +30,7 @@ class SynonymQuestion(val concept: Concept, val sourceWord: Word, val alphabet: 
 }
 
 object SynonymQuestion {
-  def newAleatoryQuestion(manager: LinkedStorageManager, alphabet: Alphabet): Option[SynonymQuestion] = {
+  def newAleatoryQuestion(alphabet: Alphabet)(manager: LinkedStorageManager): Option[SynonymQuestion] = {
     val allPossibilities = manager.words.values.flatMap { word =>
       if (word.text.keySet.contains(alphabet)) {
         word.concepts.filter { concept =>

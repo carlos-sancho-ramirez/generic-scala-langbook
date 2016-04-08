@@ -74,6 +74,15 @@ case class Alphabet(key :StorageManager.Key) {
 
     wordOption.flatMap(_.suitableText)
   }
+
+  def symbols = {
+    val storageManager = key.storageManager
+    val pieces = storageManager.getMapFor(registers.Piece, AlphabetReferenceField(key)).values
+    val symbolArrays = pieces.flatMap(reg => reg.fields.collectFirst {
+      case f: CollectionReferenceField if f.definition.target == registers.SymbolPosition => f.collectionId
+    }).map(SymbolArray(storageManager, _))
+    symbolArrays.flatMap(x => x).toSet
+  }
 }
 
 object Alphabet extends ElementFactory[registers.Alphabet, Alphabet] {

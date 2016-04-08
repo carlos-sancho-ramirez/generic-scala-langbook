@@ -1,6 +1,8 @@
 package sword.langbook
 
-import sword.langbook.db.{Concept, LinkedStorageManager, Alphabet, Word}
+import sword.db.ForeignKeyField
+import sword.langbook.db.registers.{PieceArrayReferenceField, PieceReferenceField, AlphabetReferenceField}
+import sword.langbook.db._
 
 import scala.util.Random
 
@@ -59,20 +61,45 @@ object SynonymQuestion {
    */
   def findPossibleQuestionTypes(manager: LinkedStorageManager): Set[Alphabet] = {
 
-    val result = scala.collection.mutable.Set[Alphabet]()
-    for {
-      concept <- manager.concepts.values
-    } {
-      val semiResult = scala.collection.mutable.Set[Alphabet]()
-      for {
-        word <- concept.words
-        alphabet <- word.text.keySet
-      } {
-        if (semiResult.contains(alphabet)) result += alphabet
-        else semiResult += alphabet
+    val storageManager = manager.storageManager
+
+    val wordConceptRelations = for ((_,reg) <- storageManager.getMapFor(registers.WordConcept).toVector) yield {
+      val fields = reg.fields
+      val conceptOpt = fields.collectFirst {
+        case f: ForeignKeyField if f.definition.target == registers.Concept => f.key
       }
+      val wordOpt = fields.collectFirst {
+        case f: ForeignKeyField if f.definition.target == registers.Word => f.key
+      }
+
+      (conceptOpt.get, wordOpt.get)
     }
 
+    val result = scala.collection.mutable.Set[Alphabet]()
+    for (alphabetKey <- storageManager.getKeysFor(registers.Alphabet)) {
+      val pieces = storageManager.getMapFor(registers.Piece, AlphabetReferenceField(alphabetKey)).map(_._1.group)
+      val pieceArrays = pieces.flatMap {
+        piece =>
+          storageManager.getMapFor(registers.PiecePosition, PieceReferenceField(piece)).map(_._1.group)
+      }.toSet
+
+      // We are assuming here that all words are from the same language. This is OK if the given
+      // alphabet is only defined for that language.
+      // TODO: Return language as well in the method assuming that the same alphabet can be used
+      // across different languages.
+      val wordKeys = pieceArrays.flatMap(array => storageManager.getKeysFor(registers.Word, PieceArrayReferenceField(array)))
+
+      if (wordKeys.exists {
+        wordKey =>
+          val conceptKeys = wordConceptRelations.filter(_._2 == wordKey).map(_._1)
+          conceptKeys.exists {
+            conceptKey =>
+              wordConceptRelations.count(t => t._1 == conceptKey && wordKeys.contains(t._2)) > 1
+          }
+      }) {
+        result += Alphabet(alphabetKey)
+      }
+    }
     result.toSet
   }
 

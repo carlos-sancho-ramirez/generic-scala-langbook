@@ -20,7 +20,10 @@ object StorageManager {
     def registerOption = storageManager.get(this)
     def delete = storageManager.delete(this)
 
-    override def toString = s"$group:$index"
+    override def toString = {
+      val regDefIndex = storageManager.registerDefinitions.indexOf(registerDefinition)
+      s"$regDefIndex:$group:$index"
+    }
 
     /**
      * Encodes this key.
@@ -135,6 +138,15 @@ trait StorageManager {
    */
   def getKeysFor(registerDefinition :RegisterDefinition) :Set[Key]
 
+  def getKeysFor(registerDefinition :RegisterDefinition, filter: CollectionReferenceField) :Set[Key] = {
+    getMapFor(registerDefinition).flatMap {
+      case (key, reg) =>
+        reg.fields.collectFirst {
+          case f: CollectionReferenceField if f.definition.target == filter.definition.target && f.collectionId == filter.collectionId => key
+        }
+    }.toSet
+  }
+
   /**
    * Replace an already registered register content, mapped to the given key, with the new given values.
    *
@@ -158,6 +170,15 @@ trait StorageManager {
       case (key, reg) =>
         reg.fields.collectFirst {
           case f: ForeignKeyField if f.definition.target == filter.definition.target && f.key == filter.key => true
+        }.isDefined
+    }
+  }
+
+  def getMapFor(registerDefinition: RegisterDefinition, filter: CollectionReferenceField): scala.collection.Map[Key, Register] = {
+    getMapFor(registerDefinition).filter {
+      case (key, reg) =>
+        reg.fields.collectFirst {
+          case f: CollectionReferenceField if f.definition.target == filter.definition.target && f.collectionId == filter.collectionId => true
         }.isDefined
     }
   }

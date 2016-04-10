@@ -9,30 +9,60 @@ package sword.db
  * For people used to SQL, this is mainly the representation of a type that can
  * be assigned to a column within a table. 
  */
-trait FieldDefinition
+trait FieldDefinition {
+
+  /**
+    * Creates a new field containing this value.
+    * The value can be converted to match its specific type.
+    * This may return None is the value is not valid or the field cannot be created.
+    */
+  def from(value: String, keyExtractor: String => Option[StorageManager.Key]): Option[Field]
+}
 
 /**
  * Definition for fields containing a value that must match a group identifier value within a register.
  */
 trait CollectionReferenceFieldDefinition extends FieldDefinition {
-  def target :CollectibleRegisterDefinition
+  def target :CollectibleRegisterDefinition[Register]
+
+  protected def from: Register.CollectionId => CollectionReferenceField
+  override def from(value: String, keyExtractor: String => Option[StorageManager.Key]): Option[CollectionReferenceField] = {
+    try {
+      Some(from(value.toInt))
+    }
+    catch {
+      case _: NumberFormatException => None
+    }
+  }
 }
 
 /**
  * Definition for fields containing a foreign key to a register
  */
 trait ForeignKeyFieldDefinition extends FieldDefinition {
-  def target :RegisterDefinition
+  def target :RegisterDefinition[Register]
 }
 
-object UnicodeFieldDefinition extends FieldDefinition
+object UnicodeFieldDefinition extends FieldDefinition {
+  override def from(value: String, keyExtractor: String => Option[StorageManager.Key]): Option[UnicodeField] = {
+    Register.unicodeTypeFrom(value).map(UnicodeField)
+  }
+}
 
-object LanguageCodeFieldDefinition extends FieldDefinition
+object LanguageCodeFieldDefinition extends FieldDefinition {
+  override def from(value: String, keyExtractor: String => Option[StorageManager.Key]): Option[LanguageCodeField] = {
+    Some(LanguageCodeField(value))
+  }
+}
 
 /**
  * Definition for fields containing a general-purpose char sequence (string).
  */
-object CharSequenceFieldDefinition extends FieldDefinition
+object CharSequenceFieldDefinition extends FieldDefinition {
+  override def from(value: String, keyExtractor: String => Option[StorageManager.Key]): Option[CharSequenceField] = {
+    Some(CharSequenceField(value))
+  }
+}
 
 trait Field extends Equals {
   def definition :FieldDefinition
@@ -126,19 +156,20 @@ case class LanguageCodeField(code :Register.LanguageCode) extends Field {
  * In SQL terms, this is equivalent to a table row definition excluding the
  * primary key, that is always an integer.
  */
-trait RegisterDefinition {
+trait RegisterDefinition[+R <: Register] {
   def fields :Seq[FieldDefinition]
+  def from(values: Seq[String], keyExtractor: FieldDefinition => (String => Option[StorageManager.Key])): Option[R]
 }
 
 /**
  * A register that can be grouped with its key
  */
-trait CollectibleRegisterDefinition extends RegisterDefinition
+trait CollectibleRegisterDefinition[+R <: Register] extends RegisterDefinition[R]
 
 /**
  * A kind of register that can be grouped in different arrays
  */
-trait ArrayableRegisterDefinition extends CollectibleRegisterDefinition
+trait ArrayableRegisterDefinition[+R <: Register] extends CollectibleRegisterDefinition[R]
 
 object Register {
   type CollectionId = Int
@@ -148,10 +179,28 @@ object Register {
   type LanguageCode = String // ISO 639-1: 2 lower-case char string uniquely identifying a language
 
   val undefinedCollection :CollectionId = 0
+
+  def collectionIdFrom(value: String): Option[CollectionId] = {
+    try {
+      Some(value.toInt)
+    }
+    catch {
+      case _: NumberFormatException => None
+    }
+  }
+
+  def unicodeTypeFrom(value: String): Option[UnicodeType] = {
+    try {
+      Some(value.toInt)
+    }
+    catch {
+      case _: NumberFormatException => None
+    }
+  }
 }
 
 trait Register {
-  def definition :RegisterDefinition
+  def definition :RegisterDefinition[Register]
   def fields :Seq[Field]
 
   override def equals(other: Any) = {

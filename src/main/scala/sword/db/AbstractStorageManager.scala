@@ -3,7 +3,7 @@ package sword.db
 /**
  * Abstract class including common implementation that it is expected on each StorageManager implementation.
  */
-abstract class AbstractStorageManager(override val registerDefinitions :Seq[RegisterDefinition]) extends StorageManager {
+abstract class AbstractStorageManager(override val registerDefinitions :Seq[RegisterDefinition[Register]]) extends StorageManager {
 
   if (registerDefinitions.toSet.size < registerDefinitions.size) {
     throw new IllegalArgumentException("Duplicated register definitions are not allowed")
@@ -13,7 +13,7 @@ abstract class AbstractStorageManager(override val registerDefinitions :Seq[Regi
    * List all connections between register definitions, being the first the source and the second
    * the target definition.
    */
-  val singleReferences :Seq[(RegisterDefinition, RegisterDefinition)] = for {
+  val singleReferences :Seq[(RegisterDefinition[Register], RegisterDefinition[Register])] = for {
     regDef <- registerDefinitions
     fieldDef <- regDef.fields if fieldDef.isInstanceOf[ForeignKeyFieldDefinition]
   } yield {
@@ -25,7 +25,7 @@ abstract class AbstractStorageManager(override val registerDefinitions :Seq[Regi
         " field must have as target one of the definitions given")
   }
 
-  val groupReferences :Seq[(RegisterDefinition, CollectibleRegisterDefinition)] = for {
+  val groupReferences :Seq[(RegisterDefinition[Register], CollectibleRegisterDefinition[Register])] = for {
     regDef <- registerDefinitions
     fieldDef <- regDef.fields if fieldDef.isInstanceOf[CollectionReferenceFieldDefinition]
   } yield {
@@ -37,6 +37,6 @@ abstract class AbstractStorageManager(override val registerDefinitions :Seq[Regi
         " reference field must have as target one of the definitions given")
   }
 
-  val reverseReferences :Map[RegisterDefinition,Seq[RegisterDefinition]] =
+  val reverseReferences :Map[RegisterDefinition[Register], Seq[RegisterDefinition[Register]]] =
       singleReferences.groupBy{ case (s,t) => t}.map { case (t, seq) => (t, seq.map(_._1))}
 }

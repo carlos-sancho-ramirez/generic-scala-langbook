@@ -1,9 +1,13 @@
 package sword.langbook.db.registers
 
+import sword.db.StorageManager.Key
 import sword.db._
 
 object ParentTypeConceptReferenceFieldDefinition extends ForeignKeyFieldDefinition {
-  def target = Concept
+  override val target = Concept
+  override def from(value: String, keyExtractor: String => Option[StorageManager.Key]) = {
+    keyExtractor(value).map(ParentTypeConceptReferenceField)
+  }
 }
 
 case class ParentTypeConceptReferenceField(override val key :StorageManager.Key) extends ForeignKeyField {
@@ -11,8 +15,20 @@ case class ParentTypeConceptReferenceField(override val key :StorageManager.Key)
   override def toString = key.toString
 }
 
-object ConceptTypeRelation extends RegisterDefinition {
+object ConceptTypeRelation extends RegisterDefinition[ConceptTypeRelation] {
   override val fields = Vector(ConceptReferenceFieldDefinition, ParentTypeConceptReferenceFieldDefinition)
+  override def from(values: Seq[String],
+    keyExtractor: FieldDefinition => String => Option[Key]) = {
+    if (values.size == fields.size) {
+      val conceptKey = keyExtractor(ConceptReferenceFieldDefinition)(values.head)
+      val parentTypeConceptKey = keyExtractor(ParentTypeConceptReferenceFieldDefinition)(values(1))
+      if (conceptKey.isDefined && parentTypeConceptKey.isDefined) {
+        Some(ConceptTypeRelation(conceptKey.get, parentTypeConceptKey.get))
+      }
+      else None
+    }
+    else None
+  }
 }
 
 /**

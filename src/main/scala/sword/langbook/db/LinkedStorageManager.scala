@@ -1,8 +1,8 @@
 package sword.langbook.db
 
-import sword.db.{RegisterDefinition, StorageManager}
+import sword.db.{Register, RegisterDefinition, StorageManager}
 
-case class LinkedStorageManager(storageManagerFactory :(List[RegisterDefinition]) => StorageManager) {
+case class LinkedStorageManager(storageManagerFactory :(List[RegisterDefinition[Register]]) => StorageManager) {
   val registerDefinitions = List(
       registers.Concept,
       registers.ConceptTypeRelation,

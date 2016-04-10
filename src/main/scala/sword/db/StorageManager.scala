@@ -14,7 +14,7 @@ object StorageManager {
    */
   sealed class Key private[StorageManager] (
       val storageManager :StorageManager,
-      val registerDefinition :RegisterDefinition,
+      val registerDefinition :RegisterDefinition[Register],
       val group :Register.CollectionId,
       val index :Register.Index) {
     def registerOption = storageManager.get(this)
@@ -41,7 +41,7 @@ trait StorageManager {
 
   type Key = StorageManager.Key
 
-  protected def obtainKey(registerDefinition :RegisterDefinition, group :Register.CollectionId,
+  protected def obtainKey(registerDefinition :RegisterDefinition[Register], group :Register.CollectionId,
     index :Register.Index) = new Key(this, registerDefinition, group, index)
 
   /**
@@ -91,7 +91,7 @@ trait StorageManager {
    * By self-contained it is understood to have all foreign keys and set reference pointing to
    * register definitions and fields included in this sequence.
    */
-  def registerDefinitions :Seq[RegisterDefinition]
+  def registerDefinitions :Seq[RegisterDefinition[Register]]
 
   /**
    * Add a new register.
@@ -136,9 +136,9 @@ trait StorageManager {
   /**
    * Get all keys currently included in the given register definition.
    */
-  def getKeysFor(registerDefinition :RegisterDefinition) :Set[Key]
+  def getKeysFor(registerDefinition :RegisterDefinition[Register]) :Set[Key]
 
-  def getKeysFor(registerDefinition :RegisterDefinition, filter: CollectionReferenceField) :Set[Key] = {
+  def getKeysFor(registerDefinition :RegisterDefinition[Register], filter: CollectionReferenceField) :Set[Key] = {
     getMapFor(registerDefinition).flatMap {
       case (key, reg) =>
         reg.fields.collectFirst {
@@ -159,13 +159,13 @@ trait StorageManager {
   /**
    * Returns a Map containing all values inserted for a given register definition.
    */
-  def getMapFor(registerDefinition :RegisterDefinition) :scala.collection.Map[Key, Register] = {
+  def getMapFor[R <: Register](registerDefinition :RegisterDefinition[R]) :scala.collection.Map[Key, R] = {
     getKeysFor(registerDefinition).groupBy(x => x).map { case (key, _) =>
-      (key, get(key).get)
+      (key, get(key).get.asInstanceOf[R])
     }
   }
 
-  def getMapFor(registerDefinition: RegisterDefinition, filter: ForeignKeyField): scala.collection.Map[Key, Register] = {
+  def getMapFor[R <: Register](registerDefinition: RegisterDefinition[R], filter: ForeignKeyField): scala.collection.Map[Key, R] = {
     getMapFor(registerDefinition).filter {
       case (key, reg) =>
         reg.fields.collectFirst {
@@ -174,7 +174,7 @@ trait StorageManager {
     }
   }
 
-  def getMapFor(registerDefinition: RegisterDefinition, filter: CollectionReferenceField): scala.collection.Map[Key, Register] = {
+  def getMapFor[R <: Register](registerDefinition: RegisterDefinition[R], filter: CollectionReferenceField): scala.collection.Map[Key, R] = {
     getMapFor(registerDefinition).filter {
       case (key, reg) =>
         reg.fields.collectFirst {
@@ -191,7 +191,7 @@ trait StorageManager {
    *                           where this is included.
    * @param id identifier value to be filtered
    */
-  def getKeysForCollection(registerDefinition :CollectibleRegisterDefinition, id :Register.CollectionId) :Set[Key]
+  def getKeysForCollection(registerDefinition :CollectibleRegisterDefinition[Register], id :Register.CollectionId) :Set[Key]
 
   /**
    * Returns a map matching keys with their registers for all registers within the given collection
@@ -199,7 +199,7 @@ trait StorageManager {
    * @param registerDefinition Kind of register to be retrieved
    * @param id Identifier for the collection
    */
-  def getMapForCollection(registerDefinition :CollectibleRegisterDefinition, id :Register.CollectionId) :scala.collection.Map[Key, Register]
+  def getMapForCollection[R <: Register](registerDefinition :CollectibleRegisterDefinition[R], id :Register.CollectionId) :scala.collection.Map[Key, R]
 
   /**
    * Returns all keys matching registers that contains the given collection identifier in the expected order.
@@ -209,7 +209,7 @@ trait StorageManager {
    *                           where this is included.
    * @param id identifier value to be filtered
    */
-  def getKeysForArray(registerDefinition :ArrayableRegisterDefinition, id :Register.CollectionId) :Seq[Key] = {
+  def getKeysForArray(registerDefinition :ArrayableRegisterDefinition[Register], id :Register.CollectionId) :Seq[Key] = {
     getKeysForCollection(registerDefinition, id).toSeq.sortBy(_.index)
   }
 }

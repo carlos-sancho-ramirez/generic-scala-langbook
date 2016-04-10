@@ -1,15 +1,13 @@
 package sword.db
 
-import sword.db.Register.CollectionId
-
 /**
  * Implementation for StorageManager that saves all its data in memory.
  * This is expected to be faster than other implementations but all data will be lost whenever this
  * class is garbage collected.
  */
-class MemoryStorageManager(registerDefinitions :Seq[RegisterDefinition]) extends AbstractStorageManager(registerDefinitions) {
+class MemoryStorageManager(registerDefinitions :Seq[RegisterDefinition[Register]]) extends AbstractStorageManager(registerDefinitions) {
 
-  private val tables :Map[RegisterDefinition, scala.collection.mutable.Map[Key, Register]] =
+  private val tables :Map[RegisterDefinition[Register], scala.collection.mutable.Map[Key, Register]] =
       registerDefinitions.map(d => (d,scala.collection.mutable.Map[Key, Register]())).toMap
   private var lastIndex :Register.Index = 0
   private var lastGroup :Register.CollectionId = 0
@@ -64,7 +62,7 @@ class MemoryStorageManager(registerDefinitions :Seq[RegisterDefinition]) extends
       throw new UnsupportedOperationException("Unable to insert collections for registers with different definitions")
     }
 
-    if (!definitions.head.isInstanceOf[CollectibleRegisterDefinition]) {
+    if (!definitions.head.isInstanceOf[CollectibleRegisterDefinition[Register]]) {
       throw new UnsupportedOperationException("Unable to insert collections for non-collectible registers")
     }
 
@@ -102,7 +100,7 @@ class MemoryStorageManager(registerDefinitions :Seq[RegisterDefinition]) extends
     !isReferenced(key) && tables.get(key.registerDefinition).flatMap(_.remove(key)).isDefined
   }
 
-  override def getKeysFor(registerDefinition: RegisterDefinition) = {
+  override def getKeysFor(registerDefinition: RegisterDefinition[Register]) = {
     tables(registerDefinition).keySet.toSet
   }
 
@@ -110,15 +108,15 @@ class MemoryStorageManager(registerDefinitions :Seq[RegisterDefinition]) extends
     tables.get(register.definition).filter(_.contains(key)).flatMap(_.put(key, register)).isDefined
   }
 
-  override def getMapFor(registerDefinition :RegisterDefinition) = {
-    tables(registerDefinition)
+  override def getMapFor[R <: Register](registerDefinition :RegisterDefinition[R]) = {
+    tables(registerDefinition).asInstanceOf[scala.collection.Map[StorageManager.Key, R]]
   }
 
-  override def getKeysForCollection(registerDefinition :CollectibleRegisterDefinition, id :Register.CollectionId) = {
+  override def getKeysForCollection(registerDefinition :CollectibleRegisterDefinition[Register], id :Register.CollectionId) = {
     tables(registerDefinition).keys.filter(_.group == id).toSet
   }
 
-  override def getMapForCollection(registerDefinition :CollectibleRegisterDefinition, id :Register.CollectionId) = {
-    tables(registerDefinition).filterKeys(_.group == id)
+  override def getMapForCollection[R <: Register](registerDefinition :CollectibleRegisterDefinition[R], id :Register.CollectionId) = {
+    tables(registerDefinition).filterKeys(_.group == id).asInstanceOf[scala.collection.Map[Key, R]]
   }
 }

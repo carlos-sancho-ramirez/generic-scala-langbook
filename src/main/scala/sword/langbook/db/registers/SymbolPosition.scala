@@ -1,5 +1,6 @@
 package sword.langbook.db.registers
 
+import sword.db.StorageManager.Key
 import sword.db._
 
 /**
@@ -9,6 +10,7 @@ import sword.db._
  */
 object SymbolArrayReferenceFieldDefinition extends CollectionReferenceFieldDefinition {
   override val target = SymbolPosition
+  protected override def from = new SymbolArrayReferenceField(_)
 }
 
 case class SymbolArrayReferenceField(override val collectionId :Register.CollectionId) extends CollectionReferenceField {
@@ -16,8 +18,12 @@ case class SymbolArrayReferenceField(override val collectionId :Register.Collect
   override def toString = collectionId.toString
 }
 
-object SymbolPosition extends ArrayableRegisterDefinition {
+object SymbolPosition extends ArrayableRegisterDefinition[SymbolPosition] {
   override val fields = Vector(SymbolReferenceFieldDefinition)
+  override def from(values: Seq[String],
+    keyExtractor: FieldDefinition => String => Option[Key]) = {
+    keyExtractor(SymbolReferenceFieldDefinition)(values.head).map(SymbolPosition(_))
+  }
 }
 
 case class SymbolPosition(symbol :StorageManager.Key) extends Register {

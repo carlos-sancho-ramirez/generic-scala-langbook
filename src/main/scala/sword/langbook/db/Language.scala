@@ -52,8 +52,8 @@ case class Language(key :StorageManager.Key) {
     private def retrieveInnerSet = {
       val pieceArrays = key.storageManager.getMapFor(registers.Word, registers.LanguageReferenceField(key)).map(_._2.pieceArray)
       val pieceIds = pieceArrays.flatMap(key.storageManager.getArray(registers.PiecePosition, _).map(_.piece))
-      val pieces = pieceIds.flatMap(key.storageManager.getMapForCollection(registers.Piece, _).values)
-      pieces.map(_.alphabet).toSet[StorageManager.Key].map(key => Alphabet(key)) + preferredAlphabet
+      val alphabetKeys = pieceIds.flatMap(key.storageManager.getMapForCollection(registers.Piece, _).map(_._2.alphabet))
+      alphabetKeys.toSet[StorageManager.Key].map(key => Alphabet(key)) + preferredAlphabet
     }
 
     override def contains(elem: Alphabet) = retrieveInnerSet.contains(elem)

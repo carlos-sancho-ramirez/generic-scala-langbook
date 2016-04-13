@@ -1,6 +1,7 @@
 package sword.langbook.db
 
 import sword.db.{UnicodeField, ForeignKeyField, Register, StorageManager}
+import sword.langbook.db.registers.SymbolArrayReferenceField
 
 case class SymbolArray(storageManager :StorageManager, arrayId :Register.CollectionId) extends Seq[Symbol] {
 
@@ -20,6 +21,11 @@ case class SymbolArray(storageManager :StorageManager, arrayId :Register.Collect
     val symbols = symbolKeys.iterator
     override def hasNext = symbols.hasNext
     override def next() = Symbol(targetSymbolKey(symbols.next()).get)
+  }
+
+  def alphabetsWhereIncluded = {
+    storageManager.getMapFor(registers.Piece, SymbolArrayReferenceField(arrayId)).values
+        .map(piece => Alphabet(piece.alphabet)).toSet
   }
 }
 

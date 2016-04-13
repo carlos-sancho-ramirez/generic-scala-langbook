@@ -50,25 +50,10 @@ case class Language(key :StorageManager.Key) {
 
   lazy val alphabets = new scala.collection.AbstractSet[Alphabet]() {
     private def retrieveInnerSet = {
-      val allWords = key.storageManager.getMapFor(registers.Word, registers.LanguageReferenceField(key)).values
-
-      val pieceArrays = allWords.flatMap(_.fields.collectFirst {
-        case field :CollectionReferenceField if field.definition.target == registers.PiecePosition =>
-          field.collectionId
-      })
-
-      val piecePositions = pieceArrays.flatMap(key.storageManager.getKeysForArray(registers.PiecePosition,_))
-        .flatMap(key.storageManager.get)
-
-      val pieces = piecePositions.flatMap(_.fields.collectFirst{
-        case field: CollectionReferenceField if field.definition.target == registers.Piece =>
-          field.collectionId
-      }).flatMap(key.storageManager.getKeysForCollection(registers.Piece,_)).flatMap(key.storageManager.get)
-
-      pieces.flatMap(_.fields.collectFirst {
-        case field: ForeignKeyField if field.definition.target == registers.Alphabet =>
-          field.key
-      }).toSet[StorageManager.Key].map(key => Alphabet(key)) + preferredAlphabet
+      val pieceArrays = key.storageManager.getMapFor(registers.Word, registers.LanguageReferenceField(key)).map(_._2.pieceArray)
+      val pieceIds = pieceArrays.flatMap(key.storageManager.getArray(registers.PiecePosition, _).map(_.piece))
+      val pieces = pieceIds.flatMap(key.storageManager.getMapForCollection(registers.Piece, _).values)
+      pieces.map(_.alphabet).toSet[StorageManager.Key].map(key => Alphabet(key)) + preferredAlphabet
     }
 
     override def contains(elem: Alphabet) = retrieveInnerSet.contains(elem)

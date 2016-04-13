@@ -1,5 +1,7 @@
 package sword.db
 
+import sword.langbook.db.registers
+
 object StorageManager {
 
   /**
@@ -209,7 +211,19 @@ trait StorageManager {
    *                           where this is included.
    * @param id identifier value to be filtered
    */
-  def getKeysForArray(registerDefinition :ArrayableRegisterDefinition[Register], id :Register.CollectionId) :Seq[Key] = {
+  def getKeysForArray(registerDefinition: ArrayableRegisterDefinition[Register], id: Register.CollectionId) :Seq[Key] = {
     getKeysForCollection(registerDefinition, id).toSeq.sortBy(_.index)
+  }
+
+  /**
+    * Returns an array of registers
+    * @param registerDefinition Type of the register to be retrieved. This must be one of the
+    *                           definitions in {@link #registerDefinitions}
+    * @param id Identifier for the array to be retrieved.
+    * @tparam R Type of register to be retrieved.
+    * @return an array of registers of the given type.
+    */
+  def getArray[R <: Register](registerDefinition: ArrayableRegisterDefinition[R], id: Register.CollectionId) :Seq[R] = {
+    getKeysForArray(registerDefinition, id).flatMap(key => get(key)).asInstanceOf[Seq[R]]
   }
 }

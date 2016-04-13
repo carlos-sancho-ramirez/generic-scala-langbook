@@ -13,6 +13,7 @@ case class Symbol(key :StorageManager.Key) {
   }
 
   def unicode = unicodeOpt.get
+  def text = unicodeOpt.map("" + _.toChar).get
 }
 
 object Symbol extends ElementFactory[registers.Symbol, Symbol] {

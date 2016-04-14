@@ -8,17 +8,13 @@ case class Symbol(key :StorageManager.Key) {
     throw new IllegalArgumentException("Wrong registerDefinition within the key for a Symbol")
   }
 
-  def fields = key.registerOption.map(_.fields).getOrElse(Seq())
-  def unicodeOpt = fields.collectFirst {
-    case field :UnicodeField => field.value
-  }
-
-  def unicode = unicodeOpt.get
-  def text = unicodeOpt.map("" + _.toChar).get
+  def unicode = key.registerOption.get.asInstanceOf[registers.Symbol].unicode
+  def text = "" + unicode.toChar
 
   def arraysWhereIncluded = {
     val storageManager = key.storageManager
-    storageManager.getMapFor(registers.SymbolPosition, SymbolReferenceField(key)).keys.map(k => SymbolArray(storageManager, k.group)).toSet
+    storageManager.getMapFor(registers.SymbolPosition, SymbolReferenceField(key)).keys
+        .map(k => SymbolArray(storageManager, k.group)).toSet
   }
 
   def alphabetsWhereIncluded = arraysWhereIncluded.flatMap(_.alphabetsWhereIncluded)

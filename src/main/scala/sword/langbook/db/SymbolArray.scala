@@ -1,32 +1,22 @@
 package sword.langbook.db
 
-import sword.db.{UnicodeField, ForeignKeyField, Register, StorageManager}
+import sword.db.{Register, StorageManager}
 import sword.langbook.db.registers.SymbolArrayReferenceField
 
 case class SymbolArray(storageManager :StorageManager, arrayId :Register.CollectionId) extends Seq[Symbol] {
 
-  def symbolKeys = storageManager.getKeysForArray(registers.SymbolPosition, arrayId)
-  if (symbolKeys.isEmpty) {
-    throw new IllegalArgumentException("Wrong arrayId for a SymbolArray")
-  }
+  private def symbols = storageManager.getArray(registers.SymbolPosition, arrayId).map(symbolPosition => Symbol(symbolPosition.symbol))
 
-  def targetSymbolKey(key :StorageManager.Key) = key.registerOption.flatMap(_.fields.collectFirst {
-    case field :ForeignKeyField if field.definition.target == registers.Symbol => field.key
-  })
-
-  override def length = symbolKeys.length
-  override def apply(idx :Int) = Symbol(symbolKeys(idx))
-
-  override def iterator = new Iterator[Symbol] {
-    val symbols = symbolKeys.iterator
-    override def hasNext = symbols.hasNext
-    override def next() = Symbol(targetSymbolKey(symbols.next()).get)
-  }
+  override def length = symbols.length
+  override def apply(idx :Int) = symbols(idx)
+  override def iterator = symbols.iterator
 
   def alphabetsWhereIncluded = {
     storageManager.getMapFor(registers.Piece, SymbolArrayReferenceField(arrayId)).values
         .map(piece => Alphabet(piece.alphabet)).toSet
   }
+
+  def text = symbols.map(_.text).mkString
 }
 
 object SymbolArray {

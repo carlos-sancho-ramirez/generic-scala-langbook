@@ -215,6 +215,10 @@ trait StorageManager {
     getKeysForCollection(registerDefinition, id).toSeq.sortBy(_.index)
   }
 
+  def getCollection[R <: Register](registerDefinition: CollectibleRegisterDefinition[R], id: Register.CollectionId): Set[R] = {
+    getMapForCollection(registerDefinition, id).values.toSet
+  }
+
   /**
     * Returns an array of registers
     * @param registerDefinition Type of the register to be retrieved. This must be one of the

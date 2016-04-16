@@ -22,10 +22,10 @@ case class Word(key :StorageManager.Key) {
     if (preferredText.isEmpty) text.values.headOption else preferredText
   }
 
-  lazy val concepts = new scala.collection.mutable.Set[Concept]() {
+  object concepts extends scala.collection.mutable.Set[Concept]() {
 
-    private def filteredWordConceptMap = {
-      key.storageManager.getMapFor(registers.WordConcept, WordReferenceField(key))
+    private def filteredWordConcepts = {
+      key.storageManager.getMapFor(registers.WordConcept, WordReferenceField(key)).values
     }
 
     // TODO: This should check if the concept is already included, and avoid inserting anything in that case
@@ -38,29 +38,15 @@ case class Word(key :StorageManager.Key) {
     override def -=(elem: Concept): this.type = ???
 
     override def contains(elem: Concept): Boolean = {
-      filteredWordConceptMap.flatMap {
-        case (_,reg) =>
-          reg.fields.collectFirst {
-            case field: ForeignKeyField if field.definition.target == registers.Concept =>
-              Concept(field.key)
-          }
-      }.toSet.contains(elem)
+      filteredWordConcepts.map(reg => Concept(reg.concept)).toSet.contains(elem)
     }
 
     override def iterator = new Iterator[Concept]() {
-      val it = filteredWordConceptMap.values.iterator
+      val it = filteredWordConcepts.iterator
 
       def findNextConcept: Concept = {
-        var result: Concept = null
-        while(result == null && it.hasNext) {
-          val reg = it.next()
-          reg.fields.collectFirst {
-            case field: ForeignKeyField if field.definition.target == registers.Concept =>
-              Concept(field.key)
-          }.foreach(concept => result = concept)
-        }
-
-        result
+        if (it.hasNext) Concept(it.next().concept)
+        else null
       }
 
       var nextConcept = findNextConcept

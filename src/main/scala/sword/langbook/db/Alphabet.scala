@@ -78,9 +78,7 @@ case class Alphabet(key :StorageManager.Key) {
   def symbols = {
     val storageManager = key.storageManager
     val pieces = storageManager.getMapFor(registers.Piece, AlphabetReferenceField(key)).values
-    val symbolArrays = pieces.flatMap(reg => reg.fields.collectFirst {
-      case f: CollectionReferenceField if f.definition.target == registers.SymbolPosition => f.collectionId
-    }).map(SymbolArray(storageManager, _))
+    val symbolArrays = pieces.map(reg => SymbolArray(storageManager, reg.symbolArray))                                                                                                              
     symbolArrays.flatMap(x => x).toSet
   }
 }

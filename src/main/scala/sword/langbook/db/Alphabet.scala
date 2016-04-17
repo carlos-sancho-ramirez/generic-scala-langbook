@@ -13,42 +13,20 @@ case class Alphabet(key :StorageManager.Key) {
 
   lazy val languages = new scala.collection.AbstractSet[Language] {
 
-    private def wrappedSetForPreferred = key.storageManager.getMapFor(registers.Language).flatMap {
-      case (languageKey, language) =>
-        language.fields.collectFirst {
-          case f: ForeignKeyField if f.definition.target == registers.Alphabet && f.key == key => Language(languageKey)
-        }
-    }.toSet
+    private def wrappedSetForPreferred = key.storageManager.getMapFor(registers.Language)
+        .filter(_._2.preferredAlphabet == key).map(t => Language(t._1)).toSet
 
     // TODO: Looking in pieces for alphabets including this as preferred alphabet should be avoided for performance reasons
     private def wrappedSetForIncludedInPieces = {
       val storageManager = key.storageManager
       storageManager.getMapFor(registers.Language).filter {
         case (languageKey, language) =>
-          storageManager.getMapFor(registers.Word).exists {
-            case (wordKey, wordReg) =>
-              wordReg.fields.collectFirst {
-                case f: ForeignKeyField if f.definition.target == registers.Language && f.key == languageKey => f
-              }.isDefined && {
-                val pieceArrayCollIdOpt = wordReg.fields.collectFirst {
-                  case f: CollectionReferenceField if f.definition.target == registers.PiecePosition => f.collectionId
-                }
-                pieceArrayCollIdOpt.exists { pieceArrayCollId =>
-                  val pieces = storageManager.getMapForCollection(registers.PiecePosition, pieceArrayCollId).values.flatMap {
-                    _.fields.collectFirst {
-                      case f: CollectionReferenceField if f.definition.target == registers.Piece => f.collectionId
-                    }
-                  }
-                  pieces.exists { pieceId =>
-                    storageManager.getMapForCollection(registers.Piece, pieceId).values.exists {
-                      case pieceReg =>
-                        pieceReg.fields.collectFirst {
-                          case f: ForeignKeyField if f.definition.target == registers.Alphabet && f.key == key => key
-                        }.isDefined
-                    }
-                  }
-                }
+          storageManager.getMapFor(registers.Word).exists { case (_, wordReg) =>
+            wordReg.language == languageKey && {
+              storageManager.getCollection(registers.PiecePosition, wordReg.pieceArray).map(_.piece).exists { pieceId =>
+                storageManager.getCollection(registers.Piece, pieceId).exists(_.alphabet == key)
               }
+            }
           }
       }.map { case (languageKey,_) => Language(languageKey)}.toSet
     }
@@ -78,7 +56,7 @@ case class Alphabet(key :StorageManager.Key) {
   def symbols = {
     val storageManager = key.storageManager
     val pieces = storageManager.getMapFor(registers.Piece, AlphabetReferenceField(key)).values
-    val symbolArrays = pieces.map(reg => SymbolArray(storageManager, reg.symbolArray))                                                                                                              
+    val symbolArrays = pieces.map(reg => SymbolArray(storageManager, reg.symbolArray))
     symbolArrays.flatMap(x => x).toSet
   }
 }

@@ -13,8 +13,8 @@ case class Symbol(key :StorageManager.Key) {
 
   def arraysWhereIncluded = {
     val storageManager = key.storageManager
-    storageManager.getMapFor(registers.SymbolPosition, SymbolReferenceField(key)).keys
-        .map(k => SymbolArray(storageManager, k.group)).toSet
+    storageManager.getKeysFor(registers.SymbolPosition, SymbolReferenceField(key))
+        .map(k => SymbolArray(storageManager, k.group))
   }
 
   def alphabetsWhereIncluded = arraysWhereIncluded.flatMap(_.alphabetsWhereIncluded)

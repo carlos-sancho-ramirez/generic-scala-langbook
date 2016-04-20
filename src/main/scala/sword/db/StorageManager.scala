@@ -140,6 +140,15 @@ trait StorageManager {
    */
   def getKeysFor(registerDefinition :RegisterDefinition[Register]) :Set[Key]
 
+  def getKeysFor(registerDefinition :RegisterDefinition[Register], filter: ForeignKeyField) :Set[Key] = {
+    getMapFor(registerDefinition).flatMap {
+      case (key, reg) =>
+        reg.fields.collectFirst {
+          case f: ForeignKeyField if f.definition.target == filter.definition.target && f.key == filter.key => key
+        }
+    }.toSet
+  }
+
   def getKeysFor(registerDefinition :RegisterDefinition[Register], filter: CollectionReferenceField) :Set[Key] = {
     getMapFor(registerDefinition).flatMap {
       case (key, reg) =>

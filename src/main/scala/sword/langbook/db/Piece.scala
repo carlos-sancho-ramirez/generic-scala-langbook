@@ -5,7 +5,8 @@ import sword.db.{Register, StorageManager}
 case class Piece(storageManager :StorageManager, collectionId :Register.CollectionId) extends
     scala.collection.mutable.Map[Alphabet, SymbolArray] {
 
-  private def wrappedMap = storageManager.getCollection(registers.Piece, collectionId).map(piece => (Alphabet(piece.alphabet), SymbolArray(storageManager, piece.symbolArray))).toMap
+  private def wrappedCollection = storageManager.getCollection(registers.Piece, collectionId)
+  private def wrappedMap = wrappedCollection.map(piece => (Alphabet(piece.alphabet), SymbolArray(storageManager, piece.symbolArray))).toMap
 
   override def get(key: Alphabet) = wrappedMap.get(key)
   override def iterator = wrappedMap.iterator
@@ -17,6 +18,8 @@ case class Piece(storageManager :StorageManager, collectionId :Register.Collecti
 
   override def -=(key: Alphabet): Piece.this.type = ???
 
+  override def keysIterator = wrappedCollection.map(piece => Alphabet(piece.alphabet)).iterator
+
   object text extends scala.collection.Map[Alphabet,String] {
     override def get(key: Alphabet): Option[String] = {
       storageManager.getCollection(registers.Piece, collectionId).find(_.alphabet == key.key)
@@ -27,6 +30,8 @@ case class Piece(storageManager :StorageManager, collectionId :Register.Collecti
     override def iterator: Iterator[(Alphabet, String)] = wrapped.iterator
     override def +[B1 >: String](kv: (Alphabet, B1)): collection.Map[Alphabet, B1] = wrapped + kv
     override def -(key: Alphabet): collection.Map[Alphabet, String] = wrapped - key
+
+    override def keysIterator = Piece.this.keysIterator
   }
 }
 

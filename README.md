@@ -1,5 +1,7 @@
 # generic-scala-langbook
 
+![Travis CI build result](https://travis-ci.org/carlos-sancho-ramirez/generic-scala-langbook.svg?branch=master)
+
 Langbook is intended to be a tool to help people in their task of learning new
 languages and master the ones they may already know. A database is used to store
 words for the different languages and link them with concepts in a sensible way

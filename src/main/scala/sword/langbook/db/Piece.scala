@@ -19,6 +19,9 @@ case class Piece(storageManager :StorageManager, collectionId :Register.Collecti
   override def -=(key: Alphabet): Piece.this.type = ???
 
   override def keysIterator = wrappedCollection.map(piece => Alphabet(piece.alphabet)).iterator
+  override def size = {
+    storageManager.getKeysForCollection(registers.Piece, collectionId).size
+  }
 
   object text extends scala.collection.Map[Alphabet,String] {
     override def get(key: Alphabet): Option[String] = {
@@ -32,6 +35,7 @@ case class Piece(storageManager :StorageManager, collectionId :Register.Collecti
     override def -(key: Alphabet): collection.Map[Alphabet, String] = wrapped - key
 
     override def keysIterator = Piece.this.keysIterator
+    override def size = Piece.this.size
   }
 }
 

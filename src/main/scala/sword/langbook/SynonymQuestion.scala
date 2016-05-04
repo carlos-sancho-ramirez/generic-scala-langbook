@@ -63,17 +63,7 @@ object SynonymQuestion {
 
     val storageManager = manager.storageManager
 
-    val wordConceptRelations = for ((_,reg) <- storageManager.getMapFor(registers.WordConcept).toVector) yield {
-      val fields = reg.fields
-      val conceptOpt = fields.collectFirst {
-        case f: ForeignKeyField if f.definition.target == registers.Concept => f.key
-      }
-      val wordOpt = fields.collectFirst {
-        case f: ForeignKeyField if f.definition.target == registers.Word => f.key
-      }
-
-      (conceptOpt.get, wordOpt.get)
-    }
+    val wordConceptRelations = storageManager.getMapFor(registers.WordConcept).values.map(reg => (reg.concept, reg.word))
 
     val result = scala.collection.mutable.Set[Alphabet]()
     for (alphabetKey <- storageManager.getKeysFor(registers.Alphabet)) {
@@ -94,7 +84,17 @@ object SynonymQuestion {
           val conceptKeys = wordConceptRelations.filter(_._2 == wordKey).map(_._1)
           conceptKeys.exists {
             conceptKey =>
-              wordConceptRelations.count(t => t._1 == conceptKey && wordKeys.contains(t._2)) > 1
+              var foundOnce = false
+              wordConceptRelations.exists { t =>
+                if (t._1 == conceptKey && wordKeys.contains(t._2)) {
+                  if (foundOnce) true
+                  else {
+                    foundOnce = true
+                    false
+                  }
+                }
+                else false
+              }
           }
       }) {
         result += Alphabet(alphabetKey)

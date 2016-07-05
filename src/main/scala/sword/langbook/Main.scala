@@ -2,6 +2,7 @@ package sword.langbook
 
 import sword.db._
 import sword.langbook.db._
+import sword.langbook.db.registers.WordRepresentation
 
 object Main {
 
@@ -16,9 +17,8 @@ object Main {
       alphabet <- Concept.from(manager, "Latin alphabet").flatMap(Alphabet.from(manager, _))
       language <- Concept.from(manager, "Spanish").flatMap(Language.from(manager, _, "es", alphabet))
       symbolArray <- SymbolArray.from(manager, "carta")
-      cartaPiece <- Piece.from(manager, alphabet, symbolArray)
-      cartaPieceArray <- PieceArray.from(manager, List(cartaPiece))
-      word <- Word.from(manager, language, cartaPieceArray)
+      word <- Word.from(manager, language)
+      repr <- manager.storageManager.insert(WordRepresentation(word.key, alphabet.key, symbolArray.arrayId))
     } {
       Concept.from(manager, "letter").foreach(word.concepts += _)
       println(s"Language: $language, Alphabet: $alphabet => ${word.text(alphabet)}")

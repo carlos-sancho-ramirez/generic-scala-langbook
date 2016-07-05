@@ -8,9 +8,8 @@ import scala.collection
 case class Word(key :StorageManager.Key) {
   private def wordReg = key.registerOption.get.asInstanceOf[registers.Word]
   def language = Language(wordReg.language)
-  def pieces = PieceArray(key.storageManager, wordReg.pieceArray)
-
-  def text = pieces.text
+  def representation = Representation(key.storageManager, key)
+  def text = representation.text
 
   /**
    * Return the suitable human readable string for this word based on the preferredAlphabet
@@ -81,7 +80,7 @@ case class Word(key :StorageManager.Key) {
 }
 
 object Word extends ElementFactory[registers.Word, Word] {
-  def from(manager: LinkedStorageManager, language: Language, pieces: PieceArray): Option[Word] = {
-    from(manager, registers.Word(language.key, pieces.arrayId))
+  def from(manager: LinkedStorageManager, language: Language): Option[Word] = {
+    from(manager, registers.Word(language.key))
   }
 }

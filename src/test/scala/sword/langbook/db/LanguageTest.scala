@@ -1,7 +1,8 @@
 package sword.langbook.db
 
-import org.scalatest.{Matchers, FlatSpec}
+import org.scalatest.{FlatSpec, Matchers}
 import sword.db.MemoryStorageManager
+import sword.langbook.db.registers.WordRepresentation
 
 class LanguageTest extends FlatSpec with Matchers {
 
@@ -44,24 +45,23 @@ class LanguageTest extends FlatSpec with Matchers {
     }
   }
 
-  private def checkReturnAllAlphabetsWhenSignleWordEntered(set: Language => scala.collection.Set[Alphabet]): Unit = {
+  private def checkReturnAllAlphabetsWhenSingleWordEntered(set: Language => scala.collection.Set[Alphabet]): Unit = {
     val manager = newManager
     val latin = Concept.from(manager, "Latin").flatMap(Alphabet.from(manager,_)).get
     val english = Concept.from(manager, "English").flatMap(Language.from(manager, _, "en", latin)).get
-    val piece = SymbolArray.from(manager, "party").flatMap(Piece.from(manager, latin, _)).get
-    set(english).size shouldBe 1
-
-    PieceArray.from(manager, List(piece)).flatMap(Word.from(manager, english, _)).get
+    val word = Word.from(manager, english).get
+    val symbolArray = SymbolArray.from(manager, "party").get
+    manager.storageManager.insert(WordRepresentation(word.key, latin.key, symbolArray.arrayId)) shouldBe defined
     set(english).size shouldBe 1
     set(english).head shouldBe latin
   }
 
   it should "return all alphabets linked to it when a single word is entered" in {
-    checkReturnAllAlphabetsWhenSignleWordEntered(_.alphabets)
+    checkReturnAllAlphabetsWhenSingleWordEntered(_.alphabets)
   }
 
   it should "return all alphabets linked to it when a single word is entered (reusing set instance)" in {
-    reusingSetInstance(checkReturnAllAlphabetsWhenSignleWordEntered)
+    reusingSetInstance(checkReturnAllAlphabetsWhenSingleWordEntered)
   }
 
   private def checkReturnAlphabetsWhen2WordsWithExcludedAlphabetsEntered(set: Language => scala.collection.Set[Alphabet]): Unit = {
@@ -69,16 +69,20 @@ class LanguageTest extends FlatSpec with Matchers {
     val hiragana = Concept.from(manager, "Hiragana").flatMap(Alphabet.from(manager,_)).get
     val kanji = Concept.from(manager, "Kanji").flatMap(Alphabet.from(manager,_)).get
     val japanese = Concept.from(manager, "japanese").flatMap(Language.from(manager, _, "ja", kanji)).get
-    val suruPiece = SymbolArray.from(manager, "する").flatMap(Piece.from(manager, hiragana, _)).get
-    val imaPiece = SymbolArray.from(manager, "今").flatMap(Piece.from(manager, kanji, _)).get
+
+    val word1 = Word.from(manager, japanese).get
+    val word2 = Word.from(manager, japanese).get
+
+    val suruArray = SymbolArray.from(manager, "する").get
+    val imaArray = SymbolArray.from(manager, "今").get
     set(japanese).size shouldBe 1
 
-    PieceArray.from(manager, List(suruPiece)).flatMap(Word.from(manager, japanese, _)).get
+    manager.storageManager.insert(WordRepresentation(word1.key, hiragana.key, suruArray.arrayId)) shouldBe defined
     set(japanese).size shouldBe 2
     set(japanese).contains(hiragana) shouldBe true
     set(japanese).contains(kanji) shouldBe true
 
-    PieceArray.from(manager, List(imaPiece)).flatMap(Word.from(manager, japanese, _)).get
+    manager.storageManager.insert(WordRepresentation(word2.key, kanji.key, imaArray.arrayId)) shouldBe defined
     set(japanese).size shouldBe 2
     set(japanese).contains(hiragana) shouldBe true
     set(japanese).contains(kanji) shouldBe true
@@ -92,11 +96,15 @@ class LanguageTest extends FlatSpec with Matchers {
     reusingSetInstance(checkReturnAlphabetsWhen2WordsWithExcludedAlphabetsEntered)
   }
 
-  private def imaPiece(manager: LinkedStorageManager, hiragana: Alphabet, kanji: Alphabet): Piece = {
+  private def insertImaHiraganaRepresentaiton(manager: LinkedStorageManager, word: Word, hiragana: Alphabet): Unit = {
     val kanaArray = SymbolArray.from(manager, "いま").get
+    manager.storageManager.insert(WordRepresentation(word.key, hiragana.key, kanaArray.arrayId))
+  }
+
+  private def insertImaRepresentation(manager: LinkedStorageManager, word: Word, hiragana: Alphabet, kanji: Alphabet): Unit = {
+    insertImaHiraganaRepresentaiton(manager, word, hiragana)
     val kanjiArray = SymbolArray.from(manager, "今").get
-    val map = Map(hiragana -> kanaArray, kanji -> kanjiArray)
-    Piece.from(manager, map).get
+    manager.storageManager.insert(WordRepresentation(word.key, kanji.key, kanjiArray.arrayId))
   }
 
   private def checkReturnAlphabetsWhenWordWithMoreThanOneAlphabetEntered(set: Language => scala.collection.Set[Alphabet]): Unit = {
@@ -104,10 +112,10 @@ class LanguageTest extends FlatSpec with Matchers {
     val hiragana = Concept.from(manager, "Hiragana").flatMap(Alphabet.from(manager, _)).get
     val kanji = Concept.from(manager, "Kanji").flatMap(Alphabet.from(manager, _)).get
     val japanese = Concept.from(manager, "japanese").flatMap(Language.from(manager, _, "ja", kanji)).get
-    val piece = imaPiece(manager, hiragana, kanji)
+    val word = Word.from(manager, japanese).get
     set(japanese).size shouldBe 1
 
-    PieceArray.from(manager, List(piece)).flatMap(Word.from(manager, japanese, _)).get
+    insertImaRepresentation(manager, word, hiragana, kanji)
     set(japanese).size shouldBe 2
     set(japanese).contains(hiragana) shouldBe true
     set(japanese).contains(kanji) shouldBe true
@@ -126,16 +134,16 @@ class LanguageTest extends FlatSpec with Matchers {
     val hiragana = Concept.from(manager, "Hiragana").flatMap(Alphabet.from(manager,_)).get
     val kanji = Concept.from(manager, "Kanji").flatMap(Alphabet.from(manager, _)).get
     val japanese = Concept.from(manager, "japanese").flatMap(Language.from(manager, _, "ja", kanji)).get
-    val piece = imaPiece(manager, hiragana, kanji)
-    val piece2 = SymbolArray.from(manager, "する").flatMap(Piece.from(manager, hiragana, _)).get
+    val word1 = Word.from(manager, japanese).get
+    val word2 = Word.from(manager, japanese).get
     set(japanese).size shouldBe 1
 
-    PieceArray.from(manager, List(piece)).flatMap(Word.from(manager, japanese, _)).get
+    insertImaRepresentation(manager, word1, hiragana, kanji)
     set(japanese).size shouldBe 2
     set(japanese).contains(hiragana) shouldBe true
     set(japanese).contains(kanji) shouldBe true
 
-    PieceArray.from(manager, List(piece2)).flatMap(Word.from(manager, japanese, _)).get
+    insertImaHiraganaRepresentaiton(manager, word2, hiragana)
     set(japanese).size shouldBe 2
     set(japanese).contains(hiragana) shouldBe true
     set(japanese).contains(kanji) shouldBe true
@@ -154,16 +162,16 @@ class LanguageTest extends FlatSpec with Matchers {
     val hiragana = Concept.from(manager, "Hiragana").flatMap(Alphabet.from(manager,_)).get
     val kanji = Concept.from(manager, "Kanji").flatMap(Alphabet.from(manager, _)).get
     val japanese = Concept.from(manager, "japanese").flatMap(Language.from(manager, _, "ja", kanji)).get
-    val piece = imaPiece(manager, hiragana, kanji)
-    val piece2 = SymbolArray.from(manager, "する").flatMap(Piece.from(manager, hiragana, _)).get
+    val word1 = Word.from(manager, japanese).get
+    val word2 = Word.from(manager, japanese).get
     set(japanese).size shouldBe 1
 
-    PieceArray.from(manager, List(piece2)).flatMap(Word.from(manager, japanese, _)).get
+    insertImaHiraganaRepresentaiton(manager, word1, hiragana)
     set(japanese).size shouldBe 2
     set(japanese).contains(hiragana) shouldBe true
     set(japanese).contains(kanji) shouldBe true
 
-    PieceArray.from(manager, List(piece)).flatMap(Word.from(manager, japanese, _)).get
+    insertImaRepresentation(manager, word2, hiragana, kanji)
     set(japanese).size shouldBe 2
     set(japanese).contains(hiragana) shouldBe true
     set(japanese).contains(kanji) shouldBe true

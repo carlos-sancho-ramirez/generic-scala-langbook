@@ -90,125 +90,12 @@ class LinkedStorageManagerTest extends FlatSpec with Matchers {
     checkAllSymbolsInserted(manager, "Hello", 1) // Only 'e' was missing
   }
 
-  it can "insert a piece" in {
-    val manager = newManager
-    val english = Concept.from(manager, "English").flatMap(Alphabet.from(manager,_)).get
-    val homeSymbolArray = SymbolArray.from(manager, "Home").get
-    val piece = Piece.from(manager, english, homeSymbolArray).get
-    piece.size shouldBe 1
-
-    val entry = piece.head
-    entry._1 shouldBe english
-    entry._2 shouldBe homeSymbolArray
-  }
-
-  it can "insert a piece providing a map with a single entry" in {
-    val manager = newManager
-    val english = Concept.from(manager, "English").flatMap(Alphabet.from(manager,_)).get
-    val homeSymbolArray = SymbolArray.from(manager, "Home").get
-    val map = Map[Alphabet, SymbolArray](english -> homeSymbolArray)
-
-    val piece = Piece.from(manager, map).get
-    piece.size shouldBe 1
-
-    val entry = piece.head
-    entry._1 shouldBe english
-    entry._2 shouldBe homeSymbolArray
-  }
-
-  it can "insert a piece providing a map with 2 entries" in {
-    val manager = newManager
-
-    val kana = Concept.from(manager, "Hiragana").flatMap(Alphabet.from(manager,_)).get
-    val kanji = Concept.from(manager, "Kanji").flatMap(Alphabet.from(manager,_)).get
-    kana should not be kanji
-
-    val umbrellaKanaSymbolArray = SymbolArray.from(manager, "かさ").get
-    val umbrellaKanjiSymbolArray = SymbolArray.from(manager, "傘").get
-    umbrellaKanaSymbolArray should not be umbrellaKanjiSymbolArray
-
-    val map = Map[Alphabet, SymbolArray](
-      kana -> umbrellaKanaSymbolArray,
-      kanji -> umbrellaKanjiSymbolArray
-    )
-
-    val piece = Piece.from(manager, map).get
-    piece.size shouldBe 2
-    piece.contains(kana) shouldBe true
-    piece.contains(kanji) shouldBe true
-
-    piece(kana) shouldBe umbrellaKanaSymbolArray
-    piece(kanji) shouldBe umbrellaKanjiSymbolArray
-  }
-
-  it can "insert a piece and inserts another" in {
-    val manager = newManager
-
-    val kana = Concept.from(manager, "Hiragana").flatMap(Alphabet.from(manager,_)).get
-    val kanji = Concept.from(manager, "Kanji").flatMap(Alphabet.from(manager,_)).get
-    kana should not be kanji
-
-    val umbrellaKanaSymbolArray = SymbolArray.from(manager, "かさ").get
-    val umbrellaKanjiSymbolArray = SymbolArray.from(manager, "傘").get
-    umbrellaKanaSymbolArray should not be umbrellaKanjiSymbolArray
-
-    val piece = Piece.from(manager, kana, umbrellaKanaSymbolArray).get
-    piece += ((kanji, umbrellaKanjiSymbolArray))
-    piece.size shouldBe 2
-    piece.contains(kana) shouldBe true
-    piece.contains(kanji) shouldBe true
-
-    piece(kana) shouldBe umbrellaKanaSymbolArray
-    piece(kanji) shouldBe umbrellaKanjiSymbolArray
-  }
-
-  it can "insert a piece array" in {
-    val manager = newManager
-    val spanish = Concept.from(manager, "Spanish").flatMap(Alphabet.from(manager,_)).get
-
-    val symbolArray1 = SymbolArray.from(manager, "ca").get
-    val symbolArray2 = SymbolArray.from(manager, "sa").get
-
-    val map1 = Map[Alphabet, SymbolArray](spanish -> symbolArray1)
-    val map2 = Map[Alphabet, SymbolArray](spanish -> symbolArray2)
-
-    val piece1 = Piece.from(manager, map1).get
-    val piece2 = Piece.from(manager, map2).get
-
-    val array = PieceArray.from(manager, List(piece1, piece2)).get
-    array.size shouldBe 2
-    array(0) shouldBe piece1
-    array(1) shouldBe piece2
-  }
-
   it can "insert a word" in {
     val manager = newManager
-    val hiragana = Concept.from(manager, "Hiragana").flatMap(Alphabet.from(manager,_)).get
-    val kanji = Concept.from(manager, "Kanji").flatMap(Alphabet.from(manager,_)).get
+    val kanji = Concept.from(manager, "kanji").flatMap(Alphabet.from(manager, _)).get
     val japanese = Concept.from(manager, "Japanese").flatMap(Language.from(manager, _, "ja", kanji)).get
-
-    val hiraganaArray1 = SymbolArray.from(manager, "て").get
-    val hiraganaArray2 = SymbolArray.from(manager, "がみ").get
-    val kanjiArray1 = SymbolArray.from(manager, "手").get
-    val kanjiArray2 = SymbolArray.from(manager, "紙").get
-
-    val map1 = Map[Alphabet, SymbolArray](
-      hiragana -> hiraganaArray1,
-      kanji -> kanjiArray1
-    )
-    val map2 = Map[Alphabet, SymbolArray](
-      hiragana -> hiraganaArray2,
-      kanji -> kanjiArray2
-    )
-
-    val piece1 = Piece.from(manager, map1).get
-    val piece2 = Piece.from(manager, map2).get
-
-    val pieceArray = PieceArray.from(manager, List(piece1, piece2)).get
-    val word = Word.from(manager, japanese, pieceArray).get
-
+    val word = Word.from(manager, japanese).get
     word.language shouldBe japanese
-    word.pieces shouldBe pieceArray
   }
 
   it should "recognise words linked to the same concept as synonym only if they belong to the same language" in {
@@ -216,11 +103,8 @@ class LinkedStorageManagerTest extends FlatSpec with Matchers {
     val latin = Concept.from(manager, "Latin").flatMap(Alphabet.from(manager,_)).get
     val english = Concept.from(manager, "English").flatMap(Language.from(manager, _, "en", latin)).get
 
-    val bigPiece = SymbolArray.from(manager, "big").flatMap(Piece.from(manager, latin, _)).get
-    val largePiece = SymbolArray.from(manager, "large").flatMap(Piece.from(manager, latin, _)).get
-
-    val bigWord = PieceArray.from(manager, List(bigPiece)).flatMap(Word.from(manager, english, _)).get
-    val largeWord = PieceArray.from(manager, List(largePiece)).flatMap(Word.from(manager, english, _)).get
+    val bigWord = Word.from(manager, english).get
+    val largeWord = Word.from(manager, english).get
 
     bigWord.synonyms shouldBe empty
     largeWord.synonyms shouldBe empty
@@ -251,11 +135,8 @@ class LinkedStorageManagerTest extends FlatSpec with Matchers {
     val latin = Concept.from(manager, "Latin").flatMap(Alphabet.from(manager,_)).get
     val english = Concept.from(manager, "English").flatMap(Language.from(manager, _, "en", latin)).get
 
-    val bigPiece = SymbolArray.from(manager, "big").flatMap(Piece.from(manager, latin, _)).get
-    val largePiece = SymbolArray.from(manager, "large").flatMap(Piece.from(manager, latin, _)).get
-
-    val bigWord = PieceArray.from(manager, List(bigPiece)).flatMap(Word.from(manager, english, _)).get
-    val largeWord = PieceArray.from(manager, List(largePiece)).flatMap(Word.from(manager, english, _)).get
+    val bigWord = Word.from(manager, english).get
+    val largeWord = Word.from(manager, english).get
 
     val bigSynonyms = bigWord.synonyms
     val largeSynonyms = largeWord.synonyms
@@ -291,11 +172,8 @@ class LinkedStorageManagerTest extends FlatSpec with Matchers {
     val latin = Concept.from(manager, "Latin").flatMap(Alphabet.from(manager, _)).get
     val english = Concept.from(manager, "English").flatMap(Language.from(manager, _, "en", latin)).get
 
-    val bigPiece = SymbolArray.from(manager, "big").flatMap(Piece.from(manager, latin, _)).get
-    val largePiece = SymbolArray.from(manager, "large").flatMap(Piece.from(manager, latin, _)).get
-
-    val bigWord = PieceArray.from(manager, List(bigPiece)).flatMap(Word.from(manager, english, _)).get
-    val largeWord = PieceArray.from(manager, List(largePiece)).flatMap(Word.from(manager, english, _)).get
+    val bigWord = Word.from(manager, english).get
+    val largeWord = Word.from(manager, english).get
 
     bigWord.concepts shouldBe empty
     val concept = Concept.from(manager, "Big").get
@@ -312,11 +190,8 @@ class LinkedStorageManagerTest extends FlatSpec with Matchers {
     val english = Concept.from(manager, "English").flatMap(Language.from(manager, _, "en", latin)).get
     val spanish = Concept.from(manager, "Spanish").flatMap(Language.from(manager, _, "es", latin)).get
 
-    val enPiece = SymbolArray.from(manager, "white").flatMap(Piece.from(manager, latin, _)).get
-    val spPiece = SymbolArray.from(manager, "blanco").flatMap(Piece.from(manager, latin, _)).get
-
-    val enWord = PieceArray.from(manager, List(enPiece)).flatMap(Word.from(manager, english, _)).get
-    val spWord = PieceArray.from(manager, List(spPiece)).flatMap(Word.from(manager, spanish, _)).get
+    val enWord = Word.from(manager, english).get
+    val spWord = Word.from(manager, spanish).get
 
     enWord.translations shouldBe empty
     spWord.translations shouldBe empty
@@ -348,11 +223,8 @@ class LinkedStorageManagerTest extends FlatSpec with Matchers {
     val english = Concept.from(manager, "English").flatMap(Language.from(manager, _,"en",  latin)).get
     val spanish = Concept.from(manager, "Spanish").flatMap(Language.from(manager, _,"es",  latin)).get
 
-    val enPiece = SymbolArray.from(manager, "white").flatMap(Piece.from(manager, latin, _)).get
-    val spPiece = SymbolArray.from(manager, "blanco").flatMap(Piece.from(manager, latin, _)).get
-
-    val enWord = PieceArray.from(manager, List(enPiece)).flatMap(Word.from(manager, english, _)).get
-    val spWord = PieceArray.from(manager, List(spPiece)).flatMap(Word.from(manager, spanish, _)).get
+    val enWord = Word.from(manager, english).get
+    val spWord = Word.from(manager, spanish).get
 
     val enTranslations = enWord.translations
     val spTranslations = spWord.translations
@@ -389,11 +261,8 @@ class LinkedStorageManagerTest extends FlatSpec with Matchers {
     val english = Concept.from(manager, "English").flatMap(Language.from(manager, _, "en", latin)).get
     val spanish = Concept.from(manager, "Spanish").flatMap(Language.from(manager, _, "es", latin)).get
 
-    val enPiece = SymbolArray.from(manager, "white").flatMap(Piece.from(manager, latin, _)).get
-    val spPiece = SymbolArray.from(manager, "blanco").flatMap(Piece.from(manager, latin, _)).get
-
-    val enWord = PieceArray.from(manager, List(enPiece)).flatMap(Word.from(manager, english, _)).get
-    val spWord = PieceArray.from(manager, List(spPiece)).flatMap(Word.from(manager, spanish, _)).get
+    val enWord = Word.from(manager, english).get
+    val spWord = Word.from(manager, spanish).get
 
     enWord.concepts shouldBe empty
     val concept = Concept.from(manager, "White").get

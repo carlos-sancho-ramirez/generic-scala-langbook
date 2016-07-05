@@ -1,6 +1,7 @@
 package sword.langbook.db
 
 import sword.db._
+import sword.langbook.db.registers.{LanguageReferenceField, WordReferenceField}
 
 import scala.collection.Set
 
@@ -38,7 +39,8 @@ case class Language(key :StorageManager.Key) {
   /**
    * Retrieves a suitable human readable string based in the given preferredLanguage.
    * If there is no word assigned for the given language, it will look for alternatives.
-   * @param preferredLanguage Desired language the user what to read
+    *
+    * @param preferredLanguage Desired language the user what to read
    * @return A some instance containing a string, or None if no possible text can be found.
    */
   def suitableTextForLanguage(preferredLanguage: Language): Option[String] = {
@@ -49,17 +51,17 @@ case class Language(key :StorageManager.Key) {
   def preferredAlphabet = Alphabet(preferredAlphabetKeyOpt.get)
 
   lazy val alphabets = new scala.collection.AbstractSet[Alphabet]() {
-    private def retrieveInnerSet = {
-      val pieceArrays = key.storageManager.getMapFor(registers.Word, registers.LanguageReferenceField(key)).map(_._2.pieceArray)
-      val pieceIds = pieceArrays.flatMap(key.storageManager.getArray(registers.PiecePosition, _).map(_.piece))
-      val alphabetKeys = pieceIds.flatMap(key.storageManager.getMapForCollection(registers.Piece, _).map(_._2.alphabet))
-      alphabetKeys.toSet[StorageManager.Key].map(key => Alphabet(key)) + preferredAlphabet
-    }
+    private def innerSet = (for {
+      wordKey <- key.storageManager.getKeysFor(registers.Word, LanguageReferenceField(key))
+      repr <- key.storageManager.getMapFor(registers.WordRepresentation, WordReferenceField(wordKey)).values
+    } yield {
+      Alphabet(repr.alphabet)
+    }) + preferredAlphabet
 
-    override def contains(elem: Alphabet) = retrieveInnerSet.contains(elem)
-    override def +(elem: Alphabet): Set[Alphabet] = retrieveInnerSet + elem
-    override def -(elem: Alphabet): Set[Alphabet] = retrieveInnerSet - elem
-    override def iterator = retrieveInnerSet.iterator
+    override def contains(elem: Alphabet) = innerSet.contains(elem)
+    override def +(elem: Alphabet): Set[Alphabet] = innerSet + elem
+    override def -(elem: Alphabet): Set[Alphabet] = innerSet - elem
+    override def iterator = innerSet.iterator
   }
 
   override def equals(other: Any) = {

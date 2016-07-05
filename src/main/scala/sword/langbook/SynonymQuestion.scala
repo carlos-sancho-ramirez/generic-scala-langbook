@@ -1,7 +1,6 @@
 package sword.langbook
 
-import sword.db.ForeignKeyField
-import sword.langbook.db.registers.{PieceArrayReferenceField, PieceReferenceField, AlphabetReferenceField}
+import sword.langbook.db.registers.AlphabetReferenceField
 import sword.langbook.db._
 
 import scala.util.Random
@@ -67,17 +66,9 @@ object SynonymQuestion {
 
     val result = scala.collection.mutable.Set[Alphabet]()
     for (alphabetKey <- storageManager.getKeysFor(registers.Alphabet)) {
-      val pieces = storageManager.getMapFor(registers.Piece, AlphabetReferenceField(alphabetKey)).map(_._1.group)
-      val pieceArrays = pieces.flatMap {
-        piece =>
-          storageManager.getMapFor(registers.PiecePosition, PieceReferenceField(piece)).map(_._1.group)
-      }.toSet
-
-      // We are assuming here that all words are from the same language. This is OK if the given
-      // alphabet is only defined for that language.
-      // TODO: Return language as well in the method assuming that the same alphabet can be used
-      // across different languages.
-      val wordKeys = pieceArrays.flatMap(array => storageManager.getKeysFor(registers.Word, PieceArrayReferenceField(array)))
+      val wordKeys = storageManager
+          .getMapFor(registers.WordRepresentation, AlphabetReferenceField(alphabetKey))
+          .map(_._2.word).toSet
 
       if (wordKeys.exists {
         wordKey =>
@@ -86,7 +77,7 @@ object SynonymQuestion {
             conceptKey =>
               var foundOnce = false
               wordConceptRelations.exists { t =>
-                if (t._1 == conceptKey && wordKeys.contains(t._2)) {
+                if (t._1 == conceptKey && wordKeys(t._2)) {
                   if (foundOnce) true
                   else {
                     foundOnce = true

@@ -12,8 +12,10 @@ case class SymbolArray(storageManager :StorageManager, arrayId :Register.Collect
   override def iterator = symbols.iterator
 
   def alphabetsWhereIncluded = {
-    storageManager.getMapFor(registers.Piece, SymbolArrayReferenceField(arrayId)).values
-        .map(piece => Alphabet(piece.alphabet)).toSet
+    val set = storageManager.getMapFor(registers.WordRepresentation, SymbolArrayReferenceField(arrayId)).map {
+      case (_,repr) => repr.alphabet
+    }.toSet
+    set.map(k => Alphabet(k))
   }
 
   def text = symbols.map(_.text).mkString

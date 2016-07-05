@@ -1,7 +1,7 @@
 package sword.langbook.db
 
-import sword.db.{CollectionReferenceField, ForeignKeyField, StorageManager}
-import sword.langbook.db.registers.{AlphabetReferenceField, PieceReferenceField}
+import sword.db.{ForeignKeyField, StorageManager}
+import sword.langbook.db.registers.AlphabetReferenceField
 
 case class Alphabet(key :StorageManager.Key) {
   def fields = key.registerOption.map(_.fields).getOrElse(Seq())
@@ -16,22 +16,18 @@ case class Alphabet(key :StorageManager.Key) {
     private def wrappedSetForPreferred = key.storageManager.getMapFor(registers.Language)
         .filter(_._2.preferredAlphabet == key).map(t => Language(t._1)).toSet
 
-    // TODO: Looking in pieces for alphabets including this as preferred alphabet should be avoided for performance reasons
-    private def wrappedSetForIncludedInPieces = {
-      val storageManager = key.storageManager
-      storageManager.getMapFor(registers.Language).filter {
-        case (languageKey, language) =>
-          storageManager.getMapFor(registers.Word).exists { case (_, wordReg) =>
-            wordReg.language == languageKey && {
-              storageManager.getCollection(registers.PiecePosition, wordReg.pieceArray).map(_.piece).exists { pieceId =>
-                storageManager.getCollection(registers.Piece, pieceId).exists(_.alphabet == key)
-              }
-            }
-          }
-      }.map { case (languageKey,_) => Language(languageKey)}.toSet
+    private def includedInWords = {
+      val words = (for {
+        wordKey <- key.storageManager.getMapFor(registers.WordRepresentation, AlphabetReferenceField(key)).values.map(_.word)
+        word <- key.storageManager.get(wordKey)
+      } yield {
+        word.asInstanceOf[registers.Word]
+      }).toSet
+
+      words.map(word => Language(word.language))
     }
 
-    private def wrappedSet = wrappedSetForPreferred ++ wrappedSetForIncludedInPieces
+    private def wrappedSet = wrappedSetForPreferred ++ includedInWords
 
     override def contains(elem: Language) = wrappedSet.contains(elem)
     override def +(elem: Language) = wrappedSet + elem
@@ -55,9 +51,8 @@ case class Alphabet(key :StorageManager.Key) {
 
   def symbols = {
     val storageManager = key.storageManager
-    val pieces = storageManager.getMapFor(registers.Piece, AlphabetReferenceField(key)).values
-    val symbolArrays = pieces.map(reg => SymbolArray(storageManager, reg.symbolArray))
-    symbolArrays.flatMap(x => x).toSet
+    storageManager.getMapFor(registers.WordRepresentation, AlphabetReferenceField(key))
+      .values.flatMap(repr => SymbolArray(storageManager, repr.symbolArray).map(x => x)).toSet
   }
 }
 

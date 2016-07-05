@@ -16,14 +16,13 @@ case class WordReferenceField(override val key :StorageManager.Key) extends Fore
 }
 
 object Word extends RegisterDefinition[Word] {
-  override val fields = Vector(LanguageReferenceFieldDefinition, PieceArrayReferenceFieldDefinition)
+  override val fields = Vector(LanguageReferenceFieldDefinition)
   override def from(values: Seq[String],
       keyExtractor: FieldDefinition => String => Option[Key]) = {
     if (values.size == fields.size) {
       val languageKey = keyExtractor(LanguageReferenceFieldDefinition)(values.head)
-      val pieceArray = Register.collectionIdFrom(values(1))
-      if (languageKey.isDefined && pieceArray.isDefined) {
-        Some(Word(languageKey.get, pieceArray.get))
+      if (languageKey.isDefined) {
+        Some(Word(languageKey.get))
       }
       else None
     }
@@ -31,7 +30,7 @@ object Word extends RegisterDefinition[Word] {
   }
 }
 
-case class Word(language :StorageManager.Key, pieceArray :Register.CollectionId) extends Register {
+case class Word(language :StorageManager.Key) extends Register {
   override val definition = Word
-  override val fields = Vector(LanguageReferenceField(language), PieceArrayReferenceField(pieceArray))
+  override val fields = Vector(LanguageReferenceField(language))
 }

@@ -2,6 +2,7 @@ package sword.langbook.db
 
 import org.scalatest.{FlatSpec, Matchers}
 import sword.db.MemoryStorageManager
+import sword.langbook.db.registers.WordRepresentation
 
 class AlphabetTest extends FlatSpec with Matchers {
 
@@ -52,7 +53,7 @@ class AlphabetTest extends FlatSpec with Matchers {
     }
   }
 
-  private def checkReturnLanguageIncludingWordWithPieceUsingThisAlphabet(pieceAlphabetsInstanceOption: InstanceOption*)(set: Alphabet => scala.collection.Set[Language]): Unit = {
+  private def checkReturnLanguageIncludingWordUsingThisAlphabet(pieceAlphabetsInstanceOption: InstanceOption*)(set: Alphabet => scala.collection.Set[Language]): Unit = {
     val manager = newManager
     val testedAlphabet = Alphabet.from(manager, Concept.from(manager, "Alphabet under test").get).get
     val preferredAlphabet = Alphabet.from(manager, Concept.from(manager, "Preferred Alphabet").get).get
@@ -68,13 +69,12 @@ class AlphabetTest extends FlatSpec with Matchers {
         case `nonTested` => preferredAlphabet
       }
 
-      val piece = Piece.from(manager, pieceAlphabet, SymbolArray.from(manager, "Hello").get).get
+      val symbolArray = SymbolArray.from(manager, "Hello").get
       checkSet(expectedLanguages, testedAlphabet, set)
 
-      val pieces = PieceArray.from(manager, List(piece)).get
-      checkSet(expectedLanguages, testedAlphabet, set)
-
-      Word.from(manager, language, pieces) shouldBe defined
+      val word = Word.from(manager, language).get
+      manager.storageManager.insert(WordRepresentation(word.key, pieceAlphabet.key,
+          symbolArray.arrayId)) shouldBe defined
       instanceOption match {
         case `underTest` =>
           expectedLanguages += language
@@ -154,50 +154,50 @@ class AlphabetTest extends FlatSpec with Matchers {
   }
 
   it must "return any language including a word with a piece using this alphabet" in {
-    checkReturnLanguageIncludingWordWithPieceUsingThisAlphabet(underTest)(_.languages)
+    checkReturnLanguageIncludingWordUsingThisAlphabet(underTest)(_.languages)
   }
 
   it must "return any language including a word with a piece using this alphabet (reusing set instances)" in {
-    reusingSetInstance(checkReturnLanguageIncludingWordWithPieceUsingThisAlphabet(underTest))
+    reusingSetInstance(checkReturnLanguageIncludingWordUsingThisAlphabet(underTest))
   }
 
   it must "return no language if none includes a word with a piece using this alphabet" in {
-    checkReturnLanguageIncludingWordWithPieceUsingThisAlphabet(nonTested)(_.languages)
+    checkReturnLanguageIncludingWordUsingThisAlphabet(nonTested)(_.languages)
   }
 
   it must "return no language if none includes a word with a piece using this alphabet (reusing set instances)" in {
-    reusingSetInstance(checkReturnLanguageIncludingWordWithPieceUsingThisAlphabet(nonTested))
+    reusingSetInstance(checkReturnLanguageIncludingWordUsingThisAlphabet(nonTested))
   }
 
   it must "return both languages if 2 languages are entered including both a word with a piece using this alphabet" in {
-    checkReturnLanguageIncludingWordWithPieceUsingThisAlphabet(underTest, underTest)(_.languages)
+    checkReturnLanguageIncludingWordUsingThisAlphabet(underTest, underTest)(_.languages)
   }
 
   it must "return both languages if 2 languages are entered including both a word with a piece using this alphabet (reusing set instances)" in {
-    reusingSetInstance(checkReturnLanguageIncludingWordWithPieceUsingThisAlphabet(underTest, underTest))
+    reusingSetInstance(checkReturnLanguageIncludingWordUsingThisAlphabet(underTest, underTest))
   }
 
   it must "return none of the languages if 2 languages are entered including neither a word with a piece using this alphabet" in {
-    checkReturnLanguageIncludingWordWithPieceUsingThisAlphabet(nonTested, nonTested)(_.languages)
+    checkReturnLanguageIncludingWordUsingThisAlphabet(nonTested, nonTested)(_.languages)
   }
 
   it must "return none of the languages if 2 languages are entered including neither a word with a piece using this alphabet (reusing set instances)" in {
-    reusingSetInstance(checkReturnLanguageIncludingWordWithPieceUsingThisAlphabet(nonTested, nonTested))
+    reusingSetInstance(checkReturnLanguageIncludingWordUsingThisAlphabet(nonTested, nonTested))
   }
 
   it must "return the first language if 2 languages are entered but only the first includes a word with a piece using this alphabet" in {
-    checkReturnLanguageIncludingWordWithPieceUsingThisAlphabet(underTest, nonTested)(_.languages)
+    checkReturnLanguageIncludingWordUsingThisAlphabet(underTest, nonTested)(_.languages)
   }
 
   it must "return the first language if 2 languages are entered but only the first includes a word with a piece using this alphabet (reusing set instances)" in {
-    reusingSetInstance(checkReturnLanguageIncludingWordWithPieceUsingThisAlphabet(underTest, nonTested))
+    reusingSetInstance(checkReturnLanguageIncludingWordUsingThisAlphabet(underTest, nonTested))
   }
 
   it must "return the second language if 2 languages are entered but only the second includes a word with a piece using this alphabet" in {
-    checkReturnLanguageIncludingWordWithPieceUsingThisAlphabet(nonTested, underTest)(_.languages)
+    checkReturnLanguageIncludingWordUsingThisAlphabet(nonTested, underTest)(_.languages)
   }
 
   it must "return the second language if 2 languages are entered but only the second includes a word with a piece using this alphabet (reusing set instances)" in {
-    reusingSetInstance(checkReturnLanguageIncludingWordWithPieceUsingThisAlphabet(nonTested, underTest))
+    reusingSetInstance(checkReturnLanguageIncludingWordUsingThisAlphabet(nonTested, underTest))
   }
 }

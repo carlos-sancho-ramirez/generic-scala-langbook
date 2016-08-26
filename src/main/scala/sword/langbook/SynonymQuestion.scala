@@ -1,6 +1,5 @@
 package sword.langbook
 
-import sword.langbook.db.registers.AlphabetReferenceField
 import sword.langbook.db._
 
 import scala.util.Random
@@ -59,35 +58,10 @@ object SynonymQuestion {
    *         This may be empty if no question can be created at all with the current database state.
    */
   def findPossibleQuestionTypes(manager: LinkedStorageManager): Set[Alphabet] = {
-
     val storageManager = manager.storageManager
-
-    val wordConceptRelations = storageManager.getMapFor(registers.WordConcept).values.map(reg => (reg.concept, reg.word))
-
     val result = scala.collection.mutable.Set[Alphabet]()
     for (alphabetKey <- storageManager.getKeysFor(registers.Alphabet)) {
-      val wordKeys = storageManager
-          .getMapFor(registers.WordRepresentation, AlphabetReferenceField(alphabetKey))
-          .map(_._2.word).toSet
-
-      if (wordKeys.exists {
-        wordKey =>
-          val conceptKeys = wordConceptRelations.filter(_._2 == wordKey).map(_._1)
-          conceptKeys.exists {
-            conceptKey =>
-              var foundOnce = false
-              wordConceptRelations.exists { t =>
-                if (t._1 == conceptKey && wordKeys(t._2)) {
-                  if (foundOnce) true
-                  else {
-                    foundOnce = true
-                    false
-                  }
-                }
-                else false
-              }
-          }
-      }) {
+      if (storageManager.isConceptDuplicated(alphabetKey)) {
         result += Alphabet(alphabetKey)
       }
     }

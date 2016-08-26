@@ -1,7 +1,7 @@
 package sword.langbook.db
 
 import sword.db._
-import sword.langbook.db.registers.{LanguageReferenceField, WordReferenceField}
+import sword.langbook.db.registers.{WordReferenceFieldDefinition, LanguageReferenceField, WordReferenceField}
 
 import scala.collection.Set
 
@@ -51,12 +51,8 @@ case class Language(key :StorageManager.Key) {
   def preferredAlphabet = Alphabet(preferredAlphabetKeyOpt.get)
 
   lazy val alphabets = new scala.collection.AbstractSet[Alphabet]() {
-    private def innerSet = (for {
-      wordKey <- key.storageManager.getKeysFor(registers.Word, LanguageReferenceField(key))
-      repr <- key.storageManager.getMapFor(registers.WordRepresentation, WordReferenceField(wordKey)).values
-    } yield {
-      Alphabet(repr.alphabet)
-    }) + preferredAlphabet
+    private def innerSet = (key.storageManager.getAlphabetSet(LanguageReferenceField(key),
+        WordReferenceFieldDefinition) + preferredAlphabetKeyOpt.get).map(Alphabet(_))
 
     override def contains(elem: Alphabet) = innerSet.contains(elem)
     override def +(elem: Alphabet): Set[Alphabet] = innerSet + elem

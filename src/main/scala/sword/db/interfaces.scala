@@ -41,6 +41,7 @@ trait CollectionReferenceFieldDefinition extends FieldDefinition {
  */
 trait ForeignKeyFieldDefinition extends FieldDefinition {
   def target :RegisterDefinition[Register]
+  override def from(value: String, keyExtractor: String => Option[StorageManager.Key]): Option[ForeignKeyField]
 }
 
 object UnicodeFieldDefinition extends FieldDefinition {

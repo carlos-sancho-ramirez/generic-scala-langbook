@@ -18,7 +18,8 @@ case class SymbolArray(storageManager :StorageManager, arrayId :Register.Collect
     set.map(k => Alphabet(k))
   }
 
-  def text = symbols.map(_.text).mkString
+  def text = storageManager.getStringArray(
+      registers.SymbolPosition, arrayId, registers.SymbolReferenceFieldDefinition)
 }
 
 object SymbolArray {

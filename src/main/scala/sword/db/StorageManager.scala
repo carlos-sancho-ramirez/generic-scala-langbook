@@ -287,6 +287,13 @@ trait StorageManager {
   }
 
   /**
+   * Query and return all existing symbol arrays in the system.
+   *
+   * @return
+   */
+  def allStringArray: Map[Key, List[String]] = Map()
+
+  /**
    * Trial to boost up the synonyms search
    */
   def isConceptDuplicated(alphabet: Key) = false

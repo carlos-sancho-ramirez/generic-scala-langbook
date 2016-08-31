@@ -4,11 +4,7 @@ import sword.db.{ForeignKeyField, StorageManager}
 import sword.langbook.db.registers.AlphabetReferenceField
 
 case class Alphabet(key :StorageManager.Key) {
-  def fields = key.registerOption.map(_.fields).getOrElse(Seq())
-  def conceptKeyOpt = fields.collectFirst {
-    case field :ForeignKeyField if field.definition.target == registers.Concept => field.key
-  }
-
+  def conceptKeyOpt = key.registerOption.map(_.asInstanceOf[registers.Alphabet].concept)
   def concept = Concept(conceptKeyOpt.get)
 
   lazy val languages = new scala.collection.AbstractSet[Language] {

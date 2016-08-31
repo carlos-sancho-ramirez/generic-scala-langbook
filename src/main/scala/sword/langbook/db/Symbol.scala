@@ -17,7 +17,8 @@ case class Symbol(key :StorageManager.Key) {
         .map(k => SymbolArray(storageManager, k.group))
   }
 
-  def alphabetsWhereIncluded = arraysWhereIncluded.flatMap(_.alphabetsWhereIncluded)
+  //def alphabetsWhereIncluded = arraysWhereIncluded.flatMap(_.alphabetsWhereIncluded)
+  def alphabetsWhereIncluded = key.storageManager.alphabetsWhereSymbolIncluded(key).map(Alphabet(_))
 }
 
 object Symbol extends ElementFactory[registers.Symbol, Symbol] {

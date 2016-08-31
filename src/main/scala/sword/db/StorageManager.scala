@@ -297,4 +297,9 @@ trait StorageManager {
    * Trial to boost up the synonyms search
    */
   def isConceptDuplicated(alphabet: Key) = false
+
+  /**
+   * Find all alphabets containing the given symbol
+   */
+  def alphabetsWhereSymbolIncluded(symbol: Key): Set[Key] = Set()
 }

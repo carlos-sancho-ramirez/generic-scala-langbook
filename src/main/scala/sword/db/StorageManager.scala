@@ -302,4 +302,9 @@ trait StorageManager {
    * Find all alphabets containing the given symbol
    */
   def alphabetsWhereSymbolIncluded(symbol: Key): Set[Key] = Set()
+
+  /**
+   * Find all symbols contained in a given alphabet
+   */
+  def allSymbolsInAlphabet(alphabet: Key): Set[Key] = Set()
 }

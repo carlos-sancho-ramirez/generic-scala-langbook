@@ -1,9 +1,7 @@
 package sword.langbook.db
 
-import sword.db.{CollectionReferenceField, ForeignKeyField, StorageManager}
+import sword.db.StorageManager
 import sword.langbook.db.registers.WordReferenceField
-
-import scala.collection
 
 case class Word(key :StorageManager.Key) {
   private def wordReg = key.registerOption.get.asInstanceOf[registers.Word]
@@ -83,4 +81,136 @@ object Word extends ElementFactory[registers.Word, Word] {
   def from(manager: LinkedStorageManager, language: Language): Option[Word] = {
     from(manager, registers.Word(language.key))
   }
+
+  val hiraganaConversions = List(
+    "あ" -> "a",
+    "い" -> "i",
+    "う" -> "u",
+    "え" -> "e",
+    "お" -> "o",
+    "きゃ" -> "kya",
+    "きゅ" -> "kyu",
+    "きょ" -> "kyo",
+    "ぎゃ" -> "gya",
+    "ぎゅ" -> "gyu",
+    "ぎょ" -> "gyo",
+    "か" -> "ka",
+    "っか" -> "kka",
+    "き" -> "ki",
+    "っき" -> "kki",
+    "く" -> "ku",
+    "っく" -> "kku",
+    "け" -> "ke",
+    "っけ" -> "kke",
+    "こ" -> "ko",
+    "っこ" -> "kko",
+    "が" -> "ga",
+    "ぎ" -> "gi",
+    "ぐ" -> "gu",
+    "げ" -> "ge",
+    "ご" -> "go",
+    "しゃ" -> "sha",
+    "しゅ" -> "shu",
+    "しょ" -> "sho",
+    "じゃ" -> "ja",
+    "じゅ" -> "ju",
+    "じょ" -> "jo",
+    "さ" -> "sa",
+    "し" -> "shi",
+    "す" -> "su",
+    "せ" -> "se",
+    "そ" -> "so",
+    "ざ" -> "za",
+    "じ" -> "ji",
+    "ず" -> "zu",
+    "ぜ" -> "ze",
+    "ぞ" -> "zo",
+    "ちゃ" -> "cha",
+    "ちゅ" -> "chu",
+    "ちょ" -> "cho",
+    "た" -> "ta",
+    "った" -> "tta",
+    "ち" -> "chi",
+    "つ" -> "tsu",
+    "て" -> "te",
+    "って" -> "tte",
+    "と" -> "to",
+    "っと" -> "tto",
+    "だ" -> "da",
+    "ぢ" -> "di",
+    "づ" -> "du",
+    "で" -> "de",
+    "ど" -> "do",
+    "にゃ" -> "nya",
+    "にゅ" -> "nyu",
+    "にょ" -> "nyo",
+    "な" -> "na",
+    "に" -> "ni",
+    "ぬ" -> "nu",
+    "ね" -> "ne",
+    "の" -> "no",
+    "ひゃ" -> "hya",
+    "ひゅ" -> "hyu",
+    "ひょ" -> "hyo",
+    "びゃ" -> "bya",
+    "びゅ" -> "byu",
+    "びょ" -> "byo",
+    "ぴゃ" -> "pya",
+    "ぴゅ" -> "pyu",
+    "ぴょ" -> "pyo",
+    "は" -> "ha",
+    "ひ" -> "hi",
+    "ふ" -> "fu",
+    "へ" -> "he",
+    "ほ" -> "ho",
+    "ば" -> "ba",
+    "び" -> "bi",
+    "ぶ" -> "bu",
+    "べ" -> "be",
+    "ぼ" -> "bo",
+    "ぱ" -> "pa",
+    "っぱ" -> "ppa",
+    "ぴ" -> "pi",
+    "っぴ" -> "ppi",
+    "ぷ" -> "pu",
+    "っぷ" -> "ppu",
+    "ぺ" -> "pe",
+    "っぺ" -> "ppe",
+    "ぽ" -> "po",
+    "っぽ" -> "ppo",
+    "ま" -> "ma",
+    "み" -> "mi",
+    "む" -> "mu",
+    "め" -> "me",
+    "も" -> "mo",
+    "や" -> "ya",
+    "ゆ" -> "yu",
+    "よ" -> "yo",
+    "りゃ" -> "rya",
+    "りゅ" -> "ryu",
+    "りょ" -> "ryo",
+    "ら" -> "ra",
+    "り" -> "ri",
+    "る" -> "ru",
+    "れ" -> "re",
+    "ろ" -> "ro",
+    "わ" -> "wa",
+    "を" -> "wo",
+    "ん" -> "n"
+  )
+
+  private def normalisedTextIteration(text: String, acc: String): Option[String] = {
+    val matching = hiraganaConversions.find{ case (t,_) => text.startsWith(t) }
+    matching.flatMap { case (kana, roman) =>
+      val newText = text.substring(kana.length)
+      val newAcc = acc + roman
+      if (newText == "") Some(newAcc)
+      else normalisedTextIteration(newText, newAcc)
+    }
+  }
+
+  /**
+   * Retrieves a normalised that can be used to match search patterns for this word
+   */
+  def normalisedText(text: String) = normalisedTextIteration(text, "")
 }

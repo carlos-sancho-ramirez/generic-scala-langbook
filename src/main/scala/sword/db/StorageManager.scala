@@ -5,6 +5,15 @@ import sword.langbook.db.registers.{WordReferenceField, LanguageReferenceField}
 
 object StorageManager {
 
+  // This is required in order that app can identify languages when selecting quizzes.
+  // It should not be required if the app was generic enough.
+  // TODO: Remove these codes when the app does not require them
+  object LanguageCodes {
+    val english = "en"
+    val spanish = "es"
+    val japanese = "ja"
+  }
+
   /**
    * Key that can be used to identify a single or a collection of registers within a storage manager.
    *

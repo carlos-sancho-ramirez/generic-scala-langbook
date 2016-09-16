@@ -1,5 +1,7 @@
 package sword.langbook
 
+import sword.db.StorageManager
+import sword.langbook.db.registers.{AlphabetReferenceField, WordRepresentation}
 import sword.langbook.db.{LinkedStorageManager, Word, Alphabet}
 
 import scala.util.Random
@@ -38,14 +40,20 @@ object InterAlphabetQuestion {
   def newAleatoryQuestion(sourceAlphabets: Set[Alphabet], targetAlphabets: Set[Alphabet])(
       manager: LinkedStorageManager): Option[InterAlphabetQuestion] = {
 
-    val allAlphabets = sourceAlphabets ++ targetAlphabets
-    if (allAlphabets.size == sourceAlphabets.size + targetAlphabets.size) {
-      val words = manager.words.collect {
-        case (_, word) if allAlphabets.diff(word.text.keySet).isEmpty => word
+    val allAlphabets = (sourceAlphabets ++ targetAlphabets).map(_.key).toList
+    val alphabetCount = allAlphabets.size
+    if (alphabetCount == sourceAlphabets.size + targetAlphabets.size && alphabetCount >= 2) {
+      def wordsForAlphabet(alphabetKey: StorageManager.Key) = {
+        manager.storageManager.getMapFor(WordRepresentation,
+          AlphabetReferenceField(alphabetKey)).map { case (_, repr) => repr.word }.toSet
+      }
+
+      val possibleWords = allAlphabets.tail.foldLeft(wordsForAlphabet(allAlphabets.head)) {
+        (result, alphabetKey) => result.union(wordsForAlphabet(alphabetKey))
       }.toVector
 
-      val randomWord = words(Random.nextInt(words.size))
-      Some(new InterAlphabetQuestion(randomWord, sourceAlphabets, targetAlphabets))
+      val randomWord = possibleWords(Random.nextInt(possibleWords.size))
+      Some(new InterAlphabetQuestion(Word(randomWord), sourceAlphabets, targetAlphabets))
     }
     else None
   }

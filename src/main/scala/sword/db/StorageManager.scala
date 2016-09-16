@@ -276,6 +276,24 @@ trait StorageManager {
   }
 
   /**
+   * Specific query that makes a join of 2 tables, uses a given filter for the first table and
+   * returns completely the second table as a register.
+   *
+   * @param sourceRegDef First table to be used in a JOIN
+   * @param targetRegDef Second table to be used in a JOIN
+   * @param filter ForeignKeyField included in the first table. This is used to filter results and
+   *               only take the ones matching the given key.
+   * @param join FieldDefinition common in both tables. This is use to join the tables.
+   * @tparam R RegisterDefinition for the second table
+   * @return A set of all registers in the second table that remained after filtering
+   */
+  def getJointSet[R <: Register](
+      sourceRegDef: RegisterDefinition[Register],
+      targetRegDef: RegisterDefinition[R],
+      filter: ForeignKeyField,
+      join: ForeignKeyFieldDefinition): Set[R] = Set()
+
+  /**
    * Return a string array joining 2 tables through the matcher.
    * This is a very specific implementation of a common query to boost it up.
    * @param registerDefinition {@link ArrayableRegisterDefinition} containing a field matching the

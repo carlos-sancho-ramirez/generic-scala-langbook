@@ -1,6 +1,8 @@
 package sword.langbook
 
+import sword.db.StorageManager
 import sword.langbook.db._
+import sword.langbook.db.registers.{WordReferenceFieldDefinition, AlphabetReferenceField, WordConcept, WordRepresentation}
 
 import scala.util.Random
 
@@ -31,20 +33,18 @@ class SynonymQuestion(val concept: Concept, val sourceWord: Word, val alphabet: 
 
 object SynonymQuestion {
   def newAleatoryQuestion(alphabet: Alphabet)(manager: LinkedStorageManager): Option[SynonymQuestion] = {
-    val allPossibilities = manager.words.values.flatMap { word =>
-      if (word.text.keySet.contains(alphabet)) {
-        word.concepts.filter { concept =>
-          concept.wordsForLanguage(word.language).exists { w =>
-            w != word && w.text.keySet.contains(alphabet)
-          }
-        }.map((_, word))
-      }
-      else None
-    }.toSet.toVector
+    val wordConcepts = manager.storageManager.getJointSet(WordRepresentation, WordConcept,
+        AlphabetReferenceField(alphabet.key), WordReferenceFieldDefinition)
 
-    if (allPossibilities.nonEmpty) {
-      val (concept, word) = allPossibilities(Random.nextInt(allPossibilities.size))
-      Some(new SynonymQuestion(concept, word, alphabet))
+    val possibleWords = wordConcepts.groupBy(_.concept.index).values.foldLeft(Set[WordConcept]()) {
+      (result, set) =>
+        if (set.size > 1) result ++ set
+        else result
+    }.toVector
+
+    if (possibleWords.nonEmpty) {
+      val wordConcept = possibleWords(Random.nextInt(possibleWords.size))
+      Some(new SynonymQuestion(Concept(wordConcept.concept), Word(wordConcept.word), alphabet))
     }
     else None
   }

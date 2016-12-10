@@ -22,12 +22,12 @@ case class Word(key :StorageManager.Key) {
   object concepts extends scala.collection.mutable.Set[Concept]() {
 
     private def filteredWordConcepts = {
-      key.storageManager.getMapFor(registers.WordConcept, WordReferenceField(key)).values
+      key.storageManager.getMapFor(registers.Acceptation, WordReferenceField(key)).values
     }
 
     // TODO: This should check if the concept is already included, and avoid inserting anything in that case
     override def +=(elem: Concept): this.type = {
-      val reg = registers.WordConcept(key, elem.key)
+      val reg = registers.Acceptation(key, elem.key)
       key.storageManager.insert(reg)
       this
     }

@@ -12,7 +12,7 @@ case class Concept(key: StorageManager.Key) {
   def hint = hintOpt.get
 
   def words = {
-    key.storageManager.getMapFor(registers.WordConcept, ConceptReferenceField(key)).flatMap {
+    key.storageManager.getMapFor(registers.Acceptation, ConceptReferenceField(key)).flatMap {
       case (_, reg) =>
         reg.fields.collectFirst {
           case field: ForeignKeyField if field.definition.target == registers.Word =>

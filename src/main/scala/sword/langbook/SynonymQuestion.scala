@@ -2,7 +2,7 @@ package sword.langbook
 
 import sword.db.StorageManager
 import sword.langbook.db._
-import sword.langbook.db.registers.{WordReferenceFieldDefinition, AlphabetReferenceField, WordConcept, WordRepresentation}
+import sword.langbook.db.registers.{WordReferenceFieldDefinition, AlphabetReferenceField, Acceptation, WordRepresentation}
 
 import scala.util.Random
 
@@ -33,18 +33,18 @@ class SynonymQuestion(val concept: Concept, val sourceWord: Word, val alphabet: 
 
 object SynonymQuestion {
   def newAleatoryQuestion(alphabet: Alphabet)(manager: LinkedStorageManager): Option[SynonymQuestion] = {
-    val wordConcepts = manager.storageManager.getJointSet(WordRepresentation, WordConcept,
+    val acceptations = manager.storageManager.getJointSet(WordRepresentation, Acceptation,
         AlphabetReferenceField(alphabet.key), WordReferenceFieldDefinition)
 
-    val possibleWords = wordConcepts.groupBy(_.concept.index).values.foldLeft(Set[WordConcept]()) {
+    val possibleWords = acceptations.groupBy(_.concept.index).values.foldLeft(Set[Acceptation]()) {
       (result, set) =>
         if (set.size > 1) result ++ set
         else result
     }.toVector
 
     if (possibleWords.nonEmpty) {
-      val wordConcept = possibleWords(Random.nextInt(possibleWords.size))
-      Some(new SynonymQuestion(Concept(wordConcept.concept), Word(wordConcept.word), alphabet))
+      val acceptation = possibleWords(Random.nextInt(possibleWords.size))
+      Some(new SynonymQuestion(Concept(acceptation.concept), Word(acceptation.word), alphabet))
     }
     else None
   }
@@ -53,6 +53,7 @@ object SynonymQuestion {
    * Checks in the database all synonyms that share the same alphabet.
    * It is expected that {@link #newAleatoryQuestion} will never return null for all alphabets
    * returned here.
+ *
    * @param manager LinkedStorageManager used to check the database.
    * @return A Set of alphabets that can be used to generate valid questions.
    *         This may be empty if no question can be created at all with the current database state.

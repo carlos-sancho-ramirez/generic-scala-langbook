@@ -11,7 +11,7 @@ case class LinkedStorageManager(storageManagerFactory :(List[RegisterDefinition[
       registers.Symbol,
       registers.SymbolPosition,
       registers.Word,
-      registers.WordConcept,
+      registers.Acceptation,
       registers.WordRepresentation
   )
 

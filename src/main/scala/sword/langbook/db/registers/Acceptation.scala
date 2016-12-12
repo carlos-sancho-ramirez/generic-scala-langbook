@@ -3,6 +3,18 @@ package sword.langbook.db.registers
 import sword.db.StorageManager.Key
 import sword.db._
 
+object AcceptationReferenceFieldDefinition extends ForeignKeyFieldDefinition {
+  override val target = Acceptation
+  override def from(value: String, keyExtractor: String => Option[StorageManager.Key]) = {
+    keyExtractor(value).map(AcceptationReferenceField)
+  }
+}
+
+case class AcceptationReferenceField(override val key :StorageManager.Key) extends ForeignKeyField {
+  override val definition = AcceptationReferenceFieldDefinition
+  override def toString = key.toString
+}
+
 object Acceptation extends RegisterDefinition[Acceptation] {
   override val fields = Vector(WordReferenceFieldDefinition, ConceptReferenceFieldDefinition)
   override def from(values: Seq[String],

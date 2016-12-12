@@ -12,7 +12,8 @@ case class LinkedStorageManager(storageManagerFactory :(List[RegisterDefinition[
       registers.SymbolPosition,
       registers.Word,
       registers.Acceptation,
-      registers.WordRepresentation
+      registers.WordRepresentation,
+      registers.AcceptationRepresentation
   )
 
   val storageManager = storageManagerFactory(registerDefinitions)

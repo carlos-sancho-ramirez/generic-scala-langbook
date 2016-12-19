@@ -3,7 +3,7 @@ package sword.langbook.db.registers
 import sword.db.StorageManager.Key
 import sword.db._
 
-object WordRepresentation extends CollectibleRegisterDefinition[WordRepresentation] {
+object WordRepresentation extends RegisterDefinition[WordRepresentation] {
   override def fields = Vector(
     WordReferenceFieldDefinition,
     AlphabetReferenceFieldDefinition,

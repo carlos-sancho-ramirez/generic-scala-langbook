@@ -44,9 +44,23 @@ trait ForeignKeyFieldDefinition extends FieldDefinition {
   override def from(value: String, keyExtractor: String => Option[StorageManager.Key]): Option[ForeignKeyField]
 }
 
+/**
+ * Optional version of ForeignKeyFieldDefinition that also allow null references
+ */
+trait NullableForeignKeyFieldDefinition extends FieldDefinition {
+  def target :RegisterDefinition[Register]
+  override def from(value: String, keyExtractor: String => Option[StorageManager.Key]): Option[NullableForeignKeyField]
+}
+
 object UnicodeFieldDefinition extends FieldDefinition {
   override def from(value: String, keyExtractor: String => Option[StorageManager.Key]): Option[UnicodeField] = {
     Register.unicodeTypeFrom(value).map(UnicodeField)
+  }
+}
+
+object IntFieldDefinition extends FieldDefinition {
+  override def from(value: String, keyExtractor: String => Option[StorageManager.Key]): Option[IntField] = {
+    Register.intTypeFrom(value).map(IntField)
   }
 }
 
@@ -107,6 +121,21 @@ trait ForeignKeyField extends Field {
   override def canEqual(other: Any) = other.isInstanceOf[ForeignKeyField]
 }
 
+trait NullableForeignKeyField extends Field {
+  override def definition :NullableForeignKeyFieldDefinition
+  def key :StorageManager.Key
+
+  override def equals(other: Any) = {
+    super.equals(other) && (other match {
+      case that: NullableForeignKeyField => key == that.key
+      case _ => false
+    })
+  }
+
+  override def hashCode = key.hashCode
+  override def canEqual(other: Any) = other.isInstanceOf[ForeignKeyField]
+}
+
 case class UnicodeField(value :Register.UnicodeType) extends Field {
   override val definition = UnicodeFieldDefinition
   override val toString = value.toChar.toString
@@ -120,6 +149,21 @@ case class UnicodeField(value :Register.UnicodeType) extends Field {
 
   override def hashCode = value
   override def canEqual(other: Any) = other.isInstanceOf[UnicodeField]
+}
+
+case class IntField(value: Register.IntType) extends Field {
+  override val definition = IntFieldDefinition
+  override val toString = value.toChar.toString
+
+  override def equals(other: Any) = {
+    super.equals(other) && (other match {
+      case that: IntField => value == that.value
+      case _ => false
+    })
+  }
+
+  override def hashCode = value
+  override def canEqual(other: Any) = other.isInstanceOf[IntField]
 }
 
 case class CharSequenceField(value :String) extends Field {
@@ -176,6 +220,7 @@ object Register {
   type CollectionId = Int
   type Index = Int
   type Position = Int
+  type IntType = Int
   type UnicodeType = Int
   type LanguageCode = String // ISO 639-1: 2 lower-case char string uniquely identifying a language
 
@@ -191,6 +236,15 @@ object Register {
   }
 
   def unicodeTypeFrom(value: String): Option[UnicodeType] = {
+    try {
+      Some(value.toInt)
+    }
+    catch {
+      case _: NumberFormatException => None
+    }
+  }
+
+  def intTypeFrom(value: String): Option[IntType] = {
     try {
       Some(value.toInt)
     }

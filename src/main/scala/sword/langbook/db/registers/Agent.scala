@@ -19,6 +19,7 @@ object Agent extends RegisterDefinition[Agent] {
   override def fields = Vector(
     NullableBunchReferenceFieldDefinition,
     BunchReferenceFieldDefinition,
+    DiffNullableBunchReferenceFieldDefinition,
     CorrelationReferenceFieldDefinition,
     IntFieldDefinition)
 
@@ -28,10 +29,11 @@ object Agent extends RegisterDefinition[Agent] {
       for {
         sourceBunchKey <- keyExtractor(NullableBunchReferenceFieldDefinition)(values.head)
         targetBunchKey <- keyExtractor(BunchReferenceFieldDefinition)(values(1))
+        diffBunchKey <- keyExtractor(DiffNullableBunchReferenceFieldDefinition)(values.head)
         correlationId <- Register.collectionIdFrom(values(2))
         flags <- Register.intTypeFrom(values(3))
       } yield {
-        Agent(sourceBunchKey, targetBunchKey, correlationId, flags)
+        Agent(sourceBunchKey, targetBunchKey, diffBunchKey, correlationId, flags)
       }
     }
     else None
@@ -39,11 +41,13 @@ object Agent extends RegisterDefinition[Agent] {
 }
 
 case class Agent(sourceBunch: StorageManager.Key, targetBunch: StorageManager.Key,
-                 correlation: Register.CollectionId, flags: Register.IntType) extends Register {
+                 diffBunch: StorageManager.Key, correlation: Register.CollectionId,
+                 flags: Register.IntType) extends Register {
   override def definition = Agent
   override def fields = Vector(
     NullableBunchReferenceField(sourceBunch),
     BunchReferenceField(targetBunch),
+    DiffNullableBunchReferenceField(diffBunch),
     CorrelationReferenceField(correlation),
     IntField(flags)) // TODO: Avoid using generic int field type an use proper flags field
 }

@@ -18,6 +18,22 @@ case class SymbolArrayReferenceField(override val collectionId :Register.Collect
   override def toString = collectionId.toString
 }
 
+/**
+ * This is a copy of SymbolArrayReferenceFieldDefinition.
+ *
+ * This copy is required because ConversionPair register uses 2 references to symbol array.
+ * This should be removed when possible.
+ */
+object TargetSymbolArrayReferenceFieldDefinition extends CollectionReferenceFieldDefinition {
+  override val target = SymbolPosition
+  protected override def from = new TargetSymbolArrayReferenceField(_)
+}
+
+case class TargetSymbolArrayReferenceField(override val collectionId :Register.CollectionId) extends CollectionReferenceField {
+  override val definition = TargetSymbolArrayReferenceFieldDefinition
+  override def toString = collectionId.toString
+}
+
 object SymbolPosition extends ArrayableRegisterDefinition[SymbolPosition] {
   override val fields = Vector(SymbolReferenceFieldDefinition)
   override def from(values: Seq[String],

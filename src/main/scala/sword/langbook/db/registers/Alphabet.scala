@@ -15,6 +15,23 @@ case class AlphabetReferenceField(override val key :StorageManager.Key) extends 
   override def toString = key.toString
 }
 
+/**
+ * This is a copy of AlphabetReferenceFieldDefinition and should be removed when possible.
+ *
+ * This copy is required because Conversion has 2 references to alphabets.
+ */
+object TargetAlphabetReferenceFieldDefinition extends ForeignKeyFieldDefinition {
+  override val target = Alphabet
+  override def from(value: String, keyExtractor: String => Option[StorageManager.Key]) = {
+    keyExtractor(value).map(TargetAlphabetReferenceField)
+  }
+}
+
+case class TargetAlphabetReferenceField(override val key :StorageManager.Key) extends ForeignKeyField {
+  override val definition = TargetAlphabetReferenceFieldDefinition
+  override def toString = key.toString
+}
+
 object Alphabet extends RegisterDefinition[Alphabet] {
   override val fields = List(ConceptReferenceFieldDefinition)
   override def from(values: Seq[String],

@@ -3,19 +3,20 @@ package sword.langbook.db.registers
 import sword.db.StorageManager.Key
 import sword.db._
 
-object ConversionPairReferenceFieldDefinition extends ForeignKeyFieldDefinition {
+/**
+ * Reference to a conversion, which is an array of conversion pairs.
+ */
+object ConversionArrayReferenceFieldDefinition extends CollectionReferenceFieldDefinition {
   override val target = ConversionPair
-  override def from(value: String, keyExtractor: String => Option[StorageManager.Key]) = {
-    keyExtractor(value).map(ConversionPairReferenceField)
-  }
+  protected override def from = new ConversionArrayReferenceField(_)
 }
 
-case class ConversionPairReferenceField(override val key :StorageManager.Key) extends ForeignKeyField {
-  override val definition = ConversionPairReferenceFieldDefinition
-  override def toString = key.toString
+case class ConversionArrayReferenceField(override val collectionId :Register.CollectionId) extends CollectionReferenceField {
+  override val definition = ConversionArrayReferenceFieldDefinition
+  override def toString = collectionId.toString
 }
 
-object ConversionPair extends RegisterDefinition[ConversionPair] {
+object ConversionPair extends ArrayableRegisterDefinition[ConversionPair] {
   override def fields = Vector(
     SymbolArrayReferenceFieldDefinition,
     TargetSymbolArrayReferenceFieldDefinition

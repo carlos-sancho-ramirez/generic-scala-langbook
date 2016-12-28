@@ -6,21 +6,31 @@ import sword.db._
 object Agent extends RegisterDefinition[Agent] {
   object Flags {
     // Bit 0 is reserved to decide if the correlation is to match the starting or ending of the representation
-    val startsWith = 0
-    val endsWith = 1
+    private val fromStart = 0
+    private val fromEnd = 1
 
     // Bit 1 determines if new words are created or the existing ones are valid
+    private val nonModify = 0
+    private val modify = 2
+
     // Bit 2 determines if the correlation is to remove or append to the given representation
-    val justFilter = 0
-    val shouldPrependCorrelation = 4
-    val shouldAppendCorrelation = 6
+    // (only relevant if bit 1 is set)
+    private val remove = 0
+    private val add = 4
+
+    val matchStart = nonModify | fromStart
+    val matchEnd = nonModify | fromEnd
+    val removeStart = modify | remove | fromStart
+    val removeEnd = modify | remove | fromEnd
+    val prepend = modify | add | fromStart
+    val append = modify | add | fromEnd
   }
 
   override def fields = Vector(
     NullableBunchReferenceFieldDefinition,
     BunchReferenceFieldDefinition,
     DiffNullableBunchReferenceFieldDefinition,
-    CorrelationReferenceFieldDefinition,
+    NullableCorrelationReferenceFieldDefinition,
     IntFieldDefinition)
 
   override def from(values: Seq[String],
@@ -48,6 +58,6 @@ case class Agent(sourceBunch: StorageManager.Key, targetBunch: StorageManager.Ke
     NullableBunchReferenceField(sourceBunch),
     BunchReferenceField(targetBunch),
     DiffNullableBunchReferenceField(diffBunch),
-    CorrelationReferenceField(correlation),
+    NullableCorrelationReferenceField(correlation),
     IntField(flags)) // TODO: Avoid using generic int field type an use proper flags field
 }

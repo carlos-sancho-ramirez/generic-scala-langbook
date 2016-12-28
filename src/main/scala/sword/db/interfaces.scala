@@ -37,6 +37,23 @@ trait CollectionReferenceFieldDefinition extends FieldDefinition {
 }
 
 /**
+ * Optional version of CollectionReferenceFieldDefinition that also allow null references
+ */
+trait NullableCollectionReferenceFieldDefinition extends FieldDefinition {
+  def target :CollectibleRegisterDefinition[Register]
+
+  protected def from: Register.CollectionId => NullableCollectionReferenceField
+  override def from(value: String, keyExtractor: String => Option[StorageManager.Key]): Option[NullableCollectionReferenceField] = {
+    try {
+      Some(from(value.toInt))
+    }
+    catch {
+      case _: NumberFormatException => None
+    }
+  }
+}
+
+/**
  * Definition for fields containing a foreign key to a register
  */
 trait ForeignKeyFieldDefinition extends FieldDefinition {
@@ -104,6 +121,21 @@ trait CollectionReferenceField extends Field {
 
   override def hashCode = collectionId
   override def canEqual(other: Any) = other.isInstanceOf[CollectionReferenceField]
+}
+
+trait NullableCollectionReferenceField extends Field {
+  override def definition :NullableCollectionReferenceFieldDefinition
+  def collectionId :Register.CollectionId
+
+  override def equals(other: Any) = {
+    super.equals(other) && (other match {
+      case that: NullableCollectionReferenceField => collectionId == that.collectionId
+      case _ => false
+    })
+  }
+
+  override def hashCode = collectionId
+  override def canEqual(other: Any) = other.isInstanceOf[NullableCollectionReferenceField]
 }
 
 trait ForeignKeyField extends Field {

@@ -29,12 +29,12 @@ case class Correlation(alphabet :StorageManager.Key, symbolArray :Register.Colle
     SymbolArrayReferenceField(symbolArray))
 }
 
-object CorrelationReferenceFieldDefinition extends CollectionReferenceFieldDefinition {
+object NullableCorrelationReferenceFieldDefinition extends NullableCollectionReferenceFieldDefinition {
   override val target = Correlation
-  protected override def from = new CorrelationReferenceField(_)
+  protected override def from = new NullableCorrelationReferenceField(_)
 }
 
-case class CorrelationReferenceField(override val collectionId :Register.CollectionId) extends CollectionReferenceField {
-  override val definition = CorrelationReferenceFieldDefinition
+case class NullableCorrelationReferenceField(override val collectionId :Register.CollectionId) extends NullableCollectionReferenceField {
+  override val definition = NullableCorrelationReferenceFieldDefinition
   override def toString = collectionId.toString
 }

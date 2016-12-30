@@ -16,7 +16,7 @@ case class SymbolReferenceField(override val key :StorageManager.Key) extends Fo
 }
 
 object Symbol extends RegisterDefinition[Symbol] {
-  override val fields = List(UnicodeFieldDefinition, CharSequenceFieldDefinition)
+  override val fields = List(UnicodeFieldDefinition)
   override def from(values: Seq[String],
     keyExtractor: FieldDefinition => (String) => Option[Key]) = {
     if (values.size <= fields.size) Register.unicodeTypeFrom(values.head).map(Symbol(_))
@@ -26,5 +26,5 @@ object Symbol extends RegisterDefinition[Symbol] {
 
 case class Symbol(unicode :Register.UnicodeType) extends Register {
   override val definition = Symbol
-  override val fields = List(UnicodeField(unicode), CharSequenceField("" + unicode.toChar))
+  override val fields = List(UnicodeField(unicode))
 }

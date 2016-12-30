@@ -294,26 +294,6 @@ trait StorageManager {
       join: ForeignKeyFieldDefinition): Set[R] = Set()
 
   /**
-   * Return a string array joining 2 tables through the matcher.
-   * This is a very specific implementation of a common query to boost it up.
-   * @param registerDefinition {@link ArrayableRegisterDefinition} containing a field matching the
-   *                           matcher parameter definition.
-   * @param id Array identifier for the given registerDefinition.
-   * @param matcher {@link ForeignKeyFieldDefinition} to be used as a joining point between tables.
-   *                This must point to a register containing a {@link sword.db.UnicodeFieldDefinition}
-   *                field in order to compose the resulting string.
-   * @return A string composed by concatenating all Unicode characters in the given array order.
-   */
-  def getStringArray[R <: Register](
-      registerDefinition: ArrayableRegisterDefinition[R],
-      id: Register.CollectionId,
-      matcher: ForeignKeyFieldDefinition) :String = {
-
-    // Not implemented at this level
-    ""
-  }
-
-  /**
    * Query and return all existing symbol arrays in the system.
    *
    * @return

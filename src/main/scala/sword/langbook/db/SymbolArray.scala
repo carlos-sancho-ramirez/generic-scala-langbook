@@ -18,8 +18,13 @@ case class SymbolArray(storageManager :StorageManager, arrayId :Register.Collect
     set.map(k => Alphabet(k))
   }
 
-  def text = storageManager.getStringArray(
-      registers.SymbolPosition, arrayId, registers.SymbolReferenceFieldDefinition)
+  def text = {
+    val map = storageManager.getMapFor(redundant.Text, SymbolArrayReferenceField(arrayId)).values
+    if (map.isEmpty) {
+      println(s"Error: SymbolArray with id $arrayId not present in the redundant.Text table")
+    }
+    map.head.text
+  }
 }
 
 object SymbolArray {
@@ -38,7 +43,7 @@ object SymbolArray {
     }
 
     val currentSymbols = storageManager.getMapFor(registers.Symbol).map { case (k, v) =>
-      (v.fields.head.asInstanceOf[sword.db.UnicodeField].value, k)
+      (v.fields.head.value, k)
     }
 
     val paramRegisters = for (char <- text) yield {

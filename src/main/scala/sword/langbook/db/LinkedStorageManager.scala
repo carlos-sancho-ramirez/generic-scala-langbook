@@ -18,7 +18,8 @@ case class LinkedStorageManager(storageManagerFactory: List[RegisterDefinition[R
       registers.Conversion,
       registers.Correlation,
       registers.Bunch,
-      registers.Agent
+      registers.Agent,
+      redundant.Text
   )
 
   val storageManager = storageManagerFactory(registerDefinitions)

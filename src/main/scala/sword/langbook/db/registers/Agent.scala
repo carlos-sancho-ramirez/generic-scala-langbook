@@ -14,7 +14,7 @@ object Agent extends RegisterDefinition[Agent] {
     private val modify = 2
 
     // Bit 2 determines if the correlation is to remove or append to the given representation
-    // (only relevant if bit 1 is set)
+    // (only relevant if bit 1 is set, if bit 1 is cleared this should be cleared as well)
     private val remove = 0
     private val add = 4
 
@@ -24,6 +24,9 @@ object Agent extends RegisterDefinition[Agent] {
     val removeEnd = modify | remove | fromEnd
     val prepend = modify | add | fromStart
     val append = modify | add | fromEnd
+
+    def startSide(flags: Int) = (flags & fromEnd) == 0
+    def shouldFilterFromSource(flags: Int) = (flags & add) == 0
   }
 
   override def fields = Vector(
@@ -39,9 +42,9 @@ object Agent extends RegisterDefinition[Agent] {
       for {
         sourceBunchKey <- keyExtractor(NullableBunchReferenceFieldDefinition)(values.head)
         targetBunchKey <- keyExtractor(BunchReferenceFieldDefinition)(values(1))
-        diffBunchKey <- keyExtractor(DiffNullableBunchReferenceFieldDefinition)(values.head)
-        correlationId <- Register.collectionIdFrom(values(2))
-        flags <- Register.intTypeFrom(values(3))
+        diffBunchKey <- keyExtractor(DiffNullableBunchReferenceFieldDefinition)(values(2))
+        correlationId <- Register.collectionIdFrom(values(3))
+        flags <- Register.intTypeFrom(values(4))
       } yield {
         Agent(sourceBunchKey, targetBunchKey, diffBunchKey, correlationId, flags)
       }

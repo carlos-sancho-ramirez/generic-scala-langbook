@@ -46,3 +46,13 @@ case class SymbolPosition(symbol :StorageManager.Key) extends Register {
   override val definition = SymbolPosition
   override val fields = Vector(SymbolReferenceField(symbol))
 }
+
+object NullableSymbolArrayReferenceFieldDefinition extends CollectionReferenceFieldDefinition {
+  override val target = SymbolPosition
+  protected override def from = new NullableSymbolArrayReferenceField(_)
+}
+
+case class NullableSymbolArrayReferenceField(override val collectionId :Register.CollectionId) extends CollectionReferenceField {
+  override val definition = NullableSymbolArrayReferenceFieldDefinition
+  override def toString = collectionId.toString
+}

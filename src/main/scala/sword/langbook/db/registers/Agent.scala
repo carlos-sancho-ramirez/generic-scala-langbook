@@ -27,6 +27,7 @@ object Agent extends RegisterDefinition[Agent] {
 
     def startSide(flags: Int) = (flags & fromEnd) == 0
     def shouldFilterFromSource(flags: Int) = (flags & add) == 0
+    def shouldModify(flags: Int) = (flags & modify) != 0
   }
 
   override def fields = Vector(

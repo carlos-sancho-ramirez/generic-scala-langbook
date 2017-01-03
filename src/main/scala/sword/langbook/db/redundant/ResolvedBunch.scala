@@ -2,16 +2,31 @@ package sword.langbook.db.redundant
 
 import sword.db.{FieldDefinition, Register, RegisterDefinition}
 import sword.db.StorageManager.Key
-import sword.langbook.db.registers.{BunchReferenceField, BunchReferenceFieldDefinition}
+import sword.langbook.db.registers.WordRepresentation.WordReferenceField
+import sword.langbook.db.registers.{AbstractNullableBunchReferenceField, AbstractWordReferenceField, NullableBunchReferenceFieldDefinition, WordReferenceFieldDefinition}
 
 object ResolvedBunch extends RegisterDefinition[ResolvedBunch] {
-  override val fields = Vector(BunchReferenceFieldDefinition, RedundantWordReferenceFieldDefinition)
+  object BunchReferenceField extends NullableBunchReferenceFieldDefinition {
+    override def newField = apply
+  }
+  case class BunchReferenceField(override val key: Key) extends AbstractNullableBunchReferenceField {
+    override val definition = BunchReferenceField
+  }
+
+  object RedundantWordReferenceField extends RedundantWordReferenceFieldDefinition {
+    override def newField = apply
+  }
+  case class RedundantWordReferenceField(override val key: Key) extends AbstractRedundantWordReferenceField {
+    override val definition = RedundantWordReferenceField
+  }
+
+  override val fields = Vector(BunchReferenceField, RedundantWordReferenceField)
   override def from(values: Seq[String],
     keyExtractor: FieldDefinition => String => Option[Key]) = {
     if (values.size == fields.size) {
       for {
-        bunch <- keyExtractor(BunchReferenceFieldDefinition)(values.head)
-        word <- keyExtractor(RedundantWordReferenceFieldDefinition)(values(1))
+        bunch <- keyExtractor(BunchReferenceField)(values.head)
+        word <- keyExtractor(RedundantWordReferenceField)(values(1))
       } yield {
         ResolvedBunch(bunch, word)
       }
@@ -22,5 +37,8 @@ object ResolvedBunch extends RegisterDefinition[ResolvedBunch] {
 
 case class ResolvedBunch(bunch: Key, word: Key) extends Register {
   override val definition = ResolvedBunch
-  override val fields = Vector(BunchReferenceField(bunch), RedundantWordReferenceField(word))
+  override val fields = Vector(
+    ResolvedBunch.BunchReferenceField(bunch),
+    ResolvedBunch.RedundantWordReferenceField(word)
+  )
 }

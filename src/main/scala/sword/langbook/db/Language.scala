@@ -1,17 +1,16 @@
 package sword.langbook.db
 
-import sword.db._
-import sword.langbook.db.registers.{WordReferenceFieldDefinition, LanguageReferenceField, WordReferenceField}
+import sword.db.{ForeignKeyField, Register, StorageManager}
 
 import scala.collection.Set
 
 case class Language(key :StorageManager.Key) {
   def fields = key.registerOption.map(_.fields).getOrElse(Seq())
   def conceptKeyOpt = fields.collectFirst {
-    case field :ForeignKeyField if field.definition.target == registers.Concept => field.key
+    case field: ForeignKeyField if field.definition.target == registers.Concept => field.key
   }
   def preferredAlphabetKeyOpt = fields.collectFirst {
-    case field :ForeignKeyField if field.definition.target == registers.Alphabet => field.key
+    case field: ForeignKeyField if field.definition.target == registers.Alphabet => field.key
   }
 
   def concept = Concept(conceptKeyOpt.get)
@@ -20,7 +19,7 @@ case class Language(key :StorageManager.Key) {
    * Returns the ISO 639-1 2 lower-case char string that uniquely identifies this language
    */
   def code = fields.collectFirst {
-    case field :LanguageCodeField => field.code
+    case field: registers.Language.LanguageCodeField => field.value
   }.get
 
   /**
@@ -51,8 +50,7 @@ case class Language(key :StorageManager.Key) {
   def preferredAlphabet = Alphabet(preferredAlphabetKeyOpt.get)
 
   lazy val alphabets = new scala.collection.AbstractSet[Alphabet]() {
-    private def innerSet = (key.storageManager.getAlphabetSet(LanguageReferenceField(key),
-        WordReferenceFieldDefinition) + preferredAlphabetKeyOpt.get).map(Alphabet(_))
+    private def innerSet = (key.storageManager.getAlphabetSet(registers.Word.LanguageReferenceField(key)) + preferredAlphabetKeyOpt.get).map(Alphabet(_))
 
     override def contains(elem: Alphabet) = innerSet.contains(elem)
     override def +(elem: Alphabet): Set[Alphabet] = innerSet + elem

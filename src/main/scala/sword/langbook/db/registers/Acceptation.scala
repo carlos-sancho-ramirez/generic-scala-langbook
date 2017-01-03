@@ -1,37 +1,56 @@
 package sword.langbook.db.registers
 
-import sword.db.StorageManager.Key
 import sword.db._
-
-object AcceptationReferenceFieldDefinition extends ForeignKeyFieldDefinition {
-  override val target = Acceptation
-  override def from(value: String, keyExtractor: String => Option[StorageManager.Key]) = {
-    keyExtractor(value).map(AcceptationReferenceField)
-  }
-}
-
-case class AcceptationReferenceField(override val key :StorageManager.Key) extends ForeignKeyField {
-  override val definition = AcceptationReferenceFieldDefinition
-  override def toString = key.toString
-}
+import sword.db.StorageManager.Key
 
 object Acceptation extends RegisterDefinition[Acceptation] {
-  override val fields = Vector(WordReferenceFieldDefinition, ConceptReferenceFieldDefinition)
+  object WordReferenceField extends WordReferenceFieldDefinition {
+    override def newField = apply
+  }
+  case class WordReferenceField(override val key: Key) extends AbstractWordReferenceField {
+    override val definition = WordReferenceField
+  }
+
+  object ConceptReferenceField extends ConceptReferenceFieldDefinition {
+    override def newField = apply
+  }
+
+  case class ConceptReferenceField(override val key: Key) extends AbstractConceptReferenceField {
+    override val definition = ConceptReferenceField
+  }
+
+  override val fields = Vector(
+    WordReferenceField,
+    ConceptReferenceField
+  )
+
   override def from(values: Seq[String],
     keyExtractor: FieldDefinition => String => Option[Key]) = {
     if (values.size == fields.size) {
-      val wordKey = keyExtractor(WordReferenceFieldDefinition)(values.head)
-      val conceptKey = keyExtractor(ConceptReferenceFieldDefinition)(values(1))
-      if (wordKey.isDefined && conceptKey.isDefined) {
-        Some(Acceptation(wordKey.get, conceptKey.get))
+      for {
+        wordKey <- keyExtractor(WordReferenceField)(values.head)
+        conceptKey <- keyExtractor(ConceptReferenceField)(values(1))
+      } yield {
+        Acceptation(wordKey, conceptKey)
       }
-      else None
     }
     else None
   }
 }
 
-case class Acceptation(word :StorageManager.Key, concept :StorageManager.Key) extends Register {
+case class Acceptation(word: Key, concept: Key) extends Register {
   override val definition = Acceptation
-  override val fields = Vector(WordReferenceField(word), ConceptReferenceField(concept))
+  override val fields = Vector(Acceptation.WordReferenceField(word), Acceptation.ConceptReferenceField(concept))
+}
+
+trait AcceptationReferenceFieldDefinition extends ForeignKeyFieldDefinition {
+  def newField: Key => AbstractAcceptationReferenceField
+  override val target = Acceptation
+  override def from(value: String, keyExtractor: String => Option[Key]) = {
+    keyExtractor(value).map(newField)
+  }
+}
+
+trait AbstractAcceptationReferenceField extends ForeignKeyField {
+  override def definition: AcceptationReferenceFieldDefinition
 }

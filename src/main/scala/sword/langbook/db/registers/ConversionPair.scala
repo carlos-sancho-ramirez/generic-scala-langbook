@@ -3,23 +3,24 @@ package sword.langbook.db.registers
 import sword.db.StorageManager.Key
 import sword.db._
 
-/**
- * Reference to a conversion, which is an array of conversion pairs.
- */
-object ConversionArrayReferenceFieldDefinition extends CollectionReferenceFieldDefinition {
-  override val target = ConversionPair
-  protected override def from = new ConversionArrayReferenceField(_)
-}
-
-case class ConversionArrayReferenceField(override val collectionId :Register.CollectionId) extends CollectionReferenceField {
-  override val definition = ConversionArrayReferenceFieldDefinition
-  override def toString = collectionId.toString
-}
-
 object ConversionPair extends ArrayableRegisterDefinition[ConversionPair] {
+  object SourceSymbolArrayReferenceField extends SymbolArrayReferenceFieldDefinition {
+    override def newField = apply
+  }
+  case class SourceSymbolArrayReferenceField(override val collectionId: Register.CollectionId) extends AbstractSymbolArrayReferenceField {
+    override val definition = SourceSymbolArrayReferenceField
+  }
+
+  object TargetSymbolArrayReferenceField extends SymbolArrayReferenceFieldDefinition {
+    override def newField = apply
+  }
+  case class TargetSymbolArrayReferenceField(override val collectionId: Register.CollectionId) extends AbstractSymbolArrayReferenceField {
+    override val definition = TargetSymbolArrayReferenceField
+  }
+
   override def fields = Vector(
-    SymbolArrayReferenceFieldDefinition,
-    TargetSymbolArrayReferenceFieldDefinition
+    SourceSymbolArrayReferenceField,
+    TargetSymbolArrayReferenceField
   )
 
   override def from(values: Seq[String],
@@ -39,7 +40,17 @@ object ConversionPair extends ArrayableRegisterDefinition[ConversionPair] {
 case class ConversionPair(sourceSymbolArray: Register.CollectionId, targetSymbolArray :Register.CollectionId) extends Register {
   override def definition = ConversionPair
   override def fields = Vector(
-    SymbolArrayReferenceField(sourceSymbolArray),
-    TargetSymbolArrayReferenceField(targetSymbolArray)
+    ConversionPair.SourceSymbolArrayReferenceField(sourceSymbolArray),
+    ConversionPair.TargetSymbolArrayReferenceField(targetSymbolArray)
   )
+}
+
+trait ConversionArrayReferenceFieldDefinition extends CollectionReferenceFieldDefinition {
+  override def newField: Register.CollectionId => AbstractConversionArrayReferenceField
+  override val target = SymbolPosition
+}
+
+trait AbstractConversionArrayReferenceField extends CollectionReferenceField {
+  override def definition: ConversionArrayReferenceFieldDefinition
+  override def toString = collectionId.toString
 }

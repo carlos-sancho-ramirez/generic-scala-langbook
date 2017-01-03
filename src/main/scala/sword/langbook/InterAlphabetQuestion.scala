@@ -1,7 +1,7 @@
 package sword.langbook
 
 import sword.db.StorageManager
-import sword.langbook.db.registers.{AlphabetReferenceField, WordRepresentation}
+import sword.langbook.db.registers.WordRepresentation
 import sword.langbook.db.{LinkedStorageManager, Word, Alphabet}
 
 import scala.util.Random
@@ -45,7 +45,7 @@ object InterAlphabetQuestion {
     if (alphabetCount == sourceAlphabets.size + targetAlphabets.size && alphabetCount >= 2) {
       def wordsForAlphabet(alphabetKey: StorageManager.Key) = {
         manager.storageManager.getMapFor(WordRepresentation,
-          AlphabetReferenceField(alphabetKey)).map { case (_, repr) => repr.word }.toSet
+          WordRepresentation.AlphabetReferenceField(alphabetKey)).map { case (_, repr) => repr.word }.toSet
       }
 
       val possibleWords = allAlphabets.tail.foldLeft(wordsForAlphabet(allAlphabets.head)) {

@@ -2,57 +2,44 @@ package sword.langbook.db.registers
 
 import sword.db.StorageManager.Key
 import sword.db._
-
-/**
- * Reference to an array of symbols.
- *
- * This contains a numeric identifier that must match with an existing collection.
- */
-object SymbolArrayReferenceFieldDefinition extends CollectionReferenceFieldDefinition {
-  override val target = SymbolPosition
-  protected override def from = new SymbolArrayReferenceField(_)
-}
-
-case class SymbolArrayReferenceField(override val collectionId :Register.CollectionId) extends CollectionReferenceField {
-  override val definition = SymbolArrayReferenceFieldDefinition
-  override def toString = collectionId.toString
-}
-
-/**
- * This is a copy of SymbolArrayReferenceFieldDefinition.
- *
- * This copy is required because ConversionPair register uses 2 references to symbol array.
- * This should be removed when possible.
- */
-object TargetSymbolArrayReferenceFieldDefinition extends CollectionReferenceFieldDefinition {
-  override val target = SymbolPosition
-  protected override def from = new TargetSymbolArrayReferenceField(_)
-}
-
-case class TargetSymbolArrayReferenceField(override val collectionId :Register.CollectionId) extends CollectionReferenceField {
-  override val definition = TargetSymbolArrayReferenceFieldDefinition
-  override def toString = collectionId.toString
-}
+import sword.langbook.db.registers.Language.ConceptReferenceField
 
 object SymbolPosition extends ArrayableRegisterDefinition[SymbolPosition] {
-  override val fields = Vector(SymbolReferenceFieldDefinition)
+  object SymbolReferenceField extends SymbolReferenceFieldDefinition {
+    override def newField = apply
+  }
+  case class SymbolReferenceField(override val key: Key) extends AbstractSymbolReferenceField {
+    override val definition = SymbolReferenceField
+  }
+
+  override val fields = Vector(SymbolReferenceField)
   override def from(values: Seq[String],
     keyExtractor: FieldDefinition => String => Option[Key]) = {
-    keyExtractor(SymbolReferenceFieldDefinition)(values.head).map(SymbolPosition(_))
+    keyExtractor(SymbolReferenceField)(values.head).map(SymbolPosition(_))
   }
 }
 
 case class SymbolPosition(symbol :StorageManager.Key) extends Register {
   override val definition = SymbolPosition
-  override val fields = Vector(SymbolReferenceField(symbol))
+  override val fields = Vector(SymbolPosition.SymbolReferenceField(symbol))
 }
 
-object NullableSymbolArrayReferenceFieldDefinition extends CollectionReferenceFieldDefinition {
+trait SymbolArrayReferenceFieldDefinition extends CollectionReferenceFieldDefinition {
+  override def newField: Register.CollectionId => AbstractSymbolArrayReferenceField
   override val target = SymbolPosition
-  protected override def from = new NullableSymbolArrayReferenceField(_)
 }
 
-case class NullableSymbolArrayReferenceField(override val collectionId :Register.CollectionId) extends CollectionReferenceField {
-  override val definition = NullableSymbolArrayReferenceFieldDefinition
+trait AbstractSymbolArrayReferenceField extends CollectionReferenceField {
+  override def definition: SymbolArrayReferenceFieldDefinition
+  override def toString = collectionId.toString
+}
+
+trait NullableSymbolArrayReferenceFieldDefinition extends NullableCollectionReferenceFieldDefinition {
+  override def newField: Register.CollectionId => AbstractNullableSymbolArrayReferenceField
+  override val target = SymbolPosition
+}
+
+trait AbstractNullableSymbolArrayReferenceField extends NullableCollectionReferenceField {
+  override def definition: NullableSymbolArrayReferenceFieldDefinition
   override def toString = collectionId.toString
 }

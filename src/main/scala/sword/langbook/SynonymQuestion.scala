@@ -1,8 +1,7 @@
 package sword.langbook
 
-import sword.db.StorageManager
 import sword.langbook.db._
-import sword.langbook.db.registers.{WordReferenceFieldDefinition, AlphabetReferenceField, Acceptation, WordRepresentation}
+import sword.langbook.db.registers.{WordReferenceFieldDefinition, Acceptation, WordRepresentation}
 
 import scala.util.Random
 
@@ -34,7 +33,7 @@ class SynonymQuestion(val concept: Concept, val sourceWord: Word, val alphabet: 
 object SynonymQuestion {
   def newAleatoryQuestion(alphabet: Alphabet)(manager: LinkedStorageManager): Option[SynonymQuestion] = {
     val acceptations = manager.storageManager.getJointSet(WordRepresentation, Acceptation,
-        AlphabetReferenceField(alphabet.key), WordReferenceFieldDefinition)
+        WordRepresentation.AlphabetReferenceField(alphabet.key), WordRepresentation.WordReferenceField, Acceptation.WordReferenceField)
 
     val possibleWords = acceptations.groupBy(_.concept.index).values.foldLeft(Set[Acceptation]()) {
       (result, set) =>

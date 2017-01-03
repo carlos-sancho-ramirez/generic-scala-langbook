@@ -1,9 +1,9 @@
 package sword.langbook.db
 
-import sword.db.{Register, UnicodeField, StorageManager}
-import sword.langbook.db.registers.SymbolReferenceField
+import sword.db.StorageManager.Key
+import sword.db.Register
 
-case class Symbol(key :StorageManager.Key) {
+case class Symbol(key: Key) {
   if (key.registerDefinition != registers.Symbol) {
     throw new IllegalArgumentException("Wrong registerDefinition within the key for a Symbol")
   }
@@ -11,15 +11,6 @@ case class Symbol(key :StorageManager.Key) {
   def unicode = key.registerOption.get.asInstanceOf[registers.Symbol].unicode
   def text = "" + unicode.toChar
 
-  /*
-  def arraysWhereIncluded = {
-    val storageManager = key.storageManager
-    storageManager.getKeysFor(registers.SymbolPosition, SymbolReferenceField(key))
-        .map(k => SymbolArray(storageManager, k.group))
-  }
-  */
-
-  //def alphabetsWhereIncluded = arraysWhereIncluded.flatMap(_.alphabetsWhereIncluded)
   def alphabetsWhereIncluded = key.storageManager.alphabetsWhereSymbolIncluded(key).map(Alphabet(_))
 }
 

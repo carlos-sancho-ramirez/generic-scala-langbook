@@ -2,6 +2,8 @@ package sword.langbook.db.registers
 
 import sword.db.StorageManager.Key
 import sword.db._
+import sword.langbook.db.redundant.Text.SymbolArrayReferenceField
+import sword.langbook.db.registers.Language.ConceptReferenceField
 
 object Agent extends RegisterDefinition[Agent] {
   object Flags {
@@ -30,20 +32,48 @@ object Agent extends RegisterDefinition[Agent] {
     def shouldModify(flags: Int) = (flags & modify) != 0
   }
 
+  object SourceBunchReferenceField extends NullableBunchReferenceFieldDefinition {
+    override def newField = apply
+  }
+  case class SourceBunchReferenceField(override val key: Key) extends AbstractNullableBunchReferenceField {
+    override val definition = SourceBunchReferenceField
+  }
+
+  object TargetBunchReferenceField extends BunchReferenceFieldDefinition {
+    override def newField = apply
+  }
+  case class TargetBunchReferenceField(override val key: Key) extends AbstractBunchReferenceField {
+    override val definition = TargetBunchReferenceField
+  }
+
+  object DiffBunchReferenceField extends NullableBunchReferenceFieldDefinition {
+    override def newField = apply
+  }
+  case class DiffBunchReferenceField(override val key: Key) extends AbstractNullableBunchReferenceField {
+    override val definition = DiffBunchReferenceField
+  }
+
+  object CorrelationReferenceField extends NullableCorrelationReferenceFieldDefinition {
+    override def newField = apply
+  }
+  case class CorrelationReferenceField(override val collectionId: Register.CollectionId) extends AbstractNullableCorrelationReferenceField {
+    override val definition = CorrelationReferenceField
+  }
+
   override def fields = Vector(
-    NullableBunchReferenceFieldDefinition,
-    BunchReferenceFieldDefinition,
-    DiffNullableBunchReferenceFieldDefinition,
-    NullableCorrelationReferenceFieldDefinition,
+    SourceBunchReferenceField,
+    TargetBunchReferenceField,
+    DiffBunchReferenceField,
+    CorrelationReferenceField,
     IntFieldDefinition)
 
   override def from(values: Seq[String],
     keyExtractor: FieldDefinition => String => Option[Key]) = {
     if (values.size == fields.size) {
       for {
-        sourceBunchKey <- keyExtractor(NullableBunchReferenceFieldDefinition)(values.head)
-        targetBunchKey <- keyExtractor(BunchReferenceFieldDefinition)(values(1))
-        diffBunchKey <- keyExtractor(DiffNullableBunchReferenceFieldDefinition)(values(2))
+        sourceBunchKey <- keyExtractor(SourceBunchReferenceField)(values.head)
+        targetBunchKey <- keyExtractor(TargetBunchReferenceField)(values(1))
+        diffBunchKey <- keyExtractor(DiffBunchReferenceField)(values(2))
         correlationId <- Register.collectionIdFrom(values(3))
         flags <- Register.intTypeFrom(values(4))
       } yield {
@@ -59,9 +89,9 @@ case class Agent(sourceBunch: StorageManager.Key, targetBunch: StorageManager.Ke
                  flags: Register.IntType) extends Register {
   override def definition = Agent
   override def fields = Vector(
-    NullableBunchReferenceField(sourceBunch),
-    BunchReferenceField(targetBunch),
-    DiffNullableBunchReferenceField(diffBunch),
-    NullableCorrelationReferenceField(correlation),
+    Agent.SourceBunchReferenceField(sourceBunch),
+    Agent.TargetBunchReferenceField(targetBunch),
+    Agent.DiffBunchReferenceField(diffBunch),
+    Agent.CorrelationReferenceField(correlation),
     IntField(flags)) // TODO: Avoid using generic int field type an use proper flags field
 }

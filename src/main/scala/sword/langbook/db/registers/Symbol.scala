@@ -3,18 +3,6 @@ package sword.langbook.db.registers
 import sword.db.StorageManager.Key
 import sword.db._
 
-object SymbolReferenceFieldDefinition extends ForeignKeyFieldDefinition {
-  override val target = Symbol
-  override def from(value: String, keyExtractor: String => Option[StorageManager.Key]) = {
-    keyExtractor(value).map(SymbolReferenceField)
-  }
-}
-
-case class SymbolReferenceField(override val key :StorageManager.Key) extends ForeignKeyField {
-  override val definition = SymbolReferenceFieldDefinition
-  override def toString = key.toString
-}
-
 object Symbol extends RegisterDefinition[Symbol] {
   override val fields = List(UnicodeFieldDefinition)
   override def from(values: Seq[String],
@@ -27,4 +15,16 @@ object Symbol extends RegisterDefinition[Symbol] {
 case class Symbol(unicode :Register.UnicodeType) extends Register {
   override val definition = Symbol
   override val fields = List(UnicodeField(unicode))
+}
+
+trait SymbolReferenceFieldDefinition extends ForeignKeyFieldDefinition {
+  def newField: Key => AbstractSymbolReferenceField
+  override val target = Symbol
+  override def from(value: String, keyExtractor: String => Option[Key]) = {
+    keyExtractor(value).map(newField)
+  }
+}
+
+trait AbstractSymbolReferenceField extends ForeignKeyField {
+  override def definition: SymbolReferenceFieldDefinition
 }

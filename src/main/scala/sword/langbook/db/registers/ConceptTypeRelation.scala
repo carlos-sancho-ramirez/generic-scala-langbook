@@ -2,30 +2,33 @@ package sword.langbook.db.registers
 
 import sword.db.StorageManager.Key
 import sword.db._
-
-object ParentTypeConceptReferenceFieldDefinition extends ForeignKeyFieldDefinition {
-  override val target = Concept
-  override def from(value: String, keyExtractor: String => Option[StorageManager.Key]) = {
-    keyExtractor(value).map(ParentTypeConceptReferenceField)
-  }
-}
-
-case class ParentTypeConceptReferenceField(override val key :StorageManager.Key) extends ForeignKeyField {
-  override val definition = ParentTypeConceptReferenceFieldDefinition
-  override def toString = key.toString
-}
+import sword.langbook.db.registers.Alphabet.ConceptReferenceField
 
 object ConceptTypeRelation extends RegisterDefinition[ConceptTypeRelation] {
-  override val fields = Vector(ConceptReferenceFieldDefinition, ParentTypeConceptReferenceFieldDefinition)
+  object SpecificConceptReferenceField extends ConceptReferenceFieldDefinition {
+    override def newField = apply
+  }
+  case class SpecificConceptReferenceField(override val key: Key) extends AbstractConceptReferenceField {
+    override val definition = SpecificConceptReferenceField
+  }
+
+  object GenericConceptReferenceField extends ConceptReferenceFieldDefinition {
+    override def newField = apply
+  }
+  case class GenericConceptReferenceField(override val key: Key) extends AbstractConceptReferenceField {
+    override val definition = GenericConceptReferenceField
+  }
+
+  override val fields = Vector(SpecificConceptReferenceField, GenericConceptReferenceField)
   override def from(values: Seq[String],
     keyExtractor: FieldDefinition => String => Option[Key]) = {
     if (values.size == fields.size) {
-      val conceptKey = keyExtractor(ConceptReferenceFieldDefinition)(values.head)
-      val parentTypeConceptKey = keyExtractor(ParentTypeConceptReferenceFieldDefinition)(values(1))
-      if (conceptKey.isDefined && parentTypeConceptKey.isDefined) {
-        Some(ConceptTypeRelation(conceptKey.get, parentTypeConceptKey.get))
+      for {
+        specificConceptKey <- keyExtractor(SpecificConceptReferenceField)(values.head)
+        genericConceptKey <- keyExtractor(GenericConceptReferenceField)(values(1))
+      } yield {
+        ConceptTypeRelation(specificConceptKey, genericConceptKey)
       }
-      else None
     }
     else None
   }
@@ -37,10 +40,13 @@ object ConceptTypeRelation extends RegisterDefinition[ConceptTypeRelation] {
  *
  * E.g. "Dog" is an/a kind of "Animal", but "Animal" is not necessarily a "Dog"
  *
- * @param concept the concept that is a kind of parentTypeConcept. So, "A" in the previous definition.
- * @param parentTypeConcept The generic concept including "concept". So, "B" in the previous definition.
+ * @param specificConcept the concept that is a kind of parentTypeConcept. So, "A" in the previous definition.
+ * @param genericConcept The generic concept including "concept". So, "B" in the previous definition.
  */
-case class ConceptTypeRelation(concept: StorageManager.Key, parentTypeConcept: StorageManager.Key) extends Register {
+case class ConceptTypeRelation(specificConcept: StorageManager.Key, genericConcept: StorageManager.Key) extends Register {
   override val definition = ConceptTypeRelation
-  override val fields = Vector(ConceptReferenceField(concept), ParentTypeConceptReferenceField(parentTypeConcept))
+  override val fields = Vector(
+    ConceptTypeRelation.SpecificConceptReferenceField(specificConcept),
+    ConceptTypeRelation.GenericConceptReferenceField(genericConcept)
+  )
 }

@@ -75,7 +75,7 @@ abstract class StorageManagerTest extends FlatSpec with Matchers {
 
   val numRegCollRefFieldDef = new CollectionReferenceFieldDefinition {
     override val target = NumRegDef
-    override protected def from = ???
+    override protected def newField = ???
   }
 
   behavior of "A storage Manager"

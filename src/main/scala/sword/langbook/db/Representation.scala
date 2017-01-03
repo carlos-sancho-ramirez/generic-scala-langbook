@@ -1,16 +1,14 @@
 package sword.langbook.db
 
 import sword.db.StorageManager
-import sword.langbook.db.redundant.RedundantWordReferenceField
-import sword.langbook.db.registers.{NullableWordReferenceField, WordReferenceField}
 
 case class Representation(storageManager :StorageManager, wordKey :StorageManager.Key)
     extends scala.collection.mutable.Map[Alphabet, SymbolArray] {
 
-  private val redundantWordKey = storageManager.getMapFor(redundant.RedundantWord, NullableWordReferenceField(wordKey)).head._1
-  private def wordReference = WordReferenceField(wordKey)
+  private val redundantWordKey = storageManager.getMapFor(redundant.RedundantWord, redundant.RedundantWord.WordReferenceField(wordKey)).head._1
+  private def wordReference = registers.WordRepresentation.WordReferenceField(wordKey)
   private def wordTexts = storageManager
-    .getMapFor(redundant.WordText, RedundantWordReferenceField(redundantWordKey)).values
+    .getMapFor(redundant.WordText, redundant.WordText.RedundantWordReferenceField(redundantWordKey)).values
   private def wrappedMap = wordTexts.map(repr => (Alphabet(repr.alphabet),
       SymbolArray(storageManager, repr.text))).toMap
 

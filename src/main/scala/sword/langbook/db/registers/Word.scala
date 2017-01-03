@@ -2,17 +2,21 @@ package sword.langbook.db.registers
 
 import sword.db.StorageManager.Key
 import sword.db._
+import sword.langbook.db.registers.Alphabet.ConceptReferenceField
 
 object Word extends RegisterDefinition[Word] {
-  override val fields = Vector(LanguageReferenceFieldDefinition)
+  object LanguageReferenceField extends LanguageReferenceFieldDefinition {
+    override def newField = apply
+  }
+  case class LanguageReferenceField(override val key: Key) extends AbstractLanguageReferenceField {
+    override val definition = LanguageReferenceField
+  }
+
+  override val fields = Vector(LanguageReferenceField)
   override def from(values: Seq[String],
       keyExtractor: FieldDefinition => String => Option[Key]) = {
     if (values.size == fields.size) {
-      val languageKey = keyExtractor(LanguageReferenceFieldDefinition)(values.head)
-      if (languageKey.isDefined) {
-        Some(Word(languageKey.get))
-      }
-      else None
+      keyExtractor(LanguageReferenceField)(values.head).map(key => Word(key))
     }
     else None
   }
@@ -20,29 +24,29 @@ object Word extends RegisterDefinition[Word] {
 
 case class Word(language :StorageManager.Key) extends Register {
   override val definition = Word
-  override val fields = Vector(LanguageReferenceField(language))
+  override val fields = Vector(Word.LanguageReferenceField(language))
 }
 
-object WordReferenceFieldDefinition extends ForeignKeyFieldDefinition {
+trait WordReferenceFieldDefinition extends ForeignKeyFieldDefinition {
+  def newField: Key => AbstractWordReferenceField
   override val target = Word
-  override def from(value: String, keyExtractor: String => Option[StorageManager.Key]) = {
-    keyExtractor(value).map(WordReferenceField)
+  override def from(value: String, keyExtractor: String => Option[Key]) = {
+    keyExtractor(value).map(newField)
   }
 }
 
-case class WordReferenceField(override val key :StorageManager.Key) extends ForeignKeyField {
-  override val definition = WordReferenceFieldDefinition
-  override def toString = key.toString
+trait AbstractWordReferenceField extends ForeignKeyField {
+  override def definition: WordReferenceFieldDefinition
 }
 
-object NullableWordReferenceFieldDefinition extends NullableForeignKeyFieldDefinition {
+trait NullableWordReferenceFieldDefinition extends NullableForeignKeyFieldDefinition {
+  def newField: Key => AbstractNullableWordReferenceField
   override val target = Word
-  override def from(value: String, keyExtractor: String => Option[StorageManager.Key]) = {
-    keyExtractor(value).map(NullableWordReferenceField)
+  override def from(value: String, keyExtractor: String => Option[Key]) = {
+    keyExtractor(value).map(newField)
   }
 }
 
-case class NullableWordReferenceField(override val key: StorageManager.Key) extends NullableForeignKeyField {
-  override val definition = NullableWordReferenceFieldDefinition
-  override def toString = key.toString
+trait AbstractNullableWordReferenceField extends NullableForeignKeyField {
+  override def definition: NullableWordReferenceFieldDefinition
 }

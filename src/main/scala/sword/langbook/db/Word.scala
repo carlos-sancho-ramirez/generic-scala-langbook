@@ -1,7 +1,6 @@
 package sword.langbook.db
 
 import sword.db.StorageManager
-import sword.langbook.db.registers.WordReferenceField
 
 case class Word(key :StorageManager.Key) {
   private def wordReg = key.registerOption.get.asInstanceOf[registers.Word]
@@ -22,7 +21,7 @@ case class Word(key :StorageManager.Key) {
   object concepts extends scala.collection.mutable.Set[Concept]() {
 
     private def filteredWordConcepts = {
-      key.storageManager.getMapFor(registers.Acceptation, WordReferenceField(key)).values
+      key.storageManager.getMapFor(registers.Acceptation, registers.Acceptation.WordReferenceField(key)).values
     }
 
     // TODO: This should check if the concept is already included, and avoid inserting anything in that case

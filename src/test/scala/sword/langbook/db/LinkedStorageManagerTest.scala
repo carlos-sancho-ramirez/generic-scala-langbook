@@ -15,6 +15,12 @@ class LinkedStorageManagerTest extends FlatSpec with Matchers {
     newManager
   }
 
+  it should "not repeat field definitions across registers" in {
+    val regDefs = newManager.registerDefinitions
+    val fields = regDefs.flatMap(_.fields)
+    fields.toSet.size shouldBe fields.size
+  }
+
   it can "insert a concept" in {
     val manager = newManager
     manager.concepts shouldBe empty

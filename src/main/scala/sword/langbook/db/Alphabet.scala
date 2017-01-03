@@ -1,7 +1,6 @@
 package sword.langbook.db
 
-import sword.db.{ForeignKeyField, StorageManager}
-import sword.langbook.db.registers.AlphabetReferenceField
+import sword.db.StorageManager
 
 case class Alphabet(key :StorageManager.Key) {
   def conceptKeyOpt = key.registerOption.map(_.asInstanceOf[registers.Alphabet].concept)
@@ -14,7 +13,7 @@ case class Alphabet(key :StorageManager.Key) {
 
     private def includedInWords = {
       val words = (for {
-        wordKey <- key.storageManager.getMapFor(registers.WordRepresentation, AlphabetReferenceField(key)).values.map(_.word)
+        wordKey <- key.storageManager.getMapFor(registers.WordRepresentation, registers.WordRepresentation.AlphabetReferenceField(key)).values.map(_.word)
         word <- key.storageManager.get(wordKey)
       } yield {
         word.asInstanceOf[registers.Word]

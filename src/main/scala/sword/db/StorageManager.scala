@@ -1,7 +1,7 @@
 package sword.db
 
 import sword.langbook.db.registers
-import sword.langbook.db.registers.{WordReferenceField, LanguageReferenceField}
+import sword.langbook.db.registers.WordReferenceFieldDefinition
 
 object StorageManager {
 
@@ -242,7 +242,8 @@ trait StorageManager {
    * @param language key for the language
    * @return Set of alphabet keys
    */
-  def getAlphabetSet(language: ForeignKeyField, wordRefFieldDef: ForeignKeyFieldDefinition): Set[Key] = {
+  def getAlphabetSet(language: ForeignKeyField): Set[Key] = {
+    val wordRefFieldDef = registers.WordRepresentation.WordReferenceField
     def keyExtractor(str: String) = {
       try {
         Some(obtainKey(wordRefFieldDef.target, 0, str.toInt))
@@ -277,7 +278,8 @@ trait StorageManager {
       sourceRegDef: RegisterDefinition[Register],
       targetRegDef: RegisterDefinition[R],
       filter: ForeignKeyField,
-      join: ForeignKeyFieldDefinition): Set[R] = Set()
+      joinLeft: ForeignKeyFieldDefinition,
+      joinRight: ForeignKeyFieldDefinition): Set[R] = Set()
 
   /**
    * Query and return all existing symbol arrays in the system.

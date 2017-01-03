@@ -25,10 +25,10 @@ trait FieldDefinition {
 trait CollectionReferenceFieldDefinition extends FieldDefinition {
   def target :CollectibleRegisterDefinition[Register]
 
-  protected def from: Register.CollectionId => CollectionReferenceField
+  protected def newField: Register.CollectionId => CollectionReferenceField
   override def from(value: String, keyExtractor: String => Option[StorageManager.Key]): Option[CollectionReferenceField] = {
     try {
-      Some(from(value.toInt))
+      Some(newField(value.toInt))
     }
     catch {
       case _: NumberFormatException => None
@@ -42,10 +42,10 @@ trait CollectionReferenceFieldDefinition extends FieldDefinition {
 trait NullableCollectionReferenceFieldDefinition extends FieldDefinition {
   def target :CollectibleRegisterDefinition[Register]
 
-  protected def from: Register.CollectionId => NullableCollectionReferenceField
+  protected def newField: Register.CollectionId => NullableCollectionReferenceField
   override def from(value: String, keyExtractor: String => Option[StorageManager.Key]): Option[NullableCollectionReferenceField] = {
     try {
-      Some(from(value.toInt))
+      Some(newField(value.toInt))
     }
     catch {
       case _: NumberFormatException => None
@@ -81,18 +81,13 @@ object IntFieldDefinition extends FieldDefinition {
   }
 }
 
-object LanguageCodeFieldDefinition extends FieldDefinition {
-  override def from(value: String, keyExtractor: String => Option[StorageManager.Key]): Option[LanguageCodeField] = {
-    Some(LanguageCodeField(value))
-  }
-}
-
 /**
  * Definition for fields containing a general-purpose char sequence (string).
  */
-object CharSequenceFieldDefinition extends FieldDefinition {
-  override def from(value: String, keyExtractor: String => Option[StorageManager.Key]): Option[CharSequenceField] = {
-    Some(CharSequenceField(value))
+trait CharSequenceFieldDefinition extends FieldDefinition {
+  def newField: String => AbstractCharSequenceField
+  override def from(value: String, keyExtractor: String => Option[StorageManager.Key]): Option[AbstractCharSequenceField] = {
+    Some(newField(value))
   }
 }
 
@@ -151,6 +146,7 @@ trait ForeignKeyField extends Field {
 
   override def hashCode = key.hashCode
   override def canEqual(other: Any) = other.isInstanceOf[ForeignKeyField]
+  override def toString = key.toString
 }
 
 trait NullableForeignKeyField extends Field {
@@ -166,6 +162,7 @@ trait NullableForeignKeyField extends Field {
 
   override def hashCode = key.hashCode
   override def canEqual(other: Any) = other.isInstanceOf[ForeignKeyField]
+  override def toString = key.toString
 }
 
 case class UnicodeField(value :Register.UnicodeType) extends Field {
@@ -198,34 +195,10 @@ case class IntField(value: Register.IntType) extends Field {
   override def canEqual(other: Any) = other.isInstanceOf[IntField]
 }
 
-case class CharSequenceField(value :String) extends Field {
-  override val definition = CharSequenceFieldDefinition
-  override val toString = value
-
-  override def equals(other: Any) = {
-    super.equals(other) && (other match {
-      case that: CharSequenceField => value == that.value
-      case _ => false
-    })
-  }
-
-  override def hashCode = Option(value).map(_.hashCode).getOrElse(0)
-  override def canEqual(other: Any) = other.isInstanceOf[UnicodeField]
-}
-
-case class LanguageCodeField(code :Register.LanguageCode) extends Field {
-  override val definition = LanguageCodeFieldDefinition
-  override val toString = code
-
-  override def equals(other: Any) = {
-    super.equals(other) && (other match {
-      case that: LanguageCodeField => code == that.code
-      case _ => false
-    })
-  }
-
-  override def hashCode = Option(code).map(_.hashCode).getOrElse(0)
-  override def canEqual(other: Any) = other.isInstanceOf[UnicodeField]
+trait AbstractCharSequenceField extends Field {
+  def value: String
+  override def definition: CharSequenceFieldDefinition
+  override def toString = value
 }
 
 /**

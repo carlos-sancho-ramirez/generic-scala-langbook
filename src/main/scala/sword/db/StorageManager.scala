@@ -186,22 +186,8 @@ trait StorageManager {
     }
   }
 
-  def getMapFor[R <: Register](registerDefinition: RegisterDefinition[R], filter: ForeignKeyField): scala.collection.Map[Key, R] = {
-    getMapFor(registerDefinition).filter {
-      case (key, reg) =>
-        reg.fields.collectFirst {
-          case f: ForeignKeyField if f.definition.target == filter.definition.target && f.key == filter.key => true
-        }.isDefined
-    }
-  }
-
-  def getMapFor[R <: Register](registerDefinition: RegisterDefinition[R], filter: CollectionReferenceField): scala.collection.Map[Key, R] = {
-    getMapFor(registerDefinition).filter {
-      case (key, reg) =>
-        reg.fields.collectFirst {
-          case f: CollectionReferenceField if f.definition.target == filter.definition.target && f.collectionId == filter.collectionId => true
-        }.isDefined
-    }
+  def getMapFor[R <: Register](registerDefinition: RegisterDefinition[R], filter: Field): scala.collection.Map[Key, R] = {
+    getMapFor(registerDefinition).filter(_._2.fields.contains(filter))
   }
 
   /**

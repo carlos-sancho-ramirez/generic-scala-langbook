@@ -11,11 +11,13 @@ case class Symbol(key :StorageManager.Key) {
   def unicode = key.registerOption.get.asInstanceOf[registers.Symbol].unicode
   def text = "" + unicode.toChar
 
+  /*
   def arraysWhereIncluded = {
     val storageManager = key.storageManager
     storageManager.getKeysFor(registers.SymbolPosition, SymbolReferenceField(key))
         .map(k => SymbolArray(storageManager, k.group))
   }
+  */
 
   //def alphabetsWhereIncluded = arraysWhereIncluded.flatMap(_.alphabetsWhereIncluded)
   def alphabetsWhereIncluded = key.storageManager.alphabetsWhereSymbolIncluded(key).map(Alphabet(_))

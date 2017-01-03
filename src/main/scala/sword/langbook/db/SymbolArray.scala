@@ -1,13 +1,22 @@
 package sword.langbook.db
 
 import sword.db.{Register, StorageManager}
-import sword.langbook.db.registers.SymbolArrayReferenceField
+import sword.langbook.db.registers.{NullableSymbolArrayReferenceField, SymbolArrayReferenceField}
 
-case class SymbolArray(storageManager :StorageManager, arrayId :Register.CollectionId) extends Seq[Symbol] {
+case class SymbolArray(storageManager: StorageManager, textKey: StorageManager.Key) extends Seq[Symbol] {
+
+  private def textReg = storageManager.get(textKey).get.asInstanceOf[redundant.Text]
+  def arrayId: Register.CollectionId = {
+    val id = textReg.symbolArray
+    if (id == 0) {
+      throw new AssertionError(s"Array does not exist for text with key '$textKey'")
+    }
+    id
+  }
 
   private def symbols = storageManager.getArray(registers.SymbolPosition, arrayId).map(symbolPosition => Symbol(symbolPosition.symbol))
 
-  override def length = symbols.length
+  override def length = textReg.text.length
   override def apply(idx :Int) = symbols(idx)
   override def iterator = symbols.iterator
 
@@ -18,13 +27,7 @@ case class SymbolArray(storageManager :StorageManager, arrayId :Register.Collect
     set.map(k => Alphabet(k))
   }
 
-  def text = {
-    val map = storageManager.getMapFor(redundant.Text, SymbolArrayReferenceField(arrayId)).values
-    if (map.isEmpty) {
-      println(s"Error: SymbolArray with id $arrayId not present in the redundant.Text table")
-    }
-    map.head.text
-  }
+  def text: String = textReg.text
 }
 
 object SymbolArray {
@@ -50,6 +53,11 @@ object SymbolArray {
       currentSymbols.get(char.toInt).map(key => registers.SymbolPosition(key)).get
     }
 
-    storageManager.insert(paramRegisters).map(apply(storageManager, _))
+    for {
+      arrayId <- storageManager.insert(paramRegisters)
+      textKey <- storageManager.insert(redundant.Text(arrayId, text))
+    } yield {
+      apply(storageManager, textKey)
+    }
   }
 }

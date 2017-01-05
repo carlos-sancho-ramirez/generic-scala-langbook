@@ -229,7 +229,8 @@ object Register {
   type UnicodeType = Int
   type LanguageCode = String // ISO 639-1: 2 lower-case char string uniquely identifying a language
 
-  val undefinedCollection :CollectionId = 0
+  val nullIndex: Register.Index = 0
+  val undefinedCollection: CollectionId = 0
 
   def collectionIdFrom(value: String): Option[CollectionId] = {
     try {

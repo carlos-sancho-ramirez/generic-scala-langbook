@@ -38,7 +38,7 @@ trait AbstractBunchReferenceField extends ForeignKeyField {
   override def definition: BunchReferenceFieldDefinition
 }
 
-trait NullableBunchReferenceFieldDefinition extends ForeignKeyFieldDefinition {
+trait NullableBunchReferenceFieldDefinition extends NullableForeignKeyFieldDefinition {
   def newField: Key => AbstractNullableBunchReferenceField
   override val target = Bunch
   override def from(value: String, keyExtractor: String => Option[Key]) = {
@@ -46,6 +46,6 @@ trait NullableBunchReferenceFieldDefinition extends ForeignKeyFieldDefinition {
   }
 }
 
-trait AbstractNullableBunchReferenceField extends ForeignKeyField {
+trait AbstractNullableBunchReferenceField extends NullableForeignKeyField {
   override def definition: NullableBunchReferenceFieldDefinition
 }

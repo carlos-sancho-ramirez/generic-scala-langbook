@@ -2,9 +2,13 @@ package sword.langbook.db.redundant
 
 import sword.db.{ForeignKeyField, _}
 import sword.db.StorageManager.Key
-import sword.langbook.db.registers.{AbstractNullableWordReferenceField, NullableWordReferenceFieldDefinition}
+import sword.langbook.db.registers.{AbstractNullableWordReferenceField, AbstractWordReferenceField, NullableWordReferenceFieldDefinition, WordReferenceFieldDefinition}
 
 object RedundantWord extends RegisterDefinition[RedundantWord] {
+
+  /**
+   * Reference to any existing word matching this
+   */
   object WordReferenceField extends NullableWordReferenceFieldDefinition {
     override def newField = apply
   }
@@ -12,23 +16,41 @@ object RedundantWord extends RegisterDefinition[RedundantWord] {
     override val definition = WordReferenceField
   }
 
-  override val fields = List(WordReferenceField)
+  /**
+   * Reference for the original word used to create this one.
+   */
+  object OriginalWordReferenceField extends WordReferenceFieldDefinition {
+    override def newField = apply
+  }
+  case class OriginalWordReferenceField(override val key: Key) extends AbstractWordReferenceField {
+    override val definition = OriginalWordReferenceField
+  }
+
+  override val fields = List(
+    WordReferenceField,
+    OriginalWordReferenceField
+  )
+
   override def from(values: Seq[String],
                     keyExtractor: FieldDefinition => (String) => Option[Key]) = {
     if (values.size == fields.size) {
       for {
         word <- keyExtractor(WordReferenceField)(values.head)
+        originalWord <- keyExtractor(OriginalWordReferenceField)(values(1))
       } yield {
-        RedundantWord(word)
+        RedundantWord(word, originalWord)
       }
     }
     else None
   }
 }
 
-case class RedundantWord(word: Key) extends Register {
+case class RedundantWord(word: Key, originalWord: Key) extends Register {
   override val definition = RedundantWord
-  override val fields = List(RedundantWord.WordReferenceField(word))
+  override val fields = List(
+    RedundantWord.WordReferenceField(word),
+    RedundantWord.OriginalWordReferenceField(originalWord)
+  )
 }
 
 trait RedundantWordReferenceFieldDefinition extends ForeignKeyFieldDefinition {

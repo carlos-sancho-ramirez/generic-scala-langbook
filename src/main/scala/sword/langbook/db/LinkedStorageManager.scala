@@ -18,6 +18,7 @@ case class LinkedStorageManager(storageManagerFactory: List[RegisterDefinition[R
       registers.Conversion,
       registers.Correlation,
       registers.Bunch,
+      registers.BunchWord,
       registers.Agent,
       redundant.Text,
       redundant.RedundantWord,

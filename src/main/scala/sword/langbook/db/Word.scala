@@ -4,6 +4,8 @@ import sword.db.StorageManager
 
 case class Word(key :StorageManager.Key) {
   private def wordReg = key.registerOption.get.asInstanceOf[registers.Word]
+  private def redundantWordKey = key.storageManager.getMapFor(redundant.RedundantWord, redundant.RedundantWord.WordReferenceField(key)).keys.head
+
   def language = Language(wordReg.language)
   def representation = Representation(key.storageManager, key)
   def text = representation.text
@@ -55,6 +57,9 @@ case class Word(key :StorageManager.Key) {
       }
     }
   }
+
+  lazy val bunches = key.storageManager.getMapFor(redundant.ResolvedBunch,
+      redundant.ResolvedBunch.RedundantWordReferenceField(redundantWordKey)).map(pair => Bunch(pair._2.bunch))
 
   lazy val synonyms = new scala.collection.AbstractSet[Word]() {
     private def wrappedSet = concepts.flatMap(_.wordsForLanguage(language))

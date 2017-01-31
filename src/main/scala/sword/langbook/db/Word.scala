@@ -2,7 +2,7 @@ package sword.langbook.db
 
 import sword.db.StorageManager
 
-case class Word(key :StorageManager.Key) {
+case class Word(override val key :StorageManager.Key) extends Selectable {
   private def wordReg = key.registerOption.get.asInstanceOf[registers.Word]
   private def redundantWordKey = key.storageManager.getMapFor(redundant.RedundantWord, redundant.RedundantWord.WordReferenceField(key)).keys.head
 
@@ -10,12 +10,7 @@ case class Word(key :StorageManager.Key) {
   def representation = Representation(key.storageManager, key)
   def text = representation.text
 
-  /**
-   * Return the suitable human readable string for this word based on the preferredAlphabet
-    *
-    * @return A Some instance with the string inside, or None if no text is found for this word.
-   */
-  def suitableText: Option[String] = {
+  override def suitableText: Option[String] = {
     val preferredText = text.get(language.preferredAlphabet)
     if (preferredText.isEmpty) text.values.headOption else preferredText
   }

@@ -289,6 +289,12 @@ trait StorageManager {
   def allStringArray: Map[Key, List[String]] = Map()
 
   /**
+   * Retrieve a map containing all keys for words included in a given bunch as key,
+   * and a list of all text combinations as value.
+   */
+  def allWordTexts(bunch: Key): Map[Key /* Word */, List[String]] = Map()
+
+  /**
    * Trial to boost up the synonyms search
    */
   def isConceptDuplicated(alphabet: Key) = false

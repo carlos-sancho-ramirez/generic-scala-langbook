@@ -74,6 +74,25 @@ case class Word(override val key :StorageManager.Key) extends Selectable {
     override def -(elem: Word): collection.Set[Word] = wrappedSet + elem
     override def iterator = wrappedSet.iterator
   }
+
+  // TODO: Keys of this map should not be plain strings as they are not translatable
+  lazy val morphologies: Map[String /* Bunch name */, String /* Word text */] = {
+    val manager = key.storageManager
+    val preferredAlphabet = language.preferredAlphabet.key
+    val targetBunches = manager.getMapFor(registers.Agent).collect {
+      case (_, agent) if registers.Agent.Flags.shouldModify(agent.flags) => agent.targetBunch
+    }.toSet
+
+    val redundantWordKeysForOriginal = manager.getMapFor(redundant.RedundantWord, redundant.RedundantWord.OriginalWordReferenceField(key)).keySet
+
+    manager.getMapFor(redundant.ResolvedBunch).collect {
+      case (_, reg) if targetBunches(reg.bunch) && redundantWordKeysForOriginal(reg.word) =>
+        val wordTexts = manager.getMapFor(redundant.WordText, redundant.WordText.RedundantWordReferenceField(reg.word))
+        val suitableWordText = wordTexts.find(_._2.alphabet == preferredAlphabet).getOrElse(wordTexts.head)
+        val textKey = suitableWordText._2.text
+        (Bunch(reg.bunch).name, manager.get(textKey).get.asInstanceOf[redundant.Text].text)
+    }.toMap
+  }
 }
 
 object Word extends ElementFactory[registers.Word, Word] {

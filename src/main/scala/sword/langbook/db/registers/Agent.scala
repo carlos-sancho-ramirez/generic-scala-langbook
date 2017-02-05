@@ -2,8 +2,6 @@ package sword.langbook.db.registers
 
 import sword.db.StorageManager.Key
 import sword.db._
-import sword.langbook.db.redundant.Text.SymbolArrayReferenceField
-import sword.langbook.db.registers.Language.ConceptReferenceField
 
 object Agent extends RegisterDefinition[Agent] {
   object Flags {
@@ -15,20 +13,12 @@ object Agent extends RegisterDefinition[Agent] {
     private val nonModify = 0
     private val modify = 2
 
-    // Bit 2 determines if the correlation is to remove or append to the given representation
-    // (only relevant if bit 1 is set, if bit 1 is cleared this should be cleared as well)
-    private val remove = 0
-    private val add = 4
-
     val matchStart = nonModify | fromStart
     val matchEnd = nonModify | fromEnd
-    val removeStart = modify | remove | fromStart
-    val removeEnd = modify | remove | fromEnd
-    val prepend = modify | add | fromStart
-    val append = modify | add | fromEnd
+    val modifyStart = modify | fromStart
+    val modifyEnd = modify | fromEnd
 
     def startSide(flags: Int) = (flags & fromEnd) == 0
-    def shouldFilterFromSource(flags: Int) = (flags & add) == 0
     def shouldModify(flags: Int) = (flags & modify) != 0
   }
 
@@ -53,18 +43,26 @@ object Agent extends RegisterDefinition[Agent] {
     override val definition = DiffBunchReferenceField
   }
 
-  object CorrelationReferenceField extends NullableCorrelationReferenceFieldDefinition {
+  object MatchCorrelationReferenceField extends NullableCorrelationReferenceFieldDefinition {
     override def newField = apply
   }
-  case class CorrelationReferenceField(override val collectionId: Register.CollectionId) extends AbstractNullableCorrelationReferenceField {
-    override val definition = CorrelationReferenceField
+  case class MatchCorrelationReferenceField(override val collectionId: Register.CollectionId) extends AbstractNullableCorrelationReferenceField {
+    override val definition = MatchCorrelationReferenceField
+  }
+
+  object AddCorrelationReferenceField extends NullableCorrelationReferenceFieldDefinition {
+    override def newField = apply
+  }
+  case class AddCorrelationReferenceField(override val collectionId: Register.CollectionId) extends AbstractNullableCorrelationReferenceField {
+    override val definition = AddCorrelationReferenceField
   }
 
   override def fields = Vector(
     SourceBunchReferenceField,
     TargetBunchReferenceField,
     DiffBunchReferenceField,
-    CorrelationReferenceField,
+    MatchCorrelationReferenceField,
+    AddCorrelationReferenceField,
     IntFieldDefinition)
 
   override def from(values: Seq[String],
@@ -74,10 +72,11 @@ object Agent extends RegisterDefinition[Agent] {
         sourceBunchKey <- keyExtractor(SourceBunchReferenceField)(values.head)
         targetBunchKey <- keyExtractor(TargetBunchReferenceField)(values(1))
         diffBunchKey <- keyExtractor(DiffBunchReferenceField)(values(2))
-        correlationId <- Register.collectionIdFrom(values(3))
-        flags <- Register.intTypeFrom(values(4))
+        matchCorrelationId <- Register.collectionIdFrom(values(3))
+        addCorrelationId <- Register.collectionIdFrom(values(4))
+        flags <- Register.intTypeFrom(values(5))
       } yield {
-        Agent(sourceBunchKey, targetBunchKey, diffBunchKey, correlationId, flags)
+        Agent(sourceBunchKey, targetBunchKey, diffBunchKey, matchCorrelationId, addCorrelationId, flags)
       }
     }
     else None
@@ -85,13 +84,14 @@ object Agent extends RegisterDefinition[Agent] {
 }
 
 case class Agent(sourceBunch: StorageManager.Key, targetBunch: StorageManager.Key,
-                 diffBunch: StorageManager.Key, correlation: Register.CollectionId,
-                 flags: Register.IntType) extends Register {
+                 diffBunch: StorageManager.Key, matchCorrelation: Register.CollectionId,
+                 addCorrelation: Register.CollectionId, flags: Register.IntType) extends Register {
   override def definition = Agent
   override def fields = Vector(
     Agent.SourceBunchReferenceField(sourceBunch),
     Agent.TargetBunchReferenceField(targetBunch),
     Agent.DiffBunchReferenceField(diffBunch),
-    Agent.CorrelationReferenceField(correlation),
+    Agent.MatchCorrelationReferenceField(matchCorrelation),
+    Agent.AddCorrelationReferenceField(addCorrelation),
     IntField(flags)) // TODO: Avoid using generic int field type an use proper flags field
 }

@@ -10,15 +10,40 @@ case class Concept(key: StorageManager.Key) {
 
   def hint = hintOpt.get
 
-  def words = {
-    key.storageManager.getMapFor(registers.Acceptation, registers.Acceptation.ConceptReferenceField(key)).map {
-      case (_, reg) =>
-        Word(reg.word)
-    }
+  def wordRegisterMap = key.storageManager
+      .getMapFor(registers.Acceptation, registers.Acceptation.ConceptReferenceField(key))
+
+  def words = wordRegisterMap.map(pair => Word(pair._2.word))
+
+  def wordMap: scala.collection.Map[StorageManager.Key, registers.Word] = {
+    val filter = registers.Acceptation.ConceptReferenceField(key)
+    val foreignKeyFieldDef = registers.Acceptation.WordReferenceField
+    key.storageManager.getForeignMap(registers.Acceptation, registers.Word, filter, foreignKeyFieldDef)
   }
 
-  def wordsForLanguage(language :Language) = {
-    words.filter(_.language == language)
+  /**
+   * Return an iterable collection for all words linked to this concept that also belong
+   * to the given language, or an empty collection if none.
+   */
+  def wordsForLanguage(language :Language) = wordMap.collect {
+    case (regKey, reg: registers.Word) if reg.language == language.key =>
+      Word(regKey)
+  }
+
+  /**
+   * Return word representing this concept. First this method tries to return a word for
+   * the given language. If none, any from any other language. If no word is linked to
+   * this concept, None will be returned.
+   */
+  def wordForLanguageOrFirst(language: Language): Option[Word] = {
+    var wordKey: StorageManager.Key = null
+    wordMap.exists { pair =>
+      wordKey = pair._1
+      pair._2.language == language.key
+    }
+
+    if (wordKey != null) Some(Word(wordKey))
+    else None
   }
 
   def types = {

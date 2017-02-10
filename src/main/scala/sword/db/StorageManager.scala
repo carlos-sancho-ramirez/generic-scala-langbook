@@ -226,6 +226,7 @@ trait StorageManager {
 
   /**
     * Returns an array of registers
+    *
     * @param registerDefinition Type of the register to be retrieved. This must be one of the
     *                           definitions in {@link #registerDefinitions}
     * @param id Identifier for the array to be retrieved.
@@ -239,7 +240,8 @@ trait StorageManager {
   /**
    * Trial to get all alphabets for a given language. This will not include preferred alphabet if
    * no word is defined for it.
-   * @param language key for the language
+    *
+    * @param language key for the language
    * @return Set of alphabet keys
    */
   def getAlphabetSet(language: ForeignKeyField): Set[Key] = {
@@ -259,6 +261,36 @@ trait StorageManager {
       repr <- getMapFor(registers.WordRepresentation, wordRefField).values
     } yield {
       repr.alphabet
+    }
+  }
+
+  /**
+   * Makes a join of 2 tables where the first one includes a foreign key of the second one.
+   *
+   * @param regDef Register definition for the first table
+   * @param targetRegDef Register definition for the second table.
+   *                     This is redundant as it can be extracted from the foreign key field,
+   *                     but having this we can ensure type safety.
+   * @param filter Field for the first table. This is used to filter the results
+   * @param sourceJoinFieldDefinition: Field definition for the first table
+   * @return A Map for all matching registers in the second table
+   */
+  def getForeignMap[R <: Register](
+      regDef: RegisterDefinition[Register],
+      targetRegDef: RegisterDefinition[R],
+      filter: Field,
+      sourceJoinFieldDefinition: ForeignKeyFieldDefinition): scala.collection.Map[Key, R] = {
+
+    val fieldIndex = regDef.fields.indexOf(sourceJoinFieldDefinition)
+    getMapFor(regDef, filter).map { pair =>
+      val regKey = pair._2.fields(fieldIndex).asInstanceOf[ForeignKeyField].key
+      val newReg = get(regKey).get.asInstanceOf[R]
+
+      if (newReg.definition != targetRegDef) {
+        throw new AssertionError("Wrong register definition")
+      }
+
+      (regKey, newReg)
     }
   }
 

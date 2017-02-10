@@ -35,13 +35,7 @@ case class Alphabet(key :StorageManager.Key) {
    * @param preferredLanguage Desired language that the user would like to read.
    */
   def suitableTextForLanguage(preferredLanguage: Language): Option[String] = {
-    val preferredWordOption = concept.wordsForLanguage(preferredLanguage).headOption
-    val wordOption = {
-      if (preferredWordOption.isDefined) preferredWordOption
-      else concept.words.headOption
-    }
-
-    wordOption.flatMap(_.suitableText)
+    concept.wordForLanguageOrFirst(preferredLanguage).flatMap(_.suitableText)
   }
 
   def symbols = key.storageManager.allSymbolsInAlphabet(key).map(Symbol(_))

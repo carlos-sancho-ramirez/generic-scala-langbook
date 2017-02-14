@@ -62,11 +62,14 @@ object TranslationQuestion {
   }
 
   def findPossibleQuestionTypes(manager: LinkedStorageManager): Set[(Language, Language, Set[Alphabet], Set[Alphabet])] = {
+    val languages = manager.languages.values
+    val alphabets = languages.map(lang => (lang, lang.alphabets.toSet)).toMap
+
     (for {
-      sourceLanguage <- manager.languages.values
-      targetLanguage <- manager.languages.values if targetLanguage != sourceLanguage
-      sources <- sourceLanguage.alphabets.toSet.subsets() if sources != Set[Alphabet]()
-      targets <- targetLanguage.alphabets.toSet.subsets() if targets != Set[Alphabet]()
+      sourceLanguage <- languages
+      targetLanguage <- languages if targetLanguage != sourceLanguage
+      sources <- alphabets(sourceLanguage).subsets if sources.nonEmpty
+      targets <- alphabets(targetLanguage).subsets if targets.nonEmpty
     } yield {
       (sourceLanguage, targetLanguage, sources, targets)
     }).toSet

@@ -6,21 +6,14 @@ import scala.collection.Set
 
 case class Language(key :StorageManager.Key) {
   def fields = key.registerOption.map(_.fields).getOrElse(Seq())
-  def conceptKeyOpt = fields.collectFirst {
-    case field: ForeignKeyField if field.definition.target == registers.Concept => field.key
-  }
-  def preferredAlphabetKeyOpt = fields.collectFirst {
-    case field: ForeignKeyField if field.definition.target == registers.Alphabet => field.key
-  }
-
+  def conceptKeyOpt = key.registerOption.map(_.asInstanceOf[registers.Language].concept)
+  def preferredAlphabetKeyOpt = key.registerOption.map(_.asInstanceOf[registers.Language].preferredAlphabet)
   def concept = Concept(conceptKeyOpt.get)
 
   /**
    * Returns the ISO 639-1 2 lower-case char string that uniquely identifies this language
    */
-  def code = fields.collectFirst {
-    case field: registers.Language.LanguageCodeField => field.value
-  }.get
+  def code = key.registerOption.head.asInstanceOf[registers.Language].code
 
   /**
    * Returns a human readable string for this language.

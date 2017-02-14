@@ -7,7 +7,7 @@ case class Word(override val key :StorageManager.Key) extends Selectable {
   private def redundantWordKey = key.storageManager.getMapFor(redundant.RedundantWord, redundant.RedundantWord.WordReferenceField(key)).keys.head
 
   def language = Language(wordReg.language)
-  def representation = Representation(key.storageManager, key)
+  def representation = Representation(key)
   def text = representation.text
 
   override def suitableText: Option[String] = {

@@ -186,8 +186,12 @@ trait StorageManager {
     }
   }
 
-  def getMapFor[R <: Register](registerDefinition: RegisterDefinition[R], filter: Field): scala.collection.Map[Key, R] = {
-    getMapFor(registerDefinition).filter(_._2.fields.contains(filter))
+  def getMapFor[R <: Register](registerDefinition: RegisterDefinition[R], filters: Field*): scala.collection.Map[Key, R] = {
+    getMapFor(registerDefinition).filter {
+      case (_, reg) =>
+        val fields = reg.fields
+        filters.forall(filter => fields.contains(filter))
+    }
   }
 
   /**
@@ -278,11 +282,11 @@ trait StorageManager {
   def getForeignMap[R <: Register](
       regDef: RegisterDefinition[Register],
       targetRegDef: RegisterDefinition[R],
-      filter: Field,
-      sourceJoinFieldDefinition: ForeignKeyFieldDefinition): scala.collection.Map[Key, R] = {
+      sourceJoinFieldDefinition: ForeignKeyFieldDefinition,
+      filters: Field*): scala.collection.Map[Key, R] = {
 
     val fieldIndex = regDef.fields.indexOf(sourceJoinFieldDefinition)
-    getMapFor(regDef, filter).map { pair =>
+    getMapFor(regDef, filters: _*).map { pair =>
       val regKey = pair._2.fields(fieldIndex).asInstanceOf[ForeignKeyField].key
       val newReg = get(regKey).get.asInstanceOf[R]
 

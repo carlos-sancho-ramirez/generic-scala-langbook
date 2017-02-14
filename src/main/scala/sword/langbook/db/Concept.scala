@@ -18,7 +18,7 @@ case class Concept(key: StorageManager.Key) {
   def wordMap: scala.collection.Map[StorageManager.Key, registers.Word] = {
     val filter = registers.Acceptation.ConceptReferenceField(key)
     val foreignKeyFieldDef = registers.Acceptation.WordReferenceField
-    key.storageManager.getForeignMap(registers.Acceptation, registers.Word, filter, foreignKeyFieldDef)
+    key.storageManager.getForeignMap(registers.Acceptation, registers.Word, foreignKeyFieldDef, filter)
   }
 
   /**

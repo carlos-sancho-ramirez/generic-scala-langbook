@@ -2,8 +2,9 @@ package sword.langbook.db
 
 import sword.db.{Register, StorageManager}
 
-case class SymbolArray(storageManager: StorageManager, textKey: StorageManager.Key) extends Seq[Symbol] {
+case class SymbolArray(textKey: StorageManager.Key) extends Seq[Symbol] {
 
+  private val storageManager = textKey.storageManager
   private def textReg = storageManager.get(textKey).get.asInstanceOf[redundant.Text]
   def arrayId: Register.CollectionId = {
     val id = textReg.symbolArray
@@ -55,7 +56,7 @@ object SymbolArray {
       arrayId <- storageManager.insert(paramRegisters)
       textKey <- storageManager.insert(redundant.Text(arrayId, text))
     } yield {
-      apply(storageManager, textKey)
+      apply(textKey)
     }
   }
 }

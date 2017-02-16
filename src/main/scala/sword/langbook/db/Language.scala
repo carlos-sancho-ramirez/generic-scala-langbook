@@ -51,6 +51,9 @@ case class Language(key :StorageManager.Key) {
     override def iterator = innerSet.iterator
   }
 
+  def wordCount = key.storageManager
+    .getKeysFor(registers.Word, registers.Word.LanguageReferenceField(key)).size
+
   override def equals(other: Any) = {
     other.isInstanceOf[Language] && key == other.asInstanceOf[Language].key
   }

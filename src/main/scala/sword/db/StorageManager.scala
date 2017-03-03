@@ -306,7 +306,8 @@ trait StorageManager {
    * @param targetRegDef Second table to be used in a JOIN
    * @param filter ForeignKeyField included in the first table. This is used to filter results and
    *               only take the ones matching the given key.
-   * @param join FieldDefinition common in both tables. This is use to join the tables.
+   * @param joinLeft FieldDefinition for the source table to match with joinRight.
+   * @param joinRight FieldDefinition for the target table to match with joinLeft
    * @tparam R RegisterDefinition for the second table
    * @return A set of all registers in the second table that remained after filtering
    */
@@ -314,8 +315,8 @@ trait StorageManager {
       sourceRegDef: RegisterDefinition[Register],
       targetRegDef: RegisterDefinition[R],
       filter: ForeignKeyField,
-      joinLeft: ForeignKeyFieldDefinition,
-      joinRight: ForeignKeyFieldDefinition): Set[R] = Set()
+      joinLeft: FieldDefinition,
+      joinRight: FieldDefinition): Set[R] = Set()
 
   /**
    * Query and return all existing symbol arrays in the system.
